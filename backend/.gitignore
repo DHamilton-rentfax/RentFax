@@ -1,10 +1,22 @@
-# Ignore node modules and environment files
-node_modules
+# Node
+node_modules/
 .env
 .env.local
 .env.production
+dist/
+build/
+*.log
 
-# Ignore logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# macOS
+.DS_Store
+
+# dotenv
+.env.*
+
+# Docker
+*.pid
+*.sock
+
+# IDE
+.vscode/
+.idea/
