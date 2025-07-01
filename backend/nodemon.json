@@ -1,0 +1,6 @@
+{
+  "watch": ["server.js", ".env", "config.js"],
+  "ext": "js,json,env",
+  "ignore": ["node_modules"],
+  "exec": "node scripts/killPort.js && node server.js"
+}
