@@ -1,6 +1,10 @@
 {
     "files.associations": {
       "*.css": "tailwindcss"
-    }
+    },
+    "workbench.settings.useSplitJSON": false,
+    "terminal.integrated.commandsToSkipShell": [
+      ".gitignore"
+    ]
   }
   
