@@ -5,7 +5,7 @@ import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 
 export const metadata: Metadata = {
-  title: 'RentSafe | Verified Rental Intelligence',
+  title: 'RentFAX | Verified Rental Intelligence',
   description: 'Improving rental decisions for properties and vehicles with data-driven insights.',
   icons: {
     icon: '/favicon.ico',
@@ -27,7 +27,7 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lexend:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
       </head>
