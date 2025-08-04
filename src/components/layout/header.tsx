@@ -25,7 +25,7 @@ export default function Header() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2">
           <Building2 className="h-6 w-6 text-primary" />
-          <span className="font-headline text-xl font-bold">Rentfax</span>
+          <span className="font-headline text-xl font-bold">RentFAX</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-6">
@@ -61,7 +61,7 @@ export default function Header() {
               <div className="flex justify-between items-center p-4 border-b">
                  <Link href="/" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
                     <Building2 className="h-6 w-6 text-primary" />
-                    <span className="font-headline text-xl font-bold">Rentfax</span>
+                    <span className="font-headline text-xl font-bold">RentFAX</span>
                   </Link>
                   <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
                       <X className="h-6 w-6" />

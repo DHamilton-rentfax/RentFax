@@ -20,11 +20,11 @@ export default function TestimonialCard({
   dataAiHint,
 }: TestimonialCardProps) {
   return (
-    <Card className="h-full flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300">
+    <Card className="h-full flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300 border-none">
       <CardContent className="p-6 flex flex-col flex-grow">
         <div className="flex mb-4">
           {[...Array(5)].map((_, i) => (
-            <Star key={i} className="w-5 h-5 text-accent fill-accent" />
+            <Star key={i} className="w-5 h-5 text-yellow-400 fill-yellow-400" />
           ))}
         </div>
         <blockquote className="text-foreground flex-grow">
