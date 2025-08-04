@@ -2,10 +2,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import TestimonialCard from '@/components/testimonial-card';
 import {
-  FileText,
-  UserX,
-  Users,
-  ShieldQuestion,
+  BrainCircuit,
+  History,
+  ShieldAlert,
+  BadgeCheck,
+  Flag,
+  LineChart,
   Database,
   Search,
   CheckCircle,
@@ -14,28 +16,40 @@ import Link from 'next/link';
 
 const features = [
   {
-    icon: <FileText className="w-12 h-12 text-primary" />,
-    title: 'Comprehensive Risk Reports',
-    description: 'Get a detailed renter profile with a risk score, flags for missed payments, and a timeline of prior rental incidents.',
-    dataAiHint: 'document report',
+    icon: <BrainCircuit className="w-12 h-12 text-primary" />,
+    title: 'Renter Risk Scoring',
+    description: 'Instantly calculate renter risk using behavioral, financial, and fraud signals with each application.',
+    dataAiHint: 'brain circuit',
   },
   {
-    icon: <UserX className="w-12 h-12 text-primary" />,
-    title: 'Unauthorized Driver Tracking',
-    description: 'Receive alerts when someone other than the approved renter drives a vehicle, protecting your assets from misuse.',
-    dataAiHint: 'user alert',
+    icon: <History className="w-12 h-12 text-primary" />,
+    title: 'Rental History Timeline',
+    description: 'Access incident-level history like damage, smoke, or late returns submitted by verified rental operators.',
+    dataAiHint: 'history document',
   },
   {
-    icon: <Users className="w-12 h-12 text-primary" />,
-    title: 'Friends of Debtors System',
-    description: 'Our system alerts you to renters associated with individuals who have outstanding debts or negative rental histories.',
-    dataAiHint: 'people connection',
+    icon: <ShieldAlert className="w-12 h-12 text-primary" />,
+    title: 'AI Fraud Detection',
+    description: 'Prevent scams with facial recognition, ID analysis, and real-time behavioral modeling.',
+    dataAiHint: 'fraud detection',
   },
   {
-    icon: <ShieldQuestion className="w-12 h-12 text-primary" />,
-    title: 'Dispute & Evidence System',
-    description: 'A transparent system that allows renters to view their report and dispute inaccuracies with evidence.',
-    dataAiHint: 'legal document',
+    icon: <BadgeCheck className="w-12 h-12 text-primary" />,
+    title: 'Verified Identity & License',
+    description: 'Cross-check state-issued licenses, expiration status, and digital ID matches in seconds.',
+    dataAiHint: 'identity verification',
+  },
+  {
+    icon: <Flag className="w-12 h-12 text-primary" />,
+    title: 'Network-Wide Flag System',
+    description: 'See alerts from other companies about renters flagged for damage, nonpayment, or fraud.',
+    dataAiHint: 'alert flag',
+  },
+  {
+    icon: <LineChart className="w-12 h-12 text-primary" />,
+    title: 'Smart Pricing Insights',
+    description: 'Compare pricing across similar inventory in real-time and get recommendations on profitable pricing.',
+    dataAiHint: 'chart analytics',
   },
 ];
 
@@ -93,10 +107,10 @@ export default function Home() {
       <section className="w-full bg-background py-20 md:py-32">
         <div className="container mx-auto text-center px-4">
           <h1 className="font-headline text-4xl md:text-6xl font-bold tracking-tighter mb-4">
-            Know Your Renter. Minimize Your Risk.
+            The Data-Driven Way to Rent
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-            RentFAX generates a comprehensive Risk Score and Report by compiling behavioral, payment, and incident data from past rental experiences.
+            RentFAX provides the rental history and risk profile you need to make safer, smarter decisions. For properties, vehicles, and more.
           </p>
           <div className="flex justify-center gap-4">
             <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
@@ -113,13 +127,13 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="font-headline text-3xl md:text-4xl font-bold">
-              A Smarter Way to Screen Renters
+              RentFAX Core Features
             </h2>
             <p className="text-lg text-muted-foreground mt-2">
               Powerful tools to protect your rental business.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature) => (
               <Card key={feature.title} className="text-center shadow-lg hover:shadow-xl transition-shadow duration-300 border-none">
                 <CardHeader>
