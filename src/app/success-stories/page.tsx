@@ -1,4 +1,5 @@
 import TestimonialCard from '@/components/testimonial-card';
+import Image from 'next/image';
 
 const testimonials = [
   {
@@ -7,6 +8,8 @@ const testimonials = [
     name: 'Sarah L.',
     title: 'Property Manager',
     avatar: 'SL',
+    imageUrl: 'https://placehold.co/100x100.png',
+    dataAiHint: 'woman smiling',
   },
   {
     quote:
@@ -14,6 +17,8 @@ const testimonials = [
     name: 'Michael B.',
     title: 'Real Estate Investor',
     avatar: 'MB',
+    imageUrl: 'https://placehold.co/100x100.png',
+    dataAiHint: 'man portrait',
   },
   {
     quote:
@@ -21,6 +26,8 @@ const testimonials = [
     name: 'Jessica T.',
     title: 'Landlord',
     avatar: 'JT',
+    imageUrl: 'https://placehold.co/100x100.png',
+    dataAiHint: 'woman portrait',
   },
    {
     quote:
@@ -28,6 +35,8 @@ const testimonials = [
     name: 'David G.',
     title: 'Leasing Agent',
     avatar: 'DG',
+    imageUrl: 'https://placehold.co/100x100.png',
+    dataAiHint: 'man smiling',
   },
    {
     quote:
@@ -35,6 +44,8 @@ const testimonials = [
     name: 'Emily R.',
     title: 'Small Portfolio Owner',
     avatar: 'ER',
+    imageUrl: 'https://placehold.co/100x100.png',
+    dataAiHint: 'woman happy',
   },
   {
     quote:
@@ -42,6 +53,8 @@ const testimonials = [
     name: 'Chris P.',
     title: 'First-time Landlord',
     avatar: 'CP',
+    imageUrl: 'https://placehold.co/100x100.png',
+    dataAiHint: 'man happy',
   },
 ];
 

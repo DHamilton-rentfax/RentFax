@@ -9,6 +9,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const features = [
   {
@@ -44,6 +45,8 @@ const testimonials = [
     name: 'Sarah L.',
     title: 'Property Manager',
     avatar: 'SL',
+    imageUrl: 'https://placehold.co/100x100.png',
+    dataAiHint: 'woman smiling',
   },
   {
     quote:
@@ -51,6 +54,8 @@ const testimonials = [
     name: 'Michael B.',
     title: 'Real Estate Investor',
     avatar: 'MB',
+    imageUrl: 'https://placehold.co/100x100.png',
+    dataAiHint: 'man portrait',
   },
   {
     quote:
@@ -58,6 +63,8 @@ const testimonials = [
     name: 'Jessica T.',
     title: 'Landlord',
     avatar: 'JT',
+    imageUrl: 'https://placehold.co/100x100.png',
+    dataAiHint: 'woman portrait',
   },
 ];
 
