@@ -2,38 +2,38 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import TestimonialCard from '@/components/testimonial-card';
 import {
-  Car,
   FileText,
-  ShieldCheck,
-  Bot,
+  UserX,
+  Users,
+  ShieldQuestion,
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
 const features = [
   {
-    icon: <ShieldCheck className="w-12 h-12 text-primary" />,
-    title: 'Comprehensive Renter Analysis',
-    description: 'Our in-depth screening goes beyond credit scores, giving you a complete picture of applicant risk for any rental type.',
-    dataAiHint: 'security analysis',
-  },
-  {
     icon: <FileText className="w-12 h-12 text-primary" />,
-    title: 'Detailed Rental History',
-    description: 'Verify past rental performance and payment history to choose reliable renters with confidence.',
+    title: 'Comprehensive Risk Reports',
+    description: 'Get a detailed renter profile with a risk score, flags for missed payments, and a timeline of prior rental incidents.',
     dataAiHint: 'document report',
   },
   {
-    icon: <Car className="w-12 h-12 text-primary" />,
-    title: 'Vehicle-Specific History',
-    description: 'Access driving records and vehicle history reports for car rentals, ensuring your assets are protected.',
-    dataAiHint: 'car safety',
+    icon: <UserX className="w-12 h-12 text-primary" />,
+    title: 'Unauthorized Driver Tracking',
+    description: 'Receive alerts when someone other than the approved renter drives a vehicle, protecting your assets from misuse.',
+    dataAiHint: 'user alert',
   },
   {
-    icon: <Bot className="w-12 h-12 text-primary" />,
-    title: 'AI-Powered Insights',
-    description: 'Leverage AI to get smart recommendations and predict outcomes for both property and vehicle rentals.',
-    dataAiHint: 'robot intelligence',
+    icon: <Users className="w-12 h-12 text-primary" />,
+    title: 'Friends of Debtors System',
+    description: 'Our system alerts you to renters associated with individuals who have outstanding debts or negative rental histories.',
+    dataAiHint: 'people connection',
+  },
+  {
+    icon: <ShieldQuestion className="w-12 h-12 text-primary" />,
+    title: 'Dispute & Evidence System',
+    description: 'A transparent system that allows renters to view their report and dispute inaccuracies with evidence.',
+    dataAiHint: 'legal document',
   },
 ];
 
@@ -73,11 +73,10 @@ export default function Home() {
       <section className="w-full bg-card py-20 md:py-32">
         <div className="container mx-auto text-center px-4">
           <h1 className="font-headline text-4xl md:text-6xl font-bold tracking-tighter mb-4">
-            Smarter Rentals, Secured.
+            Know Your Renter. Minimize Your Risk.
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-            Leverage data-driven insights and AI-powered screening to find the
-            most reliable renters for your properties and vehicles.
+            Rentfax generates a comprehensive Risk Score and Report by compiling behavioral, payment, and incident data from past rental experiences.
           </p>
           <div className="flex justify-center gap-4">
             <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground">
@@ -94,10 +93,10 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="font-headline text-3xl md:text-4xl font-bold">
-              Why Choose Rentfax?
+              A Smarter Way to Screen Renters
             </h2>
             <p className="text-lg text-muted-foreground mt-2">
-              Everything you need to make confident leasing decisions.
+              Powerful tools to protect your rental business.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
