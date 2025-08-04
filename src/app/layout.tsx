@@ -5,8 +5,8 @@ import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 
 export const metadata: Metadata = {
-  title: 'Rentfax Revamp',
-  description: 'Improving rental decisions with data-driven insights.',
+  title: 'RentSafe | Verified Rental Intelligence',
+  description: 'Improving rental decisions for properties and vehicles with data-driven insights.',
   icons: {
     icon: '/favicon.ico',
   },

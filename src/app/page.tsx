@@ -2,11 +2,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import TestimonialCard from '@/components/testimonial-card';
 import {
-  BarChart,
-  Bot,
-  CheckCircle,
+  Car,
   FileText,
   ShieldCheck,
+  Bot,
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -14,26 +13,26 @@ import Image from 'next/image';
 const features = [
   {
     icon: <ShieldCheck className="w-12 h-12 text-primary" />,
-    title: 'Comprehensive Risk Analysis',
-    description: 'Our in-depth tenant screening goes beyond credit scores, giving you a complete picture of applicant risk.',
+    title: 'Comprehensive Renter Analysis',
+    description: 'Our in-depth screening goes beyond credit scores, giving you a complete picture of applicant risk for any rental type.',
     dataAiHint: 'security analysis',
   },
   {
     icon: <FileText className="w-12 h-12 text-primary" />,
-    title: 'Rental History Reports',
-    description: 'Verify past rental performance and payment history to choose reliable tenants with confidence.',
+    title: 'Detailed Rental History',
+    description: 'Verify past rental performance and payment history to choose reliable renters with confidence.',
     dataAiHint: 'document report',
   },
   {
-    icon: <BarChart className="w-12 h-12 text-primary" />,
-    title: 'Instant Background Checks',
-    description: 'Get fast, reliable, and compliant background checks to streamline your leasing process.',
-    dataAiHint: 'data chart',
+    icon: <Car className="w-12 h-12 text-primary" />,
+    title: 'Vehicle-Specific History',
+    description: 'Access driving records and vehicle history reports for car rentals, ensuring your assets are protected.',
+    dataAiHint: 'car safety',
   },
   {
     icon: <Bot className="w-12 h-12 text-primary" />,
     title: 'AI-Powered Insights',
-    description: 'Leverage artificial intelligence to get smart recommendations and predict tenancy outcomes.',
+    description: 'Leverage AI to get smart recommendations and predict outcomes for both property and vehicle rentals.',
     dataAiHint: 'robot intelligence',
   },
 ];
@@ -50,10 +49,10 @@ const testimonials = [
   },
   {
     quote:
-      'The detailed rental history reports are invaluable. We make more informed decisions and have seen a significant decrease in late payments.',
-    name: 'Michael B.',
-    title: 'Real Estate Investor',
-    avatar: 'MB',
+      'The vehicle history reports are a must-have. We\'ve reduced our insurance claims and feel much more secure renting out our fleet.',
+    name: 'David C.',
+    title: 'Car Rental Agency Owner',
+    avatar: 'DC',
     imageUrl: 'https://placehold.co/100x100.png',
     dataAiHint: 'man portrait',
   },
@@ -78,7 +77,7 @@ export default function Home() {
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
             Leverage data-driven insights and AI-powered screening to find the
-            most reliable tenants for your properties.
+            most reliable renters for your properties and vehicles.
           </p>
           <div className="flex justify-center gap-4">
             <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground">
