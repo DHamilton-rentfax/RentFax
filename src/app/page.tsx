@@ -103,7 +103,7 @@ const testimonials = [
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center bg-background">
       <section className="w-full bg-background py-20 md:py-32">
         <div className="container mx-auto text-center px-4">
           <h1 className="font-headline text-4xl md:text-6xl font-bold tracking-tighter mb-4">
@@ -114,7 +114,7 @@ export default function Home() {
           </p>
           <div className="flex justify-center gap-4">
             <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              <Link href="/services">Get Started</Link>
+              <Link href="/signup">Get Started</Link>
             </Button>
             <Button asChild size="lg" variant="outline">
               <Link href="#features">Learn More</Link>

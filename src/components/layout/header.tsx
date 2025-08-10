@@ -1,13 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Building2, Menu, X, LayoutDashboard } from 'lucide-react';
-
+import { Building2, Menu, X, LogOut } from 'lucide-react';
+import { User, onAuthStateChanged } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+
 
 const marketingNavLinks = [
   { href: '/', label: 'Home' },
@@ -25,11 +36,29 @@ const appNavLinks = [
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
   const pathname = usePathname();
 
-  const isAppRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/renters');
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const isAppRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/renters') || pathname.startsWith('/setup');
 
   const navLinks = isAppRoute ? appNavLinks : marketingNavLinks;
+
+  const handleLogout = async () => {
+    await auth.signOut();
+  };
+  
+  const getInitials = (email: string | null | undefined) => {
+    if (!email) return '??';
+    return email.substring(0, 2).toUpperCase();
+  };
+
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
@@ -54,15 +83,42 @@ export default function Header() {
           ))}
         </nav>
 
-        <div className="hidden md:flex items-center gap-2">
-           {isAppRoute ? (
-             <Button asChild variant="secondary">
-              <Link href="/">Exit Dashboard</Link>
-             </Button>
+        <div className="hidden md:flex items-center gap-4">
+           {!user ? (
+             <>
+                <Button variant="ghost" asChild>
+                    <Link href="/login">Log In</Link>
+                </Button>
+                <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
+                    <Link href="/signup">Sign Up</Link>
+                </Button>
+             </>
            ) : (
-            <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
-                <Link href="/dashboard">Dashboard Login</Link>
-            </Button>
+             <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.photoURL || undefined} alt={user.displayName || user.email || ''} />
+                    <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">My Account</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user.email}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
            )}
         </div>
 
@@ -99,11 +155,20 @@ export default function Header() {
                     {link.label}
                   </Link>
                 ))}
-                 <Button asChild className="w-full mt-4 bg-primary text-primary-foreground hover:bg-primary/90">
-                    <Link href={isAppRoute ? "/" : "/dashboard"} onClick={() => setIsMobileMenuOpen(false)}>
-                      {isAppRoute ? "Exit Dashboard" : "Dashboard Login"}
-                    </Link>
-                  </Button>
+                 {!user ? (
+                   <>
+                    <Button asChild className="w-full mt-4" variant="outline">
+                      <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>Login</Link>
+                    </Button>
+                    <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+                      <Link href="/signup" onClick={() => setIsMobileMenuOpen(false)}>Sign Up</Link>
+                    </Button>
+                   </>
+                 ) : (
+                    <Button onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} className="w-full mt-4" variant="outline">
+                      Log Out
+                    </Button>
+                 )}
               </nav>
             </SheetContent>
           </Sheet>
