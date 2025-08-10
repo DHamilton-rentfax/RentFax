@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 
 const navLinks = [
   { href: '/', label: 'Home' },
+  { href: '/dashboard', label: 'Dashboard' },
   { href: '/services', label: 'Services' },
   { href: '/success-stories', label: 'Success Stories' },
   { href: '/support', label: 'Support' },
@@ -35,7 +36,9 @@ export default function Header() {
               href={link.href}
               className={cn(
                 'text-sm font-medium transition-colors hover:text-primary',
-                pathname === link.href ? 'text-primary' : 'text-muted-foreground'
+                pathname === link.href || (pathname.startsWith('/renters') && link.href === '/dashboard')
+                  ? 'text-primary'
+                  : 'text-muted-foreground'
               )}
             >
               {link.label}
@@ -57,7 +60,7 @@ export default function Header() {
                 <span className="sr-only">Open menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-full max-w-xs bg-card">
+            <SheetContent side="right" className="w-full max-w-xs bg-card p-0">
               <div className="flex justify-between items-center p-4 border-b">
                  <Link href="/" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
                     <Building2 className="h-6 w-6 text-primary" />
