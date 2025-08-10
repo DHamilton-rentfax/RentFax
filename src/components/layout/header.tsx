@@ -45,7 +45,7 @@ export default function Header() {
 
         <div className="hidden md:block">
           <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
-            <Link href="/services">Get Report</Link>
+            <Link href="/services">Get Started</Link>
           </Button>
         </div>
 
@@ -83,7 +83,7 @@ export default function Header() {
                   </Link>
                 ))}
                  <Button asChild className="w-full mt-4 bg-primary text-primary-foreground hover:bg-primary/90">
-                    <Link href="/services" onClick={() => setIsMobileMenuOpen(false)}>Get Report</Link>
+                    <Link href="/services" onClick={() => setIsMobileMenuOpen(false)}>Get Started</Link>
                   </Button>
               </nav>
             </SheetContent>
