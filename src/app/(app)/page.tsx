@@ -240,7 +240,7 @@ export default function Dashboard() {
           <CardContent className="grid gap-8">
             <div className="flex items-center gap-4">
               <Avatar className="hidden h-9 w-9 sm:flex">
-                <AvatarImage src="https://placehold.co/36x36.png" alt="Avatar" />
+                <AvatarImage src="https://placehold.co/36x36.png" alt="Avatar" data-ai-hint="woman portrait" />
                 <AvatarFallback>OM</AvatarFallback>
               </Avatar>
               <div className="grid gap-1">
@@ -255,7 +255,7 @@ export default function Dashboard() {
             </div>
             <div className="flex items-center gap-4">
               <Avatar className="hidden h-9 w-9 sm:flex">
-                <AvatarImage src="https://placehold.co/36x36.png" alt="Avatar" />
+                <AvatarImage src="https://placehold.co/36x36.png" alt="Avatar" data-ai-hint="man portrait" />
                 <AvatarFallback>JL</AvatarFallback>
               </Avatar>
               <div className="grid gap-1">
@@ -270,7 +270,7 @@ export default function Dashboard() {
             </div>
             <div className="flex items-center gap-4">
               <Avatar className="hidden h-9 w-9 sm:flex">
-                <AvatarImage src="https://placehold.co/36x36.png" alt="Avatar" />
+                <AvatarImage src="https://placehold.co/36x36.png" alt="Avatar" data-ai-hint="woman smiling" />
                 <AvatarFallback>IN</AvatarFallback>
               </Avatar>
               <div className="grid gap-1">
@@ -285,7 +285,7 @@ export default function Dashboard() {
             </div>
             <div className="flex items-center gap-4">
               <Avatar className="hidden h-9 w-9 sm:flex">
-                <AvatarImage src="https://placehold.co/36x36.png" alt="Avatar" />
+                <AvatarImage src="https://placehold.co/36x36.png" alt="Avatar" data-ai-hint="man smiling" />
                 <AvatarFallback>WK</AvatarFallback>
               </Avatar>
               <div className="grid gap-1">
@@ -300,7 +300,7 @@ export default function Dashboard() {
             </div>
             <div className="flex items-center gap-4">
               <Avatar className="hidden h-9 w-9 sm:flex">
-                <AvatarImage src="https://placehold.co/36x36.png" alt="Avatar" />
+                <AvatarImage src="https://placehold.co/36x36.png" alt="Avatar" data-ai-hint="woman happy" />
                 <AvatarFallback>SD</AvatarFallback>
               </Avatar>
               <div className="grid gap-1">

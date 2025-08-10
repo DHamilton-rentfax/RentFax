@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Building2, Menu, X } from 'lucide-react';
+import { Building2, Menu, X, LayoutDashboard } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -11,7 +11,6 @@ import { cn } from '@/lib/utils';
 
 const navLinks = [
   { href: '/', label: 'Home' },
-  { href: '/dashboard', label: 'Dashboard' },
   { href: '/services', label: 'Services' },
   { href: '/success-stories', label: 'Success Stories' },
   { href: '/support', label: 'Support' },
@@ -20,6 +19,8 @@ const navLinks = [
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+
+  const isAppRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/renters');
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
@@ -36,9 +37,7 @@ export default function Header() {
               href={link.href}
               className={cn(
                 'text-sm font-medium transition-colors hover:text-primary',
-                pathname === link.href || (pathname.startsWith('/renters') && link.href === '/dashboard')
-                  ? 'text-primary'
-                  : 'text-muted-foreground'
+                pathname === link.href ? 'text-primary' : 'text-muted-foreground'
               )}
             >
               {link.label}
@@ -46,10 +45,16 @@ export default function Header() {
           ))}
         </nav>
 
-        <div className="hidden md:block">
-          <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
-            <Link href="/services">Get Started</Link>
-          </Button>
+        <div className="hidden md:flex items-center gap-2">
+           {isAppRoute ? (
+             <Button asChild variant="secondary">
+              <Link href="/"><LayoutDashboard className="mr-2 h-4 w-4" /> Go to Dashboard</Link>
+             </Button>
+           ) : (
+            <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <Link href="/dashboard">Dashboard Login</Link>
+            </Button>
+           )}
         </div>
 
         <div className="md:hidden">
@@ -86,7 +91,7 @@ export default function Header() {
                   </Link>
                 ))}
                  <Button asChild className="w-full mt-4 bg-primary text-primary-foreground hover:bg-primary/90">
-                    <Link href="/services" onClick={() => setIsMobileMenuOpen(false)}>Get Started</Link>
+                    <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>Dashboard Login</Link>
                   </Button>
               </nav>
             </SheetContent>
