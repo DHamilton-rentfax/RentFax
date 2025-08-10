@@ -6,3 +6,4 @@ import '@/ai/flows/create-company.ts';
 import '@/ai/flows/invites.ts';
 import '@/ai/flows/set-user-claims.ts';
 import '@/ai/flows/who-am-i.ts';
+import '@/ai/flows/rentals.ts';
