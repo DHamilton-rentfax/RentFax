@@ -1,12 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShieldCheck, Ban, Clock, AlertTriangle, Scale } from 'lucide-react';
+import { ShieldCheck, Ban, Clock, AlertTriangle, Scale, UserX, FileText } from 'lucide-react';
 
 const rules = [
   {
-    icon: <ShieldCheck className="w-8 h-8 text-primary" />,
+    icon: <UserX className="w-8 h-8 text-primary" />,
     title: 'Unauthorized Driver',
     description:
-      'Unauthorized driving is a breach of contract. The rental agreement may be terminated, and an incident will be logged for both the primary renter and the unauthorized driver when identifiable.',
+      'Unauthorized driving is a contract breach. The rental may be terminated, and an incident will be logged for both the primary renter and the unauthorized driver when identifiable.',
   },
   {
     icon: <Ban className="w-8 h-8 text-primary" />,
@@ -33,7 +33,7 @@ const rules = [
       'Failure to pay or initiating a chargeback will result in collections activity and will be visible on the RentFAX network, which may affect future rental eligibility.',
   },
     {
-    icon: <ShieldCheck className="w-8 h-8 text-primary" />,
+    icon: <FileText className="w-8 h-8 text-primary" />,
     title: 'Disputes',
     description:
         'Disputes must be submitted within 30 days of the incident report. Decisions will be based on the evidence and rationale provided. A single appeal may be permitted.',
