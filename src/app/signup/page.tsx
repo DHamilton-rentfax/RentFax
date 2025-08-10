@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,13 +15,21 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get('token');
+
 
   const handleSignup = async () => {
     setLoading(true);
     setError(null);
     try {
       await createUserWithEmailAndPassword(auth, email.trim(), password);
-      router.push('/setup/company');
+      // If there's an invite token, go accept it. Otherwise, go set up a new company.
+      if (token) {
+        router.push(`/invite/${token}`);
+      } else {
+        router.push('/setup/company');
+      }
     } catch (e: any) {
        setError(e.message || 'Signup failed. Please try again.');
     } finally {

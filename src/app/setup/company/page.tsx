@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth } from '@/lib/firebase';
-import { setUserClaims } from '@/app/auth/actions';
+import { createCompany } from '@/app/auth/actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -26,24 +26,10 @@ export default function CompanySetupPage() {
     setSaving(true);
 
     try {
-      // 1) Create company doc via our new API route
-      const res = await fetch('/api/company/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${await auth.currentUser?.getIdToken()}` },
-        body: JSON.stringify({ name: companyName })
-      });
+      // 1) Create company and get owner claims via secure Genkit flow
+      await createCompany({ name: companyName });
       
-      if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.error || 'Failed to create company.');
-      }
-
-      const { companyId } = await res.json();
-
-      // 2) Set claims via callable (server action)
-      await setUserClaims({ uid: auth.currentUser!.uid, role: 'owner', companyId });
-
-      // 3) Refresh token to pick up claims
+      // 2) Refresh token to pick up claims client-side
       await auth.currentUser?.getIdToken(true);
       
       toast({ title: "Company Created!", description: "You are now being redirected to your dashboard." });

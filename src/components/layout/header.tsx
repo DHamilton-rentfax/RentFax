@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Building2, Menu, X, LogOut } from 'lucide-react';
+import { Building2, Menu, X, LogOut, Settings } from 'lucide-react';
 import { User, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
@@ -46,7 +47,7 @@ export default function Header() {
     return () => unsubscribe();
   }, []);
 
-  const isAppRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/renters') || pathname.startsWith('/setup');
+  const isAppRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/renters') || pathname.startsWith('/setup') || pathname.startsWith('/settings');
 
   const navLinks = isAppRoute ? appNavLinks : marketingNavLinks;
 
@@ -113,6 +114,15 @@ export default function Header() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <Link href="/settings/team">
+                    <DropdownMenuItem className="cursor-pointer">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </DropdownMenuItem>
+                  </Link>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
@@ -165,9 +175,15 @@ export default function Header() {
                     </Button>
                    </>
                  ) : (
-                    <Button onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} className="w-full mt-4" variant="outline">
-                      Log Out
-                    </Button>
+                    <div className="border-t pt-4 mt-4 space-y-4">
+                        <Link href="/settings/team" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center text-lg font-medium text-foreground transition-colors hover:text-primary">
+                            <Settings className="mr-2 h-5 w-5" />
+                            <span>Settings</span>
+                        </Link>
+                        <Button onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} className="w-full" variant="outline">
+                            Log Out
+                        </Button>
+                    </div>
                  )}
               </nav>
             </SheetContent>
