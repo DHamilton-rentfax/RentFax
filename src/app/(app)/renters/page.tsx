@@ -39,6 +39,70 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
+import Image from "next/image";
+
+const renters = [
+    {
+        name: "Liam Johnson",
+        email: "liam@example.com",
+        riskScore: "85",
+        totalIncidents: 3,
+        lastRental: "2023-06-23",
+        amount: "$250.00",
+        imageUrl: "https://placehold.co/64x64.png",
+        status: "High Risk",
+    },
+    {
+        name: "Olivia Smith",
+        email: "olivia@example.com",
+        riskScore: "32",
+        totalIncidents: 0,
+        lastRental: "2023-06-24",
+        amount: "$150.00",
+        imageUrl: "https://placehold.co/64x64.png",
+        status: "Good Standing",
+    },
+    {
+        name: "Noah Williams",
+        email: "noah@example.com",
+        riskScore: "15",
+        totalIncidents: 0,
+        lastRental: "2023-06-25",
+        amount: "$350.00",
+        imageUrl: "https://placehold.co/64x64.png",
+        status: "Good Standing",
+    },
+    {
+        name: "Emma Brown",
+        email: "emma@example.com",
+        riskScore: "92",
+        totalIncidents: 4,
+        lastRental: "2023-06-26",
+        amount: "$450.00",
+        imageUrl: "https://placehold.co/64x64.png",
+        status: "High Risk",
+    },
+    {
+        name: "James Jones",
+        email: "james@example.com",
+        riskScore: "78",
+        totalIncidents: 2,
+        lastRental: "2023-06-27",
+        amount: "$550.00",
+        imageUrl: "https://placehold.co/64x64.png",
+        status: "High Risk",
+    },
+     {
+        name: "Ava Davis",
+        email: "ava@example.com",
+        riskScore: "25",
+        totalIncidents: 1,
+        lastRental: "2023-06-28",
+        amount: "$120.00",
+        imageUrl: "https://placehold.co/64x64.png",
+        status: "Good Standing",
+    }
+]
 
 export default function RentersPage() {
   return (
@@ -46,8 +110,8 @@ export default function RentersPage() {
       <div className="flex items-center">
         <TabsList>
           <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="active">High Risk</TabsTrigger>
-          <TabsTrigger value="draft">Good Standing</TabsTrigger>
+          <TabsTrigger value="high-risk">High Risk</TabsTrigger>
+          <TabsTrigger value="good-standing">Good Standing</TabsTrigger>
           <TabsTrigger value="archived" className="hidden sm:flex">
             Archived
           </TabsTrigger>
@@ -117,100 +181,60 @@ export default function RentersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell className="hidden sm:table-cell">
-                    <img
-                      alt="Renter image"
-                      className="aspect-square rounded-md object-cover"
-                      height="64"
-                      src="https://placehold.co/64x64.png"
-                      width="64"
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    John Doe
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="destructive">85</Badge>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    3
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    2024-07-12
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          aria-haspopup="true"
-                          size="icon"
-                          variant="ghost"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem>Add Incident</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem>Delete</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="hidden sm:table-cell">
-                    <img
-                      alt="Renter image"
-                      className="aspect-square rounded-md object-cover"
-                      height="64"
-                      src="https://placehold.co/64x64.png"
-                      width="64"
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    Jane Smith
-                  </TableCell>
-                  <TableCell>
-                     <Badge>32</Badge>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    0
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    2024-05-10
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          aria-haspopup="true"
-                          size="icon"
-                          variant="ghost"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem>Add Incident</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem>Delete</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
+                {renters.map((renter) => (
+                    <TableRow key={renter.email}>
+                    <TableCell className="hidden sm:table-cell">
+                        <Image
+                        alt="Renter image"
+                        className="aspect-square rounded-md object-cover"
+                        height="64"
+                        src={renter.imageUrl}
+                        width="64"
+                        data-ai-hint="person"
+                        />
+                    </TableCell>
+                    <TableCell className="font-medium">
+                        <div>{renter.name}</div>
+                        <div className="text-sm text-muted-foreground">{renter.email}</div>
+                    </TableCell>
+                    <TableCell>
+                        <Badge variant={parseInt(renter.riskScore) > 50 ? 'destructive' : 'default'}>{renter.riskScore}</Badge>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                        {renter.totalIncidents}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                        {renter.lastRental}
+                    </TableCell>
+                    <TableCell>
+                        <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                            aria-haspopup="true"
+                            size="icon"
+                            variant="ghost"
+                            >
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem>View Details</DropdownMenuItem>
+                            <DropdownMenuItem>Add Incident</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                        </DropdownMenuContent>
+                        </DropdownMenu>
+                    </TableCell>
+                    </TableRow>
+                ))}
               </TableBody>
             </Table>
           </CardContent>
           <CardFooter>
             <div className="text-xs text-muted-foreground">
-              Showing <strong>1-2</strong> of <strong>2</strong>{" "}
+              Showing <strong>1-6</strong> of <strong>{renters.length}</strong>{" "}
               renters
             </div>
           </CardFooter>
