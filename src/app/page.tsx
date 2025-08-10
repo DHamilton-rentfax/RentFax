@@ -16,7 +16,7 @@ import Link from 'next/link';
 
 const features = [
   {
-    icon: <Database className="w-12 h-12 text-primary" />,
+    icon: <History className="w-12 h-12 text-primary" />,
     title: 'Behavioral History',
     description: 'Access incident-level history like damage, smoking, or late returns submitted by verified rental operators.',
     dataAiHint: 'data history',
