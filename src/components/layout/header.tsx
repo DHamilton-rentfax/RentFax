@@ -9,18 +9,27 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 
-const navLinks = [
+const marketingNavLinks = [
   { href: '/', label: 'Home' },
   { href: '/services', label: 'Services' },
   { href: '/success-stories', label: 'Success Stories' },
   { href: '/support', label: 'Support' },
 ];
 
+const appNavLinks = [
+    { href: '/dashboard', label: 'Dashboard' },
+    { href: '/renters', label: 'Renters' },
+    { href: '/incidents', label: 'Incidents' },
+    { href: '/disputes', label: 'Disputes' },
+]
+
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
-  const isAppRoute = pathname.startsWith('/(app)');
+  const isAppRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/renters');
+
+  const navLinks = isAppRoute ? appNavLinks : marketingNavLinks;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
@@ -48,7 +57,7 @@ export default function Header() {
         <div className="hidden md:flex items-center gap-2">
            {isAppRoute ? (
              <Button asChild variant="secondary">
-              <Link href="/"><LayoutDashboard className="mr-2 h-4 w-4" /> Go to Dashboard</Link>
+              <Link href="/">Exit Dashboard</Link>
              </Button>
            ) : (
             <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
@@ -91,7 +100,9 @@ export default function Header() {
                   </Link>
                 ))}
                  <Button asChild className="w-full mt-4 bg-primary text-primary-foreground hover:bg-primary/90">
-                    <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>Dashboard Login</Link>
+                    <Link href={isAppRoute ? "/" : "/dashboard"} onClick={() => setIsMobileMenuOpen(false)}>
+                      {isAppRoute ? "Exit Dashboard" : "Dashboard Login"}
+                    </Link>
                   </Button>
               </nav>
             </SheetContent>
