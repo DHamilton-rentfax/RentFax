@@ -20,7 +20,7 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
-  const isAppRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/renters');
+  const isAppRoute = pathname.startsWith('/(app)');
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
