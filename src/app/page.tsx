@@ -16,40 +16,40 @@ import Link from 'next/link';
 
 const features = [
   {
-    icon: <BrainCircuit className="w-12 h-12 text-primary" />,
-    title: 'Renter Risk Scoring',
-    description: 'Instantly calculate renter risk using behavioral, financial, and fraud signals with each application.',
-    dataAiHint: 'brain circuit',
+    icon: <Database className="w-12 h-12 text-primary" />,
+    title: 'Behavioral History',
+    description: 'Access incident-level history like damage, smoking, or late returns submitted by verified rental operators.',
+    dataAiHint: 'data history',
   },
   {
-    icon: <History className="w-12 h-12 text-primary" />,
-    title: 'Rental History Timeline',
-    description: 'Access incident-level history like damage, smoke, or late returns submitted by verified rental operators.',
-    dataAiHint: 'history document',
+    icon: <BrainCircuit className="w-12 h-12 text-primary" />,
+    title: 'Risk Scoring',
+    description: 'Instantly calculate renter risk using behavioral, financial, and fraud signals with each application.',
+    dataAiHint: 'risk analysis',
   },
   {
     icon: <ShieldAlert className="w-12 h-12 text-primary" />,
     title: 'AI Fraud Detection',
     description: 'Prevent scams with facial recognition, ID analysis, and real-time behavioral modeling.',
-    dataAiHint: 'fraud detection',
+    dataAiHint: 'fraud prevention',
   },
   {
     icon: <BadgeCheck className="w-12 h-12 text-primary" />,
-    title: 'Verified Identity & License',
+    title: 'Verified Identity',
     description: 'Cross-check state-issued licenses, expiration status, and digital ID matches in seconds.',
-    dataAiHint: 'identity verification',
+    dataAiHint: 'identity check',
   },
   {
     icon: <Flag className="w-12 h-12 text-primary" />,
-    title: 'Network-Wide Flag System',
+    title: 'Network-Wide Flags',
     description: 'See alerts from other companies about renters flagged for damage, nonpayment, or fraud.',
-    dataAiHint: 'alert flag',
+    dataAiHint: 'alert system',
   },
   {
     icon: <LineChart className="w-12 h-12 text-primary" />,
-    title: 'Smart Pricing Insights',
-    description: 'Compare pricing across similar inventory in real-time and get recommendations on profitable pricing.',
-    dataAiHint: 'chart analytics',
+    title: 'Dispute Resolution',
+    description: 'A transparent process for renters to dispute inaccurate records and for operators to resolve them.',
+    dataAiHint: 'analytics chart',
   },
 ];
 
@@ -107,10 +107,10 @@ export default function Home() {
       <section className="w-full bg-background py-20 md:py-32">
         <div className="container mx-auto text-center px-4">
           <h1 className="font-headline text-4xl md:text-6xl font-bold tracking-tighter mb-4">
-            The Data-Driven Way to Rent
+            The Global Renter Risk Network
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-            RentFAX provides the rental history and risk profile you need to make safer, smarter decisions. For properties, vehicles, and more.
+            A real-time, data-driven network for rental operators to assess risk, log incidents, and give renters a transparent portal to manage their history.
           </p>
           <div className="flex justify-center gap-4">
             <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
