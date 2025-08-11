@@ -14,3 +14,4 @@ import '@/ai/flows/disputes.ts';
 import '@/ai/flows/audit.ts';
 import '@/ai/flows/seed.ts';
 import '@/ai/flows/health.ts';
+import '@/ai/flows/ai-assistant.ts';

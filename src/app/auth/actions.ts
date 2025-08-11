@@ -60,6 +60,14 @@ import {
     health as healthFlow,
     type HealthOutput,
 } from '@/ai/flows/health';
+import {
+  riskExplain as riskExplainFlow,
+  type RiskExplainInput,
+  type RiskExplainOutput,
+  incidentAssist as incidentAssistFlow,
+  type IncidentAssistInput,
+  type IncidentAssistOutput,
+} from '@/ai/flows/ai-assistant';
 import {headers} from 'next/headers';
 import {FlowAuth} from 'genkit/flow';
 import { authAdmin } from '@/lib/firebase-admin';
@@ -144,4 +152,14 @@ export async function seedStaging(params: SeedStagingInput): Promise<SeedStaging
 
 export async function health(): Promise<HealthOutput> {
     return await healthFlow();
+}
+
+export async function riskExplain(params: RiskExplainInput): Promise<RiskExplainOutput> {
+    const auth = await getAuth();
+    return await riskExplainFlow(params, auth);
+}
+
+export async function incidentAssist(params: IncidentAssistInput): Promise<IncidentAssistOutput> {
+    const auth = await getAuth();
+    return await incidentAssistFlow(params, auth);
 }

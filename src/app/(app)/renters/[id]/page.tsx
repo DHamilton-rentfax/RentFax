@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   User,
-  Phone,
   Mail,
   Calendar as CalendarIcon,
   CreditCard,
@@ -20,27 +19,28 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import RenterTimeline from '@/components/renter-timeline';
-import { Renter } from '@/lib/mock-data';
 import { Skeleton } from '@/components/ui/skeleton';
 import RenterActions from '@/components/renter-actions';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import FeatureGate from '@/components/feature-gate';
+import RiskExplainPanel from '@/components/risk-explain-panel';
 
 export default function RenterDetailPage() {
   const params = useParams();
   const id = params.id as string;
-  const [renter, setRenter] = useState<Renter | null>(null);
+  const [renter, setRenter] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (id) {
-      // In a real app, you'd fetch a single renter by ID.
-      // We'll filter the mock data for this example.
-      fetch('/api/mock-data?type=renters')
-        .then((res) => res.json())
-        .then((data) => {
-          const foundRenter = data.find((r: Renter) => r.id === id);
-          setRenter(foundRenter);
-          setLoading(false);
-        });
+      const unsub = onSnapshot(doc(db, "renters", id), (doc) => {
+        if (doc.exists()) {
+          setRenter({ id: doc.id, ...doc.data()});
+        }
+        setLoading(false);
+      });
+      return () => unsub();
     }
   }, [id]);
 
@@ -64,12 +64,14 @@ export default function RenterDetailPage() {
   if (!renter) {
     return <div>Renter not found</div>;
   }
+  
+  const name = `${renter.firstName || ''} ${renter.lastName || ''}`.trim() || renter.name;
 
   return (
     <div className="p-4 md:p-10">
         <div className="flex items-start justify-between mb-6">
             <div>
-                <h1 className="text-3xl font-headline">{renter.name}</h1>
+                <h1 className="text-3xl font-headline">{name}</h1>
                 <p className="text-muted-foreground">Renter Profile & History</p>
             </div>
             <RenterActions renter={renter}/>
@@ -85,13 +87,13 @@ export default function RenterDetailPage() {
             <CardContent className="space-y-4">
               <div className="flex justify-center">
                 <Avatar className="h-24 w-24 text-3xl">
-                  <AvatarImage src={renter.imageUrl} alt={renter.name} />
-                  <AvatarFallback>{renter.name.charAt(0)}</AvatarFallback>
+                  <AvatarImage src={renter.imageUrl} alt={name} />
+                  <AvatarFallback>{name.charAt(0)}</AvatarFallback>
                 </Avatar>
               </div>
               <div className="flex items-center gap-4">
                 <User className="h-5 w-5 text-muted-foreground" />
-                <span>{renter.name}</span>
+                <span>{name}</span>
               </div>
               <div className="flex items-center gap-4">
                 <Mail className="h-5 w-5 text-muted-foreground" />
@@ -116,18 +118,16 @@ export default function RenterDetailPage() {
                     Risk Profile
                 </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 text-center">
-                <div>
+            <CardContent className="space-y-4">
+                <div className="text-center">
                     <p className="text-6xl font-bold">{renter.riskScore}</p>
                     <p className="text-muted-foreground">Risk Score</p>
                 </div>
-                <div>
-                    <Badge variant={renter.riskScore > 75 ? 'destructive' : 'default'} className="text-lg">
-                        {renter.status}
-                    </Badge>
-                </div>
-                 <p className="text-sm text-muted-foreground pt-4">
-                    Based on {renter.totalIncidents} incidents and payment history.
+                <FeatureGate name="ai_assistant">
+                    <RiskExplainPanel renterId={renter.id} />
+                </FeatureGate>
+                 <p className="text-sm text-muted-foreground pt-4 text-center">
+                    Based on {renter.totalIncidents || 0} incidents and payment history.
                 </p>
             </CardContent>
           </Card>
