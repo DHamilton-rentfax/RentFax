@@ -29,22 +29,32 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import Image from 'next/image';
-import { Renter } from '@/lib/mock-data';
 import { Skeleton } from '@/components/ui/skeleton';
 import RenterActions from '@/components/renter-actions';
+import { useAuth } from '@/hooks/use-auth';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export default function RentersPage() {
-  const [renters, setRenters] = useState<Renter[]>([]);
+  const { claims } = useAuth();
+  const [renters, setRenters] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/mock-data?type=renters')
-      .then((res) => res.json())
-      .then((data) => {
-        setRenters(data);
-        setLoading(false);
-      });
-  }, []);
+    if (!claims?.companyId) {
+      setLoading(false);
+      return;
+    }
+    const q = query(
+      collection(db, 'renters'),
+      where('companyId', '==', claims.companyId)
+    );
+    const unsub = onSnapshot(q, (snapshot) => {
+      setRenters(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+      setLoading(false);
+    });
+    return () => unsub();
+  }, [claims]);
 
   return (
     <div className="space-y-4">
@@ -135,7 +145,7 @@ export default function RentersPage() {
                           alt="Renter image"
                           className="aspect-square rounded-md object-cover"
                           height="64"
-                          src={renter.imageUrl}
+                          src={renter.imageUrl || `https://placehold.co/64x64.png`}
                           width="64"
                           data-ai-hint="person"
                         />
@@ -163,12 +173,12 @@ export default function RentersPage() {
                         </Badge>
                       </TableCell>
                        <TableCell>
-                        <Badge variant={renter.riskScore > 75 ? 'destructive' : (renter.riskScore < 30 ? 'default' : 'secondary')}>
+                        <Badge variant={renter.riskScore > 75 ? 'destructive' : (renter.riskScore < 50 ? 'default' : 'secondary')}>
                           {renter.riskScore}
                         </Badge>
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
-                        {renter.totalIncidents}
+                        {renter.totalIncidents || 0}
                       </TableCell>
                       <TableCell>
                          <RenterActions renter={renter} isIcon={true} />
@@ -177,6 +187,11 @@ export default function RentersPage() {
                   ))}
             </TableBody>
           </Table>
+           {!loading && renters.length === 0 && (
+                <div className="text-center p-8 text-muted-foreground">
+                    No renters found. Add one to get started.
+                </div>
+           )}
         </CardContent>
       </Card>
     </div>

@@ -50,10 +50,10 @@ export default function AnalyticsPage() {
           getDocs(query(collection(db, 'disputes'), where('companyId', '==', companyId)))
         ]);
 
-        const riskDist: Record<string, number> = { safe: 0, moderate: 0, risky: 0 };
+        const riskDist: Record<string, number> = { Safe: 0, Moderate: 0, Risky: 0 };
         rentersSnap.forEach(doc => {
           const score = doc.data().riskScore ?? 0;
-          const bucket = score >= 75 ? 'safe' : score >= 50 ? 'moderate' : 'risky';
+          const bucket = score >= 75 ? 'Safe' : score >= 50 ? 'Moderate' : 'Risky';
           riskDist[bucket]++;
         });
 

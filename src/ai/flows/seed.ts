@@ -161,7 +161,7 @@ const seedStagingFlow = ai.defineFlow(
         });
         incidentIds.push(ref.id);
         recomputePromises.push(db.doc(`renters/${i.renterId}`).update({
-            riskScore: Math.max(0, 100 - i.amount / 10), // simplified logic
+            riskScore: Math.max(0, 100 - (i.amount || 0) / 10), // simplified logic
             scoreUpdatedAt: admin.firestore.FieldValue.serverTimestamp()
         }));
     }
