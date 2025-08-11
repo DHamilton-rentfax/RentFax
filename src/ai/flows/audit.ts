@@ -2,8 +2,8 @@
 /**
  * @fileOverview A Genkit flow for logging audit trails.
  */
-import { onFlow } from '@genkit-ai/next/server';
-import { z } from 'genkit';
+import {ai} from '@/ai/genkit';
+import {z} from 'genkit';
 import * as admin from 'firebase-admin';
 
 if (!admin.apps.length) {
@@ -14,23 +14,25 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 const AuditLogSchema = z.object({
-    actorUid: z.string(),
-    actorRole: z.string().optional(),
-    companyId: z.string(),
-    targetPath: z.string(),
-    action: z.string(),
-    before: z.any().optional(),
-    after: z.any().optional(),
+  actorUid: z.string(),
+  actorRole: z.string().optional(),
+  companyId: z.string(),
+  targetPath: z.string(),
+  action: z.string(),
+  before: z.any().optional(),
+  after: z.any().optional(),
 });
+export type AuditLog = z.infer<typeof AuditLogSchema>;
 
-export const logAudit = onFlow(
+export async function logAudit(params: AuditLog) {
+  return await auditFlow(params);
+}
+
+const auditFlow = ai.defineFlow(
   {
-    name: 'logAudit',
+    name: 'auditFlow',
     inputSchema: AuditLogSchema,
     outputSchema: z.void(),
-    authPolicy: (auth, input) => {
-        if (!auth) throw new Error('Authentication is required.');
-    }
   },
   async (params) => {
     await db.collection('auditLogs').add({

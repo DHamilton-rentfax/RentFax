@@ -1,120 +1,128 @@
 'use server';
-import { whoAmI as whoAmIFlow } from '@/ai/flows/who-am-i';
-import { setUserClaims as setUserClaimsFlow } from '@/ai/flows/set-user-claims';
-import { createCompany as createCompanyFlow } from '@/ai/flows/create-company';
-import { createInvite as createInviteFlow, acceptInvite as acceptInviteFlow } from '@/ai/flows/invites';
-import { upsertRental as upsertRentalFlow, deleteRental as deleteRentalFlow } from '@/ai/flows/rentals';
-import { createIncident as createIncidentFlow } from '@/ai/flows/incidents';
-import { recomputeRenterScore as recomputeRenterScoreFlow } from '@/ai/flows/risk-scorer';
-import { startDispute as startDisputeFlow, postDisputeMessage as postDisputeMessageFlow, updateDisputeStatus as updateDisputeStatusFlow } from '@/ai/flows/disputes';
+import {auth} from '@/lib/firebase';
+import {
+  whoAmI as whoAmIFlow,
+  type WhoAmIOutput,
+} from '@/ai/flows/who-am-i';
+import {
+  setUserClaims as setUserClaimsFlow,
+  type SetUserClaimsInput,
+  type SetUserClaimsOutput,
+} from '@/ai/flows/set-user-claims';
+import {
+  createCompany as createCompanyFlow,
+  type CreateCompanyInput,
+  type CreateCompanyOutput,
+} from '@/ai/flows/create-company';
+import {
+  createInvite as createInviteFlow,
+  acceptInvite as acceptInviteFlow,
+  type CreateInviteInput,
+  type CreateInviteOutput,
+  type AcceptInviteInput,
+  type AcceptInviteOutput,
+} from '@/ai/flows/invites';
+import {
+  upsertRental as upsertRentalFlow,
+  deleteRental as deleteRentalFlow,
+  type UpsertRentalInput,
+  type UpsertRentalOutput,
+  type DeleteRentalInput,
+  type DeleteRentalOutput,
+} from '@/ai/flows/rentals';
+import {
+  createIncident as createIncidentFlow,
+  type CreateIncidentInput,
+  type CreateIncidentOutput,
+} from '@/ai/flows/incidents';
+import {
+  recomputeRenterScore as recomputeRenterScoreFlow,
+  type RecomputeScoreInput,
+  type RecomputeScoreOutput,
+} from '@/ai/flows/risk-scorer';
+import {
+  startDispute as startDisputeFlow,
+  postDisputeMessage as postDisputeMessageFlow,
+  updateDisputeStatus as updateDisputeStatusFlow,
+  type StartDisputeInput,
+  type StartDisputeOutput,
+  type PostDisputeMessageInput,
+  type PostDisputeMessageOutput,
+  type UpdateDisputeStatusInput,
+  type UpdateDisputeStatusOutput,
+} from '@/ai/flows/disputes';
+import {headers} from 'next/headers';
+import {FlowAuth} from 'genkit/flow';
 
-
-export async function whoAmI() {
-    return await whoAmIFlow();
-}
-
-type SetUserClaimsParams = {
-    uid: string;
-    role: string;
-    companyId?: string;
-}
-export async function setUserClaims({ uid, role, companyId }: SetUserClaimsParams) {
-    return await setUserClaimsFlow({ uid, role, companyId });
-}
-
-
-type CreateCompanyParams = {
-    name: string;
-}
-export async function createCompany({ name }: CreateCompanyParams) {
-    return await createCompanyFlow({ name });
-}
-
-type CreateInviteParams = {
-    email: string;
-    role: 'manager' | 'agent' | 'collections' | 'renter';
-}
-export async function createInvite({ email, role }: CreateInviteParams) {
-    return await createInviteFlow({ email, role });
-}
-
-type AcceptInviteParams = {
-    token: string;
-}
-export async function acceptInvite({ token }: AcceptInviteParams) {
-    return await acceptInviteFlow({ token });
-}
-
-type UpsertRentalParams = {
-    id?: string;
-    renterId: string;
-    vehicleId: string;
-    startAt: string;
-    endAt: string;
-    status: 'active' | 'completed' | 'cancelled' | 'overdue';
-    depositAmount?: number;
-    dailyRate?: number;
-    notes?: string;
-    contractUrl?: string;
-}
-
-export async function upsertRental(params: UpsertRentalParams) {
-    return await upsertRentalFlow(params);
-}
-
-type DeleteRentalParams = {
-    id: string;
-}
-
-export async function deleteRental({id}: DeleteRentalParams) {
-    return await deleteRentalFlow({id});
+async function getAuth(): Promise<FlowAuth | undefined> {
+  const authorization = headers().get('Authorization');
+  if (authorization) {
+    const idToken = authorization.substring(7);
+    const decodedIdToken = await auth.verifyIdToken(idToken);
+    return {
+      uid: decodedIdToken.uid,
+      claims: decodedIdToken,
+      scopes: [],
+    };
+  }
 }
 
-type CreateIncidentParams = {
-    renterId: string;
-    rentalId?: string | null;
-    type: string;
-    severity: 'minor' | 'major' | 'severe';
-    amount?: number;
-    notes?: string;
-    attachments?: Array<{ name: string; path: string; thumbPath?: string }>;
+export async function whoAmI(): Promise<WhoAmIOutput> {
+  const auth = await getAuth();
+  return await whoAmIFlow(auth);
 }
 
-export async function createIncident(params: CreateIncidentParams) {
-    return await createIncidentFlow(params);
+export async function setUserClaims(params: SetUserClaimsInput): Promise<SetUserClaimsOutput> {
+  const auth = await getAuth();
+  return await setUserClaimsFlow(params, auth);
 }
 
-type RecomputeScoreParams = {
-    renterId: string;
-}
-export async function recomputeRenterScore(params: RecomputeScoreParams) {
-    return await recomputeRenterScoreFlow(params);
+export async function createCompany(params: CreateCompanyInput): Promise<CreateCompanyOutput> {
+  const auth = await getAuth();
+  return await createCompanyFlow(params, auth);
 }
 
-
-type StartDisputeParams = {
-    renterId: string;
-    incidentId: string;
-    reason: string;
-    message?: string;
-    attachments?: Array<{ name: string; path: string; }>;
-}
-export async function startDispute(params: StartDisputeParams) {
-    return await startDisputeFlow(params);
+export async function createInvite(params: CreateInviteInput): Promise<CreateInviteOutput> {
+  const auth = await getAuth();
+  return await createInviteFlow(params, auth);
 }
 
-type PostDisputeMessageParams = {
-    disputeId: string;
-    text: string;
-}
-export async function postDisputeMessage(params: PostDisputeMessageParams) {
-    return await postDisputeMessageFlow(params);
+export async function acceptInvite(params: AcceptInviteInput): Promise<AcceptInviteOutput> {
+  const auth = await getAuth();
+  return await acceptInviteFlow(params, auth);
 }
 
-type UpdateDisputeStatusParams = {
-    disputeId: string;
-    status: 'open' | 'needs_info' | 'resolved' | 'rejected';
+export async function upsertRental(params: UpsertRentalInput): Promise<UpsertRentalOutput> {
+  const auth = await getAuth();
+  return await upsertRentalFlow(params, auth);
 }
-export async function updateDisputeStatus(params: UpdateDisputeStatusParams) {
-    return await updateDisputeStatusFlow(params);
+
+export async function deleteRental(params: DeleteRentalInput): Promise<DeleteRentalOutput> {
+  const auth = await getAuth();
+  return await deleteRentalFlow(params, auth);
+}
+
+export async function createIncident(params: CreateIncidentInput): Promise<CreateIncidentOutput> {
+  const auth = await getAuth();
+  return await createIncidentFlow(params, auth);
+}
+
+export async function recomputeRenterScore(params: RecomputeScoreInput): Promise<RecomputeScoreOutput> {
+  const auth = await getAuth();
+  return await recomputeRenterScoreFlow(params, auth);
+}
+
+export async function startDispute(params: StartDisputeInput): Promise<StartDisputeOutput> {
+  const auth = await getAuth();
+  return await startDisputeFlow(params, auth);
+}
+
+export async function postDisputeMessage(params: PostDisputeMessageInput): Promise<PostDisputeMessageOutput> {
+  const auth = await getAuth();
+  return await postDisputeMessageFlow(params, auth);
+}
+
+export async function updateDisputeStatus(params: UpdateDisputeStatusInput): Promise<UpdateDisputeStatusOutput> {
+  const auth = await getAuth();
+  return await updateDisputeStatusFlow(params, auth);
 }

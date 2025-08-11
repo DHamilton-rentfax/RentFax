@@ -2,9 +2,10 @@
 /**
  * @fileOverview Genkit flows for managing rental records.
  */
-import { onFlow } from '@genkit-ai/next/server';
-import { z } from 'genkit';
+import {ai} from '@/ai/genkit';
+import {z} from 'genkit';
 import * as admin from 'firebase-admin';
+import {FlowAuth} from 'genkit/flow';
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -25,70 +26,89 @@ const UpsertRentalSchema = z.object({
   notes: z.string().optional(),
   contractUrl: z.string().optional(),
 });
+export type UpsertRentalInput = z.infer<typeof UpsertRentalSchema>;
 
-export const upsertRental = onFlow(
+const UpsertRentalOutputSchema = z.object({id: z.string(), updated: z.boolean().optional(), created: z.boolean().optional()});
+export type UpsertRentalOutput = z.infer<typeof UpsertRentalOutputSchema>;
+
+export async function upsertRental(input: UpsertRentalInput, auth?: FlowAuth): Promise<UpsertRentalOutput> {
+  return await upsertRentalFlow(input, auth);
+}
+
+const upsertRentalFlow = ai.defineFlow(
   {
-    name: 'upsertRental',
+    name: 'upsertRentalFlow',
     inputSchema: UpsertRentalSchema,
-    outputSchema: z.object({ id: z.string(), updated: z.boolean().optional(), created: z.boolean().optional() }),
+    outputSchema: UpsertRentalOutputSchema,
     authPolicy: async (auth, input) => {
-        if (!auth) throw new Error('Authentication is required.');
-        const caller = await admin.auth().getUser(auth.uid);
-        const claims = (caller.customClaims || {}) as any;
-        if (!['owner','manager','agent'].includes(claims.role)) throw new Error('Insufficient permissions.');
+      if (!auth) throw new Error('Authentication is required.');
+      const {role} = ((await admin.auth().getUser(auth.uid)).customClaims as any) || {};
+      if (!['owner', 'manager', 'agent'].includes(role)) throw new Error('Insufficient permissions.');
     },
   },
-  async (rentalData, { auth }) => {
+  async (rentalData, {auth}) => {
     if (!auth) throw new Error('Auth context is missing.');
-    const { companyId } = (await admin.auth().getUser(auth.uid)).customClaims || {};
+    const {companyId} = ((await admin.auth().getUser(auth.uid)).customClaims as any) || {};
     if (!companyId) throw new Error('User is not associated with a company.');
 
-    const { id, ...data } = rentalData;
+    const {id, ...data} = rentalData;
 
     // Validate renter exists in the same company
     const renterDoc = await db.collection('renters').doc(data.renterId).get();
     if (!renterDoc.exists || renterDoc.data()?.companyId !== companyId) {
-        throw new Error('Renter not found for this company.');
-    }
-    
-    const payload = {
-        ...data,
-        companyId,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      throw new Error('Renter not found for this company.');
     }
 
+    const payload = {
+      ...data,
+      companyId,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
     if (id) {
-        const rentalRef = db.collection('rentals').doc(id);
-        await rentalRef.update(payload);
-        return { id, updated: true };
+      const rentalRef = db.collection('rentals').doc(id);
+      await rentalRef.update(payload);
+      return {id, updated: true};
     } else {
-        const newRentalRef = await db.collection('rentals').add({
-            ...payload,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
-        return { id: newRentalRef.id, created: true };
+      const newRentalRef = await db.collection('rentals').add({
+        ...payload,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      return {id: newRentalRef.id, created: true};
     }
   }
 );
 
+const DeleteRentalInputSchema = z.object({id: z.string()});
+export type DeleteRentalInput = z.infer<typeof DeleteRentalInputSchema>;
 
-export const deleteRental = onFlow({
-    name: 'deleteRental',
-    inputSchema: z.object({ id: z.string() }),
-    outputSchema: z.object({ deleted: z.boolean() }),
+const DeleteRentalOutputSchema = z.object({deleted: z.boolean()});
+export type DeleteRentalOutput = z.infer<typeof DeleteRentalOutputSchema>;
+
+export async function deleteRental(input: DeleteRentalInput, auth?: FlowAuth): Promise<DeleteRentalOutput> {
+  return await deleteRentalFlow(input, auth);
+}
+
+const deleteRentalFlow = ai.defineFlow(
+  {
+    name: 'deleteRentalFlow',
+    inputSchema: DeleteRentalInputSchema,
+    outputSchema: DeleteRentalOutputSchema,
     authPolicy: async (auth, input) => {
-        if (!auth) throw new Error('Authentication is required.');
-        const caller = await admin.auth().getUser(auth.uid);
-        const claims = (caller.customClaims || {}) as any;
-        if (!['owner','manager'].includes(claims.role)) throw new Error('Insufficient permissions.');
+      if (!auth) throw new Error('Authentication is required.');
+      const {uid} = auth;
+      const {companyId, role} = ((await admin.auth().getUser(uid)).customClaims as any) || {};
+      if (!['owner', 'manager'].includes(role)) throw new Error('Insufficient permissions.');
 
-        const rentalDoc = await db.collection('rentals').doc(input.id).get();
-        if (!rentalDoc.exists) throw new Error('Rental not found');
-        if (rentalDoc.data()?.companyId !== claims.companyId) {
-            throw new Error('Permission denied to delete this rental.');
-        }
+      const rentalDoc = await db.collection('rentals').doc(input.id).get();
+      if (!rentalDoc.exists) throw new Error('Rental not found');
+      if (rentalDoc.data()?.companyId !== companyId) {
+        throw new Error('Permission denied to delete this rental.');
+      }
     },
-}, async ({id}) => {
+  },
+  async ({id}) => {
     await db.collection('rentals').doc(id).delete();
-    return { deleted: true };
-});
+    return {deleted: true};
+  }
+);

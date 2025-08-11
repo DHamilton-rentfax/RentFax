@@ -2,9 +2,10 @@
 /**
  * @fileOverview A Genkit flow to securely create a new company and assign the caller as the owner.
  */
-import { onFlow } from '@genkit-ai/next/server';
-import { z } from 'genkit';
+import {ai} from '@/ai/genkit';
+import {z} from 'genkit';
 import * as admin from 'firebase-admin';
+import {FlowAuth} from 'genkit/flow';
 
 // Initialize Firebase Admin SDK if not already initialized
 if (!admin.apps.length) {
@@ -17,14 +18,20 @@ const db = admin.firestore();
 const CreateCompanyInputSchema = z.object({
   name: z.string().describe('The name of the new company.'),
 });
+export type CreateCompanyInput = z.infer<typeof CreateCompanyInputSchema>;
 
 const CreateCompanyOutputSchema = z.object({
   companyId: z.string(),
 });
+export type CreateCompanyOutput = z.infer<typeof CreateCompanyOutputSchema>;
 
-export const createCompany = onFlow(
+export async function createCompany(input: CreateCompanyInput, auth?: FlowAuth): Promise<CreateCompanyOutput> {
+  return await createCompanyFlow(input, auth);
+}
+
+const createCompanyFlow = ai.defineFlow(
   {
-    name: 'createCompany',
+    name: 'createCompanyFlow',
     inputSchema: CreateCompanyInputSchema,
     outputSchema: CreateCompanyOutputSchema,
     authPolicy: (auth, input) => {
@@ -33,7 +40,7 @@ export const createCompany = onFlow(
       }
     },
   },
-  async ({ name }, { auth }) => {
+  async ({name}, {auth}) => {
     if (!auth) throw new Error('Auth context is missing.');
 
     // Caller becomes owner of this company if not already part of one
@@ -56,9 +63,9 @@ export const createCompany = onFlow(
     });
 
     // Assign owner claims to caller
-    await admin.auth().setCustomUserClaims(auth.uid, { role: 'owner', companyId });
+    await admin.auth().setCustomUserClaims(auth.uid, {role: 'owner', companyId});
     await admin.auth().revokeRefreshTokens(auth.uid);
 
-    return { companyId };
+    return {companyId};
   }
 );
