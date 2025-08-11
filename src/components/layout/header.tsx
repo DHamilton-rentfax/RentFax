@@ -19,6 +19,7 @@ import {
   DropdownMenuGroup,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { useAuth } from '@/hooks/use-auth';
 
 
 const marketingNavLinks = [
@@ -37,19 +38,8 @@ const appNavLinks = [
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+  const { user, loading, claims } = useAuth();
   const pathname = usePathname();
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  const isAppRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/renters') || pathname.startsWith('/setup') || pathname.startsWith('/settings');
-
-  const navLinks = isAppRoute ? appNavLinks : marketingNavLinks;
 
   const handleLogout = async () => {
     await auth.signOut();
@@ -60,6 +50,14 @@ export default function Header() {
     return email.substring(0, 2).toUpperCase();
   };
 
+  const isAppRoute = pathname.startsWith('/dashboard') 
+    || pathname.startsWith('/renters') 
+    || pathname.startsWith('/incidents')
+    || pathname.startsWith('/disputes')
+    || pathname.startsWith('/setup') 
+    || pathname.startsWith('/settings');
+
+  const navLinks = isAppRoute ? appNavLinks : marketingNavLinks;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">

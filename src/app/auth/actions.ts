@@ -6,6 +6,7 @@ import { createInvite as createInviteFlow, acceptInvite as acceptInviteFlow } fr
 import { upsertRental as upsertRentalFlow, deleteRental as deleteRentalFlow } from '@/ai/flows/rentals';
 import { createIncident as createIncidentFlow } from '@/ai/flows/incidents';
 import { recomputeRenterScore as recomputeRenterScoreFlow } from '@/ai/flows/risk-scorer';
+import { startDispute as startDisputeFlow, postDisputeMessage as postDisputeMessageFlow, updateDisputeStatus as updateDisputeStatusFlow } from '@/ai/flows/disputes';
 
 
 export async function whoAmI() {
@@ -88,4 +89,32 @@ type RecomputeScoreParams = {
 }
 export async function recomputeRenterScore(params: RecomputeScoreParams) {
     return await recomputeRenterScoreFlow(params);
+}
+
+
+type StartDisputeParams = {
+    renterId: string;
+    incidentId: string;
+    reason: string;
+    message?: string;
+    attachments?: Array<{ name: string; path: string; }>;
+}
+export async function startDispute(params: StartDisputeParams) {
+    return await startDisputeFlow(params);
+}
+
+type PostDisputeMessageParams = {
+    disputeId: string;
+    text: string;
+}
+export async function postDisputeMessage(params: PostDisputeMessageParams) {
+    return await postDisputeMessageFlow(params);
+}
+
+type UpdateDisputeStatusParams = {
+    disputeId: string;
+    status: 'open' | 'needs_info' | 'resolved' | 'rejected';
+}
+export async function updateDisputeStatus(params: UpdateDisputeStatusParams) {
+    return await updateDisputeStatusFlow(params);
 }
