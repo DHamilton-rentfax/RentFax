@@ -2,8 +2,7 @@
 /**
  * @fileOverview Genkit flows for creating and accepting company invitations.
  */
-
-import { onFlow } from '@genkit-ai/flow/experimental';
+import { onFlow } from '@genkit-ai/next/server';
 import { z } from 'genkit';
 import * as admin from 'firebase-admin';
 import { v4 as uuid } from 'uuid';

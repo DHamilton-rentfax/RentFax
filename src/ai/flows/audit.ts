@@ -2,8 +2,7 @@
 /**
  * @fileOverview A Genkit flow for logging audit trails.
  */
-
-import { onFlow } from '@genkit-ai/flow/experimental';
+import { onFlow } from '@genkit-ai/next/server';
 import { z } from 'genkit';
 import * as admin from 'firebase-admin';
 
@@ -30,9 +29,6 @@ export const logAudit = onFlow(
     inputSchema: AuditLogSchema,
     outputSchema: z.void(),
     authPolicy: (auth, input) => {
-        // This flow should only be callable from other server-side flows,
-        // so we don't need to enforce specific user roles here.
-        // The calling flow is responsible for its own auth.
         if (!auth) throw new Error('Authentication is required.');
     }
   },

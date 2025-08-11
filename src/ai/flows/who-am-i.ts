@@ -2,9 +2,7 @@
 /**
  * @fileOverview A Genkit flow to introspect the claims of the currently authenticated user.
  */
-
-import { ai } from '@/ai/genkit';
-import { onFlow } from '@genkit-ai/flow/experimental';
+import { onFlow } from '@genkit-ai/next/server';
 import { z } from 'genkit';
 import * as admin from 'firebase-admin';
 

@@ -2,8 +2,7 @@
 /**
  * @fileOverview Genkit flows for managing incidents.
  */
-
-import { onFlow } from '@genkit-ai/flow/experimental';
+import { onFlow } from '@genkit-ai/next/server';
 import { z } from 'genkit';
 import * as admin from 'firebase-admin';
 import { recomputeRenterScore } from './risk-scorer';
