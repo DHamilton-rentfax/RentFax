@@ -4,15 +4,8 @@
  */
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import * as admin from 'firebase-admin';
 import {FlowAuth} from 'genkit/flow';
-
-// Initialize Firebase Admin SDK if not already initialized
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-  });
-}
+import { authAdmin } from '@/lib/firebase-admin';
 
 const WhoAmIOutputSchema = z.object({
   uid: z.string(),
@@ -41,7 +34,7 @@ const whoAmIFlow = ai.defineFlow(
       throw new Error('User is not authenticated.');
     }
     const uid = auth.uid;
-    const user = await admin.auth().getUser(uid);
+    const user = await authAdmin.getUser(uid);
     return {
       uid,
       email: user.email,

@@ -1,5 +1,5 @@
 'use server';
-import {auth} from '@/lib/firebase';
+import { auth } from '@/lib/firebase';
 import {
   whoAmI as whoAmIFlow,
   type WhoAmIOutput,
@@ -53,12 +53,13 @@ import {
 } from '@/ai/flows/disputes';
 import {headers} from 'next/headers';
 import {FlowAuth} from 'genkit/flow';
+import { authAdmin } from '@/lib/firebase-admin';
 
 async function getAuth(): Promise<FlowAuth | undefined> {
   const authorization = headers().get('Authorization');
   if (authorization) {
     const idToken = authorization.substring(7);
-    const decodedIdToken = await auth.verifyIdToken(idToken);
+    const decodedIdToken = await authAdmin.verifyIdToken(idToken);
     return {
       uid: decodedIdToken.uid,
       claims: decodedIdToken,

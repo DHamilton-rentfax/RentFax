@@ -4,18 +4,11 @@
  */
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import * as admin from 'firebase-admin';
 import {CloudTasksClient} from '@google-cloud/tasks';
 import {logAudit} from './audit';
 import {safeNotify} from '@/lib/notifications';
 import {FlowAuth} from 'genkit/flow';
-
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-  });
-}
-const db = admin.firestore();
+import { admin, dbAdmin as db, authAdmin } from '@/lib/firebase-admin';
 
 const PROJECT_ID = process.env.GCLOUD_PROJECT!;
 const LOCATION = process.env.TASKS_LOCATION || 'us-central1';
@@ -75,7 +68,7 @@ const startDisputeFlow = ai.defineFlow(
   async (payload, {auth}) => {
     if (!auth) throw new Error('Auth context missing');
     const {uid} = auth;
-    const {companyId, role} = ((await admin.auth().getUser(uid)).customClaims as any) || {};
+    const {companyId, role} = ((await authAdmin.getUser(uid)).customClaims as any) || {};
 
     if (!payload.renterId || !payload.incidentId || !payload.reason) {
       throw new Error('renterId, incidentId, reason required');
@@ -155,7 +148,7 @@ const postDisputeMessageFlow = ai.defineFlow(
   async (payload, {auth}) => {
     if (!auth) throw new Error('Auth context missing');
     const {uid} = auth;
-    const {companyId, role} = ((await admin.auth().getUser(uid)).customClaims as any) || {};
+    const {companyId, role} = ((await authAdmin.getUser(uid)).customClaims as any) || {};
 
     const ref = db.doc(`disputes/${payload.disputeId}`);
     const snap = await ref.get();
@@ -204,7 +197,7 @@ const updateDisputeStatusFlow = ai.defineFlow(
     outputSchema: z.object({ok: z.boolean()}),
     authPolicy: async (auth, input) => {
       if (!auth) throw new Error('Authentication is required.');
-      const {role} = ((await admin.auth().getUser(auth.uid)).customClaims as any) || {};
+      const {role} = ((await authAdmin.getUser(auth.uid)).customClaims as any) || {};
       if (!['owner', 'manager', 'agent', 'collections'].includes(role)) {
         throw new Error('Only company roles may update status');
       }
@@ -213,7 +206,7 @@ const updateDisputeStatusFlow = ai.defineFlow(
   async (payload, {auth}) => {
     if (!auth) throw new Error('Auth context missing');
     const {uid} = auth;
-    const {companyId, role} = ((await admin.auth().getUser(uid)).customClaims as any) || {};
+    const {companyId, role} = ((await authAdmin.getUser(uid)).customClaims as any) || {};
 
     const ref = db.doc(`disputes/${payload.disputeId}`);
     const snap = await ref.get();

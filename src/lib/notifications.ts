@@ -1,13 +1,6 @@
 'use server';
-import * as admin from 'firebase-admin';
 import { sendMail } from './email';
-
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-  });
-}
-const db = admin.firestore();
+import { dbAdmin as db } from '@/lib/firebase-admin';
 
 // A simple routing and data-fetching layer for notifications
 // This keeps notification logic out of the main business logic flows.

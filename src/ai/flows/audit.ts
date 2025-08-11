@@ -4,14 +4,7 @@
  */
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import * as admin from 'firebase-admin';
-
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-  });
-}
-const db = admin.firestore();
+import { admin, dbAdmin as db } from '@/lib/firebase-admin';
 
 const AuditLogSchema = z.object({
   actorUid: z.string(),

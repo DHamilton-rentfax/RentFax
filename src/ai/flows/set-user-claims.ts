@@ -5,15 +5,8 @@
  */
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import * as admin from 'firebase-admin';
 import {FlowAuth} from 'genkit/flow';
-
-// Initialize Firebase Admin SDK if not already initialized
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-  });
-}
+import { admin, dbAdmin as db, authAdmin } from '@/lib/firebase-admin';
 
 type Role = 'owner' | 'manager' | 'agent' | 'collections' | 'renter' | 'superadmin';
 
@@ -40,7 +33,7 @@ const setUserClaimsFlow = ai.defineFlow(
       if (!auth) {
         throw new Error('Authentication is required.');
       }
-      const caller = await admin.auth().getUser(auth.uid);
+      const caller = await authAdmin.getUser(auth.uid);
       const callerClaims = caller.customClaims || {};
       const callerRole = callerClaims?.role as Role | undefined;
 
@@ -64,16 +57,16 @@ const setUserClaimsFlow = ai.defineFlow(
   async ({uid, role, companyId}, {auth}) => {
     if (!auth) throw new Error('Auth context missing');
 
-    const caller = await admin.auth().getUser(auth.uid);
+    const caller = await authAdmin.getUser(auth.uid);
     const callerClaims = caller.customClaims || {};
 
     // Set custom claims
     const finalCompanyId = companyId || callerClaims.companyId;
     if (!finalCompanyId) throw new Error('Company ID is required when caller is not an owner.');
 
-    await admin.auth().setCustomUserClaims(uid, {role, companyId: finalCompanyId});
+    await authAdmin.setCustomUserClaims(uid, {role, companyId: finalCompanyId});
     // Force token refresh on client
-    await admin.auth().revokeRefreshTokens(uid);
+    await authAdmin.revokeRefreshTokens(uid);
 
     return {success: true};
   }

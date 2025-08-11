@@ -4,16 +4,9 @@
  */
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import * as admin from 'firebase-admin';
 import {FlowAuth} from 'genkit/flow';
+import { admin, dbAdmin as db, authAdmin } from '@/lib/firebase-admin';
 
-// Initialize Firebase Admin SDK if not already initialized
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-  });
-}
-const db = admin.firestore();
 
 const CreateCompanyInputSchema = z.object({
   name: z.string().describe('The name of the new company.'),
@@ -44,7 +37,7 @@ const createCompanyFlow = ai.defineFlow(
     if (!auth) throw new Error('Auth context is missing.');
 
     // Caller becomes owner of this company if not already part of one
-    const caller = await admin.auth().getUser(auth.uid);
+    const caller = await authAdmin.getUser(auth.uid);
     const claims = caller.customClaims || {};
     if (claims.companyId) {
       throw new Error('User already belongs to a company.');
@@ -63,8 +56,8 @@ const createCompanyFlow = ai.defineFlow(
     });
 
     // Assign owner claims to caller
-    await admin.auth().setCustomUserClaims(auth.uid, {role: 'owner', companyId});
-    await admin.auth().revokeRefreshTokens(auth.uid);
+    await authAdmin.setCustomUserClaims(auth.uid, {role: 'owner', companyId});
+    await authAdmin.revokeRefreshTokens(auth.uid);
 
     return {companyId};
   }

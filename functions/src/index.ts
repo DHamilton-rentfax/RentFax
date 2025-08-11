@@ -1,14 +1,9 @@
 'use server';
 
-import * as admin from 'firebase-admin';
 import Stripe from 'stripe';
 import { onRequest } from 'firebase-functions/v2/https';
 import { PLAN_FEATURES, Plan, CompanyStatus, nextStatus } from '../../src/lib/plan-features'; 
-
-try {
-  admin.initializeApp();
-} catch {}
-const db = admin.firestore();
+import { admin, dbAdmin as db } from '../../src/lib/firebase-admin';
 
 // Ensure Stripe is initialized with a default empty string if API key is not set,
 // although it should always be set in a real environment.
