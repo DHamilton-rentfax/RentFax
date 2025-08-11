@@ -13,3 +13,4 @@ import '@/ai/flows/risk-scorer.ts';
 import '@/ai/flows/disputes.ts';
 import '@/ai/flows/audit.ts';
 import '@/ai/flows/seed.ts';
+import '@/ai/flows/health.ts';

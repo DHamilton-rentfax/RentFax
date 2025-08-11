@@ -56,6 +56,10 @@ import {
     type SeedStagingInput,
     type SeedStagingOutput,
 } from '@/ai/flows/seed';
+import {
+    health as healthFlow,
+    type HealthOutput,
+} from '@/ai/flows/health';
 import {headers} from 'next/headers';
 import {FlowAuth} from 'genkit/flow';
 import { authAdmin } from '@/lib/firebase-admin';
@@ -136,4 +140,8 @@ export async function updateDisputeStatus(params: UpdateDisputeStatusInput): Pro
 export async function seedStaging(params: SeedStagingInput): Promise<SeedStagingOutput> {
     const auth = await getAuth();
     return await seedStagingFlow(params, auth);
+}
+
+export async function health(): Promise<HealthOutput> {
+    return await healthFlow();
 }

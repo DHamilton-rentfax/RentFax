@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Building2, Menu, X, LogOut, Settings, CreditCard, ShieldQuestion, BarChart2, User, Users, FileText, Bot, Hammer } from 'lucide-react';
+import { Building2, Menu, X, LogOut, Settings, CreditCard, ShieldQuestion, BarChart2, User, Users, FileText, Bot, Hammer, CheckCircle } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -38,6 +38,7 @@ const appNavLinks = [
 const adminNavLinks = [
     { href: '/admin/audit', label: 'Audit Logs', icon: FileText },
     { href: '/admin/seed', label: 'Seed Data', icon: Hammer },
+    { href: '/admin/readiness', label: 'Readiness', icon: CheckCircle },
 ]
 
 export default function Header() {
