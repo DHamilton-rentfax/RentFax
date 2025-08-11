@@ -186,7 +186,7 @@ const seedStagingFlow = ai.defineFlow(
     await db.doc(`companyRules/${companyId}`).set({
         driverEligibility: 'Valid license, 25+, no major violations in last 3 years.',
         fees: 'Deposit $200–$300; late return $25/hr.',
-        smoking: 'Strictly no smoking. $150 cleaning fee for violations.',
+        smoking: 'Strictly no smoking. $150 fee for violations.',
         other: 'Additional terms may apply.'
     }, { merge: true });
     
@@ -201,5 +201,3 @@ const seedStagingFlow = ai.defineFlow(
     };
   }
 );
-
-    

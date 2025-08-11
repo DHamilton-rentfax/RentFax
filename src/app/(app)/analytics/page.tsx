@@ -10,14 +10,14 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, Users, FileText, GitPullRequestArrow, CheckCircle2, PieChart, BarChart } from 'lucide-react';
+import { AlertTriangle, Users, FileText, GitPullRequestArrow, CheckCircle2 } from 'lucide-react';
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { Pie, Cell, ResponsiveContainer as RC, Bar, XAxis, YAxis, Tooltip } from 'recharts';
-import { collection, query, where, getDocs, DocumentData } from 'firebase/firestore';
+import { Pie, Cell, ResponsiveContainer as RC, Bar, XAxis, YAxis, Tooltip, BarChart, PieChart } from 'recharts';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
@@ -145,14 +145,14 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <ChartContainer config={{}} className="mx-auto aspect-square h-[250px]">
-                    <RC>
+                    <PieChart>
                       <Pie data={stats.riskBuckets} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
                         {stats.riskBuckets.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
                       <ChartTooltip content={<ChartTooltipContent nameKey="name" />} />
-                    </RC>
+                    </PieChart>
                   </ChartContainer>
                 </CardContent>
               </Card>
@@ -163,14 +163,12 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <ChartContainer config={{}} className="h-[250px] w-full">
-                     <RC>
-                       <Bar data={stats.incidentTypes} layout="vertical" radius={4}>
+                     <BarChart data={stats.incidentTypes} layout="vertical" margin={{ left: 10, right: 10, top: 10, bottom: 10 }}>
                           <XAxis type="number" hide />
                           <YAxis type="category" dataKey="name" width={80} tickLine={false} axisLine={false} />
                           <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
-                          <Bar dataKey="value" fill="hsl(var(--primary))" />
-                       </Bar>
-                     </RC>
+                          <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                     </BarChart>
                   </ChartContainer>
                 </CardContent>
               </Card>
@@ -181,4 +179,3 @@ export default function AnalyticsPage() {
     </Protected>
   );
 }
-    
