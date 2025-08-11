@@ -9,21 +9,35 @@ if (!admin.apps.length) {
 }
 const db = admin.firestore();
 
-export async function sendMail(params: {
-  to: string;
+type MailPayload = {
+  to: string | string[];
   subject: string;
   text?: string;
   html?: string;
-  template?: string; // optional SendGrid dynamic template name
-  data?: any;
-}) {
+  template?: {
+    name: string;
+    data: Record<string, any>;
+  };
+};
+
+export async function sendMail(params: MailPayload) {
   try {
-    await db.collection('mail').add({
-        to: params.to,
-        message: { subject: params.subject, text: params.text, html: params.html },
-        template: params.template ? { name: params.template, data: params.data || {} } : undefined,
-        createdAt: admin.firestore.FieldValue.serverTimestamp()
-    });
+    const mailData: any = {
+      to: Array.isArray(params.to) ? params.to : [params.to],
+      message: { 
+        subject: params.subject,
+      },
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    };
+    if (params.template) {
+        mailData.template = params.template;
+    } else {
+        mailData.message.text = params.text;
+        mailData.message.html = params.html;
+    }
+
+    await db.collection('mail').add(mailData);
+
   } catch (error) {
     console.error("Error sending email:", error);
     // In a real app, you might have more robust error handling, e.g., a retry queue.

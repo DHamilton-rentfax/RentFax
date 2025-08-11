@@ -3,7 +3,7 @@
  * @fileOverview A Genkit flow for logging audit trails.
  */
 
-import { onFlow } from '@genkit-ai/next/server';
+import { onFlow } from '@genkit-ai/flow/experimental';
 import { z } from 'genkit';
 import * as admin from 'firebase-admin';
 

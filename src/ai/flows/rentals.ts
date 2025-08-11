@@ -3,7 +3,7 @@
  * @fileOverview Genkit flows for managing rental records.
  */
 
-import { onFlow } from '@genkit-ai/next/server';
+import { onFlow } from '@genkit-ai/flow/experimental';
 import { z } from 'genkit';
 import * as admin from 'firebase-admin';
 

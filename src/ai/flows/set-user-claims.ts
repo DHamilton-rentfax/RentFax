@@ -4,7 +4,7 @@
  * Restricted to users with 'superadmin' or 'owner' roles.
  */
 
-import { onFlow } from '@genkit-ai/next/server';
+import { onFlow } from '@genkit-ai/flow/experimental';
 import { z } from 'genkit';
 import * as admin from 'firebase-admin';
 

@@ -3,12 +3,12 @@
  * @fileOverview Genkit flows for managing disputes.
  */
 
-import { onFlow } from '@genkit-ai/next/server';
+import { onFlow } from '@genkit-ai/flow/experimental';
 import { z } from 'genkit';
 import * as admin from 'firebase-admin';
 import { CloudTasksClient } from '@google-cloud/tasks';
 import { logAudit } from './audit';
-import { sendMail } from '@/lib/email';
+import { safeNotify } from '@/lib/notifications';
 
 
 if (!admin.apps.length) {
@@ -103,10 +103,12 @@ export const startDispute = onFlow(
 
     try { await scheduleReminder(ref.id, 48); } catch (e) { console.warn('scheduleReminder failed in dev', e); }
     
-    await sendMail({
-        to: process.env.COMPANY_NOTIF_EMAIL || 'team@example.com',
-        subject: `New dispute opened (${ref.id})`,
-        text: `A new dispute has been opened for renter ${payload.renterId} and incident ${payload.incidentId}.`
+    await safeNotify({
+        type: 'dispute.opened',
+        companyId: companyId,
+        disputeId: ref.id,
+        renterId: payload.renterId,
+        incidentId: payload.incidentId,
     });
 
     return { id: ref.id, created: true };
@@ -188,10 +190,11 @@ export const updateDisputeStatus = onFlow({
         targetPath: `disputes/${payload.disputeId}`, action: 'updateDisputeStatus', after: { status: payload.status }
     });
     
-    await sendMail({
-        to: process.env.RENTER_NOTIF_FALLBACK || 'noreply@example.com',
-        subject: `Your dispute status is now "${payload.status}"`,
-        text: `Dispute ${payload.disputeId} status changed to ${payload.status}.`
+    await safeNotify({
+        type: 'dispute.statusChanged',
+        renterId: d.renterId,
+        disputeId: payload.disputeId,
+        status: payload.status,
     });
 
     return { ok: true };
