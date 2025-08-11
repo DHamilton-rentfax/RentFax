@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Building2, Menu, X, LogOut, Settings, CreditCard, ShieldQuestion, BarChart2 } from 'lucide-react';
+import { Building2, Menu, X, LogOut, Settings, CreditCard, ShieldQuestion, BarChart2, User, Users, FileText, Bot, Hammer } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -28,12 +28,17 @@ const marketingNavLinks = [
 ];
 
 const appNavLinks = [
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/renters', label: 'Renters' },
-  { href: '/incidents', label: 'Incidents' },
-  { href: '/disputes', label: 'Disputes' },
-  { href: '/analytics', label: 'Analytics' },
+  { href: '/dashboard', label: 'Dashboard', icon: BarChart2 },
+  { href: '/renters', label: 'Renters', icon: Users },
+  { href: '/incidents', label: 'Incidents', icon: FileText },
+  { href: '/disputes', label: 'Disputes', icon: ShieldQuestion },
+  { href: '/analytics', label: 'Analytics', icon: BarChart2 },
 ];
+
+const adminNavLinks = [
+    { href: '/admin/audit', label: 'Audit Logs', icon: FileText },
+    { href: '/admin/seed', label: 'Seed Data', icon: Hammer },
+]
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -60,7 +65,7 @@ export default function Header() {
     '/analytics',
   ].some(p => pathname.startsWith(p));
   
-  const canManageCompany = claims?.role && ['owner', 'manager'].includes(claims.role);
+  const isSuperAdmin = claims?.role === 'superadmin';
 
   const navLinks = isAppRoute ? appNavLinks : marketingNavLinks;
 
@@ -85,16 +90,25 @@ export default function Header() {
               {link.label}
             </Link>
           ))}
-          {isAppRoute && canManageCompany && (
-             <Link
-              href="/admin/audit"
-              className={cn(
-                'text-sm font-medium transition-colors hover:text-primary',
-                pathname.startsWith('/admin') ? 'text-primary' : 'text-muted-foreground'
-              )}
-            >
-              Admin
-            </Link>
+          {isAppRoute && isSuperAdmin && (
+             <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className={cn(
+                        'text-sm font-medium transition-colors hover:text-primary',
+                        pathname.startsWith('/admin') ? 'text-primary' : 'text-muted-foreground'
+                    )}>Admin</Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                    {adminNavLinks.map(link => (
+                         <Link key={link.href} href={link.href} passHref>
+                            <DropdownMenuItem className="cursor-pointer">
+                                <link.icon className="mr-2 h-4 w-4" />
+                                {link.label}
+                            </DropdownMenuItem>
+                        </Link>
+                    ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </nav>
 
@@ -189,7 +203,7 @@ export default function Header() {
                 </Button>
               </div>
               <nav className="flex flex-col space-y-4 p-4">
-                {[...navLinks, ...(isAppRoute && canManageCompany ? [{href: '/admin/audit', label: 'Admin'}] : [])].map((link) => (
+                {[...navLinks, ...(isAppRoute && isSuperAdmin ? adminNavLinks : [])].map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}

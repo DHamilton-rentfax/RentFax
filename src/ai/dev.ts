@@ -1,3 +1,4 @@
+'use server';
 import { config } from 'dotenv';
 config();
 
@@ -11,3 +12,4 @@ import '@/ai/flows/incidents.ts';
 import '@/ai/flows/risk-scorer.ts';
 import '@/ai/flows/disputes.ts';
 import '@/ai/flows/audit.ts';
+import '@/ai/flows/seed.ts';
