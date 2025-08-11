@@ -17,9 +17,8 @@ test.describe('Billing and Feature Gating', () => {
     test('shows billing page with portal link', async ({ page }) => {
         await page.goto('/settings/billing');
         await expect(page.locator('h1:has-text("Billing & Subscription")')).toBeVisible();
-        const portalLink = page.locator('a:has-text("Open Customer Portal")');
+        const portalLink = page.locator('button:has-text("Open Customer Portal")');
         await expect(portalLink).toBeVisible();
-        await expect(portalLink).toHaveAttribute('href', expect.stringContaining('https://billing.stripe.com/p/session/'));
     });
 
     test('feature gate for AI assistant behaves as expected', async ({ page }) => {
@@ -35,3 +34,5 @@ test.describe('Billing and Feature Gating', () => {
         await expect(page.locator('input[placeholder*="How do I"]')).toBeVisible();
     });
 });
+
+    

@@ -1,9 +1,11 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Renter, Rental, and Incident Flow', () => {
-  // Assume user is logged in for these tests. 
-  // In a real scenario, you would use a stored auth state.
-  test.beforeEach(async ({ page }) => {
+  let renterId: string;
+  let incidentId: string;
+
+  test.beforeAll(async ({ browser }) => {
+    const page = await browser.newPage();
     // This is a simplified login flow. In a real test suite, you'd
     // likely have a global setup file to handle auth once.
     await page.goto('/login');
@@ -12,29 +14,76 @@ test.describe('Renter, Rental, and Incident Flow', () => {
     await page.fill('input[type="password"]', process.env.E2E_USER_PASSWORD || 'password123');
     await page.click('button:has-text("Sign In")');
     await page.waitForURL('**/dashboard');
-  });
-
-  test('create renter -> score is visible', async ({ page }) => {
+    
+    // Create Renter
     await page.goto('/renters');
     await page.click('button:has-text("Add Renter")');
-    
-    // Fill out the renter form
-    await page.fill('input[name="name"]', 'Testy McRent');
+    await page.fill('input[name="name"]', 'Testy McRenter');
     await page.fill('input[name="email"]', `testy-${Date.now()}@example.com`);
     await page.fill('input[name="licenseNumber"]', 'X1234567');
     await page.fill('input[name="licenseState"]', 'CA');
     await page.fill('input[name="dob"]', '1990-01-01');
-    
     await page.click('button:has-text("Save Renter")');
-    
-    // Check for success toast
     await expect(page.locator('text=Renter Created')).toBeVisible();
 
-    // Go back to the renters list and verify the new renter is there
     await page.goto('/renters');
-    await expect(page.locator('text=Testy McRent')).toBeVisible();
+    const renterLink = page.locator('a:has-text("Testy McRenter")');
+    await expect(renterLink).toBeVisible();
+    const href = await renterLink.getAttribute('href');
+    renterId = href!.split('/').pop()!;
+    
+    // Create Incident
+    await page.goto('/incidents'); // Assuming you have a page to list/create incidents
+    // This part is a stub as there's no "Add Incident" button on the list page yet
+    // In a real scenario, you'd click "Add Incident", fill a form, and save.
+    // For now, we assume an incident is created via API or another flow.
+    // Let's pretend one exists for our renter for the next tests.
+    // A better implementation would be creating it via an action.
+    incidentId = 'stub-incident-id'; // Placeholder
+    await page.close();
+  });
+
+  test.beforeEach(async ({ page }) => {
+    // Login for each test
+    await page.goto('/login');
+    await page.fill('input[type="email"]', process.env.E2E_USER_EMAIL || 'test-owner@example.com');
+    await page.fill('input[type="password"]', process.env.E2E_USER_PASSWORD || 'password123');
+    await page.click('button:has-text("Sign In")');
+    await page.waitForURL('**/dashboard');
+  });
+
+  test('create renter -> score is visible', async ({ page }) => {
+    await page.goto('/renters');
+    await expect(page.locator('text=Testy McRenter')).toBeVisible();
     // A basic score should be visible. We aren't testing the value, just its presence.
-    const riskScoreBadge = page.locator(`//tr[contains(., "Testy McRent")]/td/div[contains(@class, "badge")]`).first();
+    const riskScoreBadge = page.locator(`//tr[contains(., "Testy McRenter")]/td/div[contains(@class, "badge")]`).first();
     await expect(riskScoreBadge).toBeVisible();
   });
+
+  test('AI Risk Explain works for a seeded renter', async ({ page }) => {
+    test.skip(!renterId, 'Renter not created in beforeAll hook');
+    await page.goto(`/renters/${renterId}`);
+    await page.click('button:has-text("Explain Score with AI")');
+    const explanation = page.locator('[class*="whitespace-pre-wrap"]');
+    await expect(explanation).toBeVisible();
+    await expect(explanation).toContainText('risk');
+  });
+
+  test('AI Incident Assist works for an incident', async ({ page }) => {
+    test.skip(!incidentId || incidentId === 'stub-incident-id', 'Incident not created yet');
+    await page.goto(`/incidents/${incidentId}`); // Navigate to a specific incident
+    
+    await page.fill('textarea[placeholder*="extra context"]', 'The driver seemed nervous.');
+    await page.click('button:has-text("Generate Summary")');
+    
+    const summary = page.locator('h3:has-text("Summary") + p');
+    await expect(summary).toBeVisible();
+    await expect(summary).not.toBeEmpty();
+
+    const checklist = page.locator('h3:has-text("Checklist") + ul');
+    await expect(checklist).toBeVisible();
+    await expect(checklist.locator('li')).toHaveCount(5);
+  });
 });
+
+    

@@ -33,6 +33,12 @@ const SeedStagingOutputSchema = z.object({
 });
 export type SeedStagingOutput = z.infer<typeof SeedStagingOutputSchema>;
 
+function assertNotProd() {
+    if (process.env.NODE_ENV === 'production') {
+        throw new Error('This function cannot run in production.');
+    }
+}
+
 export async function seedStaging(input: SeedStagingInput, auth?: FlowAuth): Promise<SeedStagingOutput> {
   return seedStagingFlow(input, auth);
 }
@@ -43,6 +49,7 @@ const seedStagingFlow = ai.defineFlow(
     inputSchema: SeedStagingInputSchema,
     outputSchema: SeedStagingOutputSchema,
     authPolicy: async (auth, input) => {
+      assertNotProd(); // Seeder Lock
       if (!auth) {
         throw new Error('Authentication is required.');
       }
@@ -194,3 +201,5 @@ const seedStagingFlow = ai.defineFlow(
     };
   }
 );
+
+    
