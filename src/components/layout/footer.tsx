@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import { Building2 } from 'lucide-react';
 
@@ -17,10 +18,10 @@ export default function Footer() {
             <Link href="/rules" className="text-sm text-muted-foreground hover:text-primary">
               Rental Rules
             </Link>
-            <Link href="#" className="text-sm text-muted-foreground hover:text-primary">
+            <Link href="/privacy" className="text-sm text-muted-foreground hover:text-primary">
               Privacy Policy
             </Link>
-            <Link href="#" className="text-sm text-muted-foreground hover:text-primary">
+            <Link href="/terms" className="text-sm text-muted-foreground hover:text-primary">
               Terms of Service
             </Link>
           </div>
