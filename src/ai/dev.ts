@@ -7,3 +7,5 @@ import '@/ai/flows/invites.ts';
 import '@/ai/flows/set-user-claims.ts';
 import '@/ai/flows/who-am-i.ts';
 import '@/ai/flows/rentals.ts';
+import '@/ai/flows/incidents.ts';
+import '@/ai/flows/risk-scorer.ts';

@@ -52,17 +52,19 @@ export const upsertRental = onFlow(
         throw new Error('Renter not found for this company.');
     }
     
+    const payload = {
+        ...data,
+        companyId,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    }
+
     if (id) {
         const rentalRef = db.collection('rentals').doc(id);
-        await rentalRef.update({
-            ...data,
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
+        await rentalRef.update(payload);
         return { id, updated: true };
     } else {
         const newRentalRef = await db.collection('rentals').add({
-            ...data,
-            companyId,
+            ...payload,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
         });
         return { id: newRentalRef.id, created: true };

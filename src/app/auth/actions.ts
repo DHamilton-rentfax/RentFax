@@ -4,6 +4,9 @@ import { setUserClaims as setUserClaimsFlow } from '@/ai/flows/set-user-claims';
 import { createCompany as createCompanyFlow } from '@/ai/flows/create-company';
 import { createInvite as createInviteFlow, acceptInvite as acceptInviteFlow } from '@/ai/flows/invites';
 import { upsertRental as upsertRentalFlow, deleteRental as deleteRentalFlow } from '@/ai/flows/rentals';
+import { createIncident as createIncidentFlow } from '@/ai/flows/incidents';
+import { recomputeRenterScore as recomputeRenterScoreFlow } from '@/ai/flows/risk-scorer';
+
 
 export async function whoAmI() {
     return await whoAmIFlow();
@@ -64,4 +67,25 @@ type DeleteRentalParams = {
 
 export async function deleteRental({id}: DeleteRentalParams) {
     return await deleteRentalFlow({id});
+}
+
+type CreateIncidentParams = {
+    renterId: string;
+    rentalId?: string | null;
+    type: string;
+    severity: 'minor' | 'major' | 'severe';
+    amount?: number;
+    notes?: string;
+    attachments?: Array<{ name: string; path: string; thumbPath?: string }>;
+}
+
+export async function createIncident(params: CreateIncidentParams) {
+    return await createIncidentFlow(params);
+}
+
+type RecomputeScoreParams = {
+    renterId: string;
+}
+export async function recomputeRenterScore(params: RecomputeScoreParams) {
+    return await recomputeRenterScoreFlow(params);
 }
