@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Building2, Menu, X, LogOut, Settings, CreditCard } from 'lucide-react';
+import { Building2, Menu, X, LogOut, Settings, CreditCard, ShieldQuestion } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -48,13 +48,17 @@ export default function Header() {
     return email.substring(0, 2).toUpperCase();
   };
 
-  const isAppRoute =
-    pathname.startsWith('/dashboard') ||
-    pathname.startsWith('/renters') ||
-    pathname.startsWith('/incidents') ||
-    pathname.startsWith('/disputes') ||
-    pathname.startsWith('/setup') ||
-    pathname.startsWith('/settings');
+  const isAppRoute = [
+    '/dashboard',
+    '/renters',
+    '/incidents',
+    '/disputes',
+    '/setup',
+    '/settings',
+    '/admin'
+  ].some(p => pathname.startsWith(p));
+  
+  const canManageCompany = claims?.role && ['owner', 'manager'].includes(claims.role);
 
   const navLinks = isAppRoute ? appNavLinks : marketingNavLinks;
 
@@ -79,6 +83,17 @@ export default function Header() {
               {link.label}
             </Link>
           ))}
+          {isAppRoute && canManageCompany && (
+             <Link
+              href="/admin/audit"
+              className={cn(
+                'text-sm font-medium transition-colors hover:text-primary',
+                pathname.startsWith('/admin') ? 'text-primary' : 'text-muted-foreground'
+              )}
+            >
+              Admin
+            </Link>
+          )}
         </nav>
 
         <div className="hidden md:flex items-center gap-4">
@@ -119,6 +134,12 @@ export default function Header() {
                     <DropdownMenuItem className="cursor-pointer">
                       <Settings className="mr-2 h-4 w-4" />
                       <span>Team Settings</span>
+                    </DropdownMenuItem>
+                  </Link>
+                   <Link href="/settings/rules">
+                    <DropdownMenuItem className="cursor-pointer">
+                      <ShieldQuestion className="mr-2 h-4 w-4" />
+                      <span>Rules & Branding</span>
                     </DropdownMenuItem>
                   </Link>
                    <Link href="/settings/billing">
@@ -166,7 +187,7 @@ export default function Header() {
                 </Button>
               </div>
               <nav className="flex flex-col space-y-4 p-4">
-                {navLinks.map((link) => (
+                {[...navLinks, ...(isAppRoute && canManageCompany ? [{href: '/admin/audit', label: 'Admin'}] : [])].map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
@@ -204,6 +225,14 @@ export default function Header() {
                     >
                       <Settings className="mr-2 h-5 w-5" />
                       <span>Settings</span>
+                    </Link>
+                    <Link
+                      href="/settings/rules"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center text-lg font-medium text-foreground transition-colors hover:text-primary"
+                    >
+                      <ShieldQuestion className="mr-2 h-5 w-5" />
+                      <span>Rules</span>
                     </Link>
                      <Link
                       href="/settings/billing"
