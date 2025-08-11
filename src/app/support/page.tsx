@@ -1,3 +1,4 @@
+'use client';
 import SupportAssistant from '@/components/support-assistant';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bot } from 'lucide-react';

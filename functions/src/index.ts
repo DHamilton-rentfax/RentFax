@@ -1,8 +1,9 @@
+'use server';
 
 import * as admin from 'firebase-admin';
 import Stripe from 'stripe';
 import { onRequest } from 'firebase-functions/v2/https';
-import { PLAN_FEATURES, Plan, CompanyStatus } from '../../src/lib/plan-features'; // Note: Adjust path if needed
+import { PLAN_FEATURES, Plan, CompanyStatus, nextStatus } from '../../src/lib/plan-features'; 
 
 try {
   admin.initializeApp();
@@ -52,17 +53,14 @@ export const stripeWebhook = onRequest({ maxInstances: 1, secrets: ["STRIPE_API_
           console.warn(`No companyId on subscription metadata for sub ID: ${sub.id}`);
           break;
         }
-
-        const isPaid = sub.status === 'active' || sub.status === 'trialing';
         
-        let status: CompanyStatus = 'locked';
-        if (isPaid) {
-            status = 'active';
-        } else if (sub.status === 'past_due' || sub.status === 'unpaid') {
-            status = 'grace';
-        }
-
         const companyRef = db.doc(`companies/${companyId}`);
+        const snap = await companyRef.get();
+        const prevData = snap.data() || {};
+        
+        const isPaid = sub.status === 'active' || sub.status === 'trialing';
+        const status = nextStatus(isPaid, prevData.status === 'active' || prevData.status === 'grace');
+
         await companyRef.set(
           {
             plan,

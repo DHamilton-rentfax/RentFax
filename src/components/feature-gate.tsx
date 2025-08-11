@@ -5,6 +5,7 @@ import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/use-auth';
 import { PLAN_FEATURES, Plan, CompanyStatus } from '@/lib/plan-features';
 import Paywall from './paywall';
+import { useToast } from '@/hooks/use-toast';
 
 export default function FeatureGate({
   name,
@@ -16,6 +17,7 @@ export default function FeatureGate({
   fallback?: React.ReactNode;
 }) {
   const { claims } = useAuth();
+  const { toast } = useToast();
   const [isAllowed, setIsAllowed] = useState<boolean | null>(null);
   const [plan, setPlan] = useState<Plan>('starter');
   const [status, setStatus] = useState<CompanyStatus>('active');
@@ -41,14 +43,17 @@ export default function FeatureGate({
         } else {
           setIsAllowed(false);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching company plan:", error);
+        toast({ title: "Error", description: `Could not verify your plan: ${error.message}`, variant: "destructive" });
         setIsAllowed(false);
       }
     };
 
-    checkPlan();
-  }, [name, claims]);
+    if (claims) {
+        checkPlan();
+    }
+  }, [name, claims, toast]);
 
   if (isAllowed === null) {
     return (

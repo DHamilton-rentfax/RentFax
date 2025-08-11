@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ShieldAlert, Zap } from "lucide-react";
+import { Zap } from "lucide-react";
 import Link from "next/link";
 import { Plan, CompanyStatus } from "@/lib/plan-features";
 
