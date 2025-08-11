@@ -21,7 +21,7 @@ type Role = 'owner' | 'manager' | 'agent' | 'collections' | 'renter';
 // Flow to create an invitation
 const CreateInviteInputSchema = z.object({
   email: z.string().email('A valid email is required.'),
-  role: z.enum(['manager', 'agent', 'collections', 'renter']),
+  role: z.enum(['manager', 'agent', 'collections']),
 });
 
 const CreateInviteOutputSchema = z.object({
