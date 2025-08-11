@@ -144,5 +144,3 @@ export default function RenterScreener() {
     </Form>
   );
 }
-
-// Rename the file to renter-screener.tsx

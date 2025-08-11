@@ -1,4 +1,4 @@
-import RentalForm from '@/components/rental-form';
+import RenterScreener from '@/components/renter-screener';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function ServicesPage() {
@@ -7,13 +7,13 @@ export default function ServicesPage() {
       <div className="max-w-3xl mx-auto">
         <Card className="shadow-lg">
           <CardHeader className="text-center">
-            <CardTitle className="font-headline text-3xl md:text-4xl">Generate Your Rental Report</CardTitle>
+            <CardTitle className="font-headline text-3xl md:text-4xl">Screen a Renter</CardTitle>
             <CardDescription className="text-lg pt-2">
-              Enter the property details below to get started.
+              Enter a renter's details to generate their risk & history report.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <RentalForm />
+            <RenterScreener />
           </CardContent>
         </Card>
       </div>
