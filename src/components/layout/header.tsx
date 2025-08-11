@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Building2, Menu, X, LogOut, Settings } from 'lucide-react';
-import { User, onAuthStateChanged } from 'firebase/auth';
+import { Building2, Menu, X, LogOut, Settings, CreditCard } from 'lucide-react';
+import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -21,7 +21,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { useAuth } from '@/hooks/use-auth';
 
-
 const marketingNavLinks = [
   { href: '/', label: 'Home' },
   { href: '/services', label: 'Services' },
@@ -30,11 +29,11 @@ const marketingNavLinks = [
 ];
 
 const appNavLinks = [
-    { href: '/dashboard', label: 'Dashboard' },
-    { href: '/renters', label: 'Renters' },
-    { href: '/incidents', label: 'Incidents' },
-    { href: '/disputes', label: 'Disputes' },
-]
+  { href: '/dashboard', label: 'Dashboard' },
+  { href: '/renters', label: 'Renters' },
+  { href: '/incidents', label: 'Incidents' },
+  { href: '/disputes', label: 'Disputes' },
+];
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -44,18 +43,19 @@ export default function Header() {
   const handleLogout = async () => {
     await auth.signOut();
   };
-  
+
   const getInitials = (email: string | null | undefined) => {
     if (!email) return '??';
     return email.substring(0, 2).toUpperCase();
   };
 
-  const isAppRoute = pathname.startsWith('/dashboard') 
-    || pathname.startsWith('/renters') 
-    || pathname.startsWith('/incidents')
-    || pathname.startsWith('/disputes')
-    || pathname.startsWith('/setup') 
-    || pathname.startsWith('/settings');
+  const isAppRoute =
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/renters') ||
+    pathname.startsWith('/incidents') ||
+    pathname.startsWith('/disputes') ||
+    pathname.startsWith('/setup') ||
+    pathname.startsWith('/settings');
 
   const navLinks = isAppRoute ? appNavLinks : marketingNavLinks;
 
@@ -83,21 +83,24 @@ export default function Header() {
         </nav>
 
         <div className="hidden md:flex items-center gap-4">
-           {!user ? (
-             <>
-                <Button variant="ghost" asChild>
-                    <Link href="/login">Log In</Link>
-                </Button>
-                <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
-                    <Link href="/signup">Sign Up</Link>
-                </Button>
-             </>
-           ) : (
-             <DropdownMenu>
+          {!user ? (
+            <>
+              <Button variant="ghost" asChild>
+                <Link href="/login">Log In</Link>
+              </Button>
+              <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <Link href="/signup">Sign Up</Link>
+              </Button>
+            </>
+          ) : (
+            <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.photoURL || undefined} alt={user.displayName || user.email || ''} />
+                    <AvatarImage
+                      src={user.photoURL || undefined}
+                      alt={user.displayName || user.email || ''}
+                    />
                     <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
                   </Avatar>
                 </Button>
@@ -116,7 +119,13 @@ export default function Header() {
                   <Link href="/settings/team">
                     <DropdownMenuItem className="cursor-pointer">
                       <Settings className="mr-2 h-4 w-4" />
-                      <span>Settings</span>
+                      <span>Team Settings</span>
+                    </DropdownMenuItem>
+                  </Link>
+                   <Link href="/settings/billing">
+                    <DropdownMenuItem className="cursor-pointer">
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      <span>Billing</span>
                     </DropdownMenuItem>
                   </Link>
                 </DropdownMenuGroup>
@@ -127,7 +136,7 @@ export default function Header() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-           )}
+          )}
         </div>
 
         <div className="md:hidden">
@@ -140,14 +149,22 @@ export default function Header() {
             </SheetTrigger>
             <SheetContent side="right" className="w-full max-w-xs bg-card p-0">
               <div className="flex justify-between items-center p-4 border-b">
-                 <Link href="/" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Building2 className="h-6 w-6 text-primary" />
-                    <span className="font-headline text-xl font-bold">RentFAX</span>
-                  </Link>
-                  <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
-                      <X className="h-6 w-6" />
-                      <span className="sr-only">Close menu</span>
-                  </Button>
+                <Link
+                  href="/"
+                  className="flex items-center gap-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Building2 className="h-6 w-6 text-primary" />
+                  <span className="font-headline text-xl font-bold">RentFAX</span>
+                </Link>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <X className="h-6 w-6" />
+                  <span className="sr-only">Close menu</span>
+                </Button>
               </div>
               <nav className="flex flex-col space-y-4 p-4">
                 {navLinks.map((link) => (
@@ -157,32 +174,58 @@ export default function Header() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={cn(
                       'text-lg font-medium transition-colors hover:text-primary',
-                       pathname === link.href ? 'text-primary' : 'text-foreground'
+                      pathname === link.href ? 'text-primary' : 'text-foreground'
                     )}
                   >
                     {link.label}
                   </Link>
                 ))}
-                 {!user ? (
-                   <>
+                {!user ? (
+                  <>
                     <Button asChild className="w-full mt-4" variant="outline">
-                      <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>Login</Link>
+                      <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                        Login
+                      </Link>
                     </Button>
-                    <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                      <Link href="/signup" onClick={() => setIsMobileMenuOpen(false)}>Sign Up</Link>
+                    <Button
+                      asChild
+                      className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                    >
+                      <Link href="/signup" onClick={() => setIsMobileMenuOpen(false)}>
+                        Sign Up
+                      </Link>
                     </Button>
-                   </>
-                 ) : (
-                    <div className="border-t pt-4 mt-4 space-y-4">
-                        <Link href="/settings/team" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center text-lg font-medium text-foreground transition-colors hover:text-primary">
-                            <Settings className="mr-2 h-5 w-5" />
-                            <span>Settings</span>
-                        </Link>
-                        <Button onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} className="w-full" variant="outline">
-                            Log Out
-                        </Button>
-                    </div>
-                 )}
+                  </>
+                ) : (
+                  <div className="border-t pt-4 mt-4 space-y-4">
+                    <Link
+                      href="/settings/team"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center text-lg font-medium text-foreground transition-colors hover:text-primary"
+                    >
+                      <Settings className="mr-2 h-5 w-5" />
+                      <span>Settings</span>
+                    </Link>
+                     <Link
+                      href="/settings/billing"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center text-lg font-medium text-foreground transition-colors hover:text-primary"
+                    >
+                      <CreditCard className="mr-2 h-5 w-5" />
+                      <span>Billing</span>
+                    </Link>
+                    <Button
+                      onClick={() => {
+                        handleLogout();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full"
+                      variant="outline"
+                    >
+                      Log Out
+                    </Button>
+                  </div>
+                )}
               </nav>
             </SheetContent>
           </Sheet>

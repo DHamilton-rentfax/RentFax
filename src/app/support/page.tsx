@@ -1,13 +1,14 @@
 import SupportAssistant from '@/components/support-assistant';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bot } from 'lucide-react';
+import FeatureGate from '@/components/feature-gate';
 
 export default function SupportPage() {
   return (
     <div className="container mx-auto py-12 px-4 flex justify-center">
       <div className="w-full max-w-2xl">
         <Card className="shadow-lg">
-           <CardHeader className="text-center">
+          <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
               <Bot className="w-12 h-12 text-primary" />
             </div>
@@ -17,7 +18,9 @@ export default function SupportPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <SupportAssistant />
+            <FeatureGate name="ai_assistant">
+              <SupportAssistant />
+            </FeatureGate>
           </CardContent>
         </Card>
       </div>
