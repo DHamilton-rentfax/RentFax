@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Building2, Menu, X, LogOut, Settings, CreditCard, ShieldQuestion } from 'lucide-react';
+import { Building2, Menu, X, LogOut, Settings, CreditCard, ShieldQuestion, BarChart2 } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -32,6 +32,7 @@ const appNavLinks = [
   { href: '/renters', label: 'Renters' },
   { href: '/incidents', label: 'Incidents' },
   { href: '/disputes', label: 'Disputes' },
+  { href: '/analytics', label: 'Analytics' },
 ];
 
 export default function Header() {
@@ -55,7 +56,8 @@ export default function Header() {
     '/disputes',
     '/setup',
     '/settings',
-    '/admin'
+    '/admin',
+    '/analytics',
   ].some(p => pathname.startsWith(p));
   
   const canManageCompany = claims?.role && ['owner', 'manager'].includes(claims.role);
@@ -77,7 +79,7 @@ export default function Header() {
               href={link.href}
               className={cn(
                 'text-sm font-medium transition-colors hover:text-primary',
-                pathname === link.href ? 'text-primary' : 'text-muted-foreground'
+                pathname.startsWith(link.href) ? 'text-primary' : 'text-muted-foreground'
               )}
             >
               {link.label}

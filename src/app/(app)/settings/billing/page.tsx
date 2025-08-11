@@ -1,12 +1,33 @@
 'use client';
-
+import { useState } from 'react';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Loader2 } from 'lucide-react';
 import Protected from '@/components/protected';
+import { useToast } from '@/hooks/use-toast';
 
 export default function BillingPage() {
-  const billingPortalUrl = process.env.NEXT_PUBLIC_BILLING_PORTAL_BASE || '#';
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const openPortal = async () => {
+    setLoading(true);
+    try {
+      const call = httpsCallable(functions, 'createBillingPortalSession');
+      const res: any = await call({});
+      window.location.href = res.data.url;
+    } catch (e: any) {
+      toast({
+        title: 'Error',
+        description: e.message || 'Unable to open billing portal. Please contact support.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Protected roles={['owner', 'manager']}>
@@ -23,10 +44,13 @@ export default function BillingPage() {
             <p className="text-muted-foreground mb-4">
               You will be redirected to Stripe to manage your billing information securely.
             </p>
-            <Button asChild>
-              <a href={billingPortalUrl} target="_blank" rel="noopener noreferrer">
-                Open Customer Portal <ArrowRight className="ml-2 h-4 w-4" />
-              </a>
+            <Button onClick={openPortal} disabled={loading}>
+              {loading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <ArrowRight className="mr-2 h-4 w-4" />
+              )}
+              Open Customer Portal
             </Button>
           </CardContent>
         </Card>

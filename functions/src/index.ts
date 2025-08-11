@@ -2,6 +2,7 @@
 
 import Stripe from 'stripe';
 import { onRequest } from 'firebase-functions/v2/https';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { PLAN_FEATURES, Plan, CompanyStatus, nextStatus } from '../../src/lib/plan-features'; 
 import { admin, dbAdmin as db } from '../../src/lib/firebase-admin';
 
@@ -79,4 +80,25 @@ export const stripeWebhook = onRequest({ maxInstances: 1, secrets: ["STRIPE_API_
     console.error('Error in stripeWebhook handler:', e);
     res.status(500).send(`Webhook handler error: ${e.message}`);
   }
+});
+
+export const createBillingPortalSession = onCall({ secrets: ["STRIPE_API_KEY"] }, async (req) => {
+  if (!req.auth) throw new HttpsError('unauthenticated', 'Sign in required');
+  const { companyId, role } = req.auth.token as any;
+  if (!companyId || !['owner','manager'].includes(role)) {
+    throw new HttpsError('permission-denied', 'Only owner/manager can open billing');
+  }
+
+  const company = await db.doc(`companies/${companyId}`).get();
+  if (!company.exists) throw new HttpsError('not-found', 'Company not found');
+  const customerId = company.data()?.stripe?.customer;
+  if (!customerId) throw new HttpsError('failed-precondition', 'No Stripe customer on file');
+
+  const returnUrl = process.env.STRIPE_PORTAL_RETURN_URL || 'http://localhost:9002/settings/billing';
+  const session = await stripe.billingPortal.sessions.create({
+    customer: customerId,
+    return_url: returnUrl
+  });
+
+  return { url: session.url };
 });
