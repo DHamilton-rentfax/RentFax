@@ -6,6 +6,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import {FlowAuth} from 'genkit/flow';
 import { admin, dbAdmin as db, authAdmin } from '@/lib/firebase-admin';
+import { logAudit } from './audit';
 
 type Reason = {code: string; message: string; weight: number};
 type Incident = {
@@ -85,12 +86,14 @@ const recomputeRenterScoreFlow = ai.defineFlow(
   },
   async ({renterId}, {auth}) => {
     if (!auth) throw new Error('Auth context missing');
-    const {companyId} = ((await authAdmin.getUser(auth.uid)).customClaims as any) || {};
+    const { companyId, uid, role } = ((await authAdmin.getUser(auth.uid)).customClaims as any) || {};
     if (!companyId) throw new Error('User is not associated with a company.');
 
-    const renterSnap = await db.doc(`renters/${renterId}`).get();
+    const renterRef = db.doc(`renters/${renterId}`);
+    const renterSnap = await renterRef.get();
     if (!renterSnap.exists) throw new Error('Renter not found');
-    if (renterSnap.data()?.companyId !== companyId) throw new Error('Permission denied to recompute score for this renter.');
+    const renterData = renterSnap.data()!;
+    if (renterData.companyId !== companyId) throw new Error('Permission denied to recompute score for this renter.');
 
     const incSnap = await db.collection('incidents').where('renterId', '==', renterId).where('companyId', '==', companyId).get();
     const incidents = incSnap.docs.map((d) => {
@@ -99,8 +102,10 @@ const recomputeRenterScoreFlow = ai.defineFlow(
     }) as Incident[];
 
     const result = computeScore(incidents, 0); // TODO: unpaidBalance
+    const beforeData = { riskScore: renterData.riskScore, scoreReasons: renterData.scoreReasons };
+    const afterData = { riskScore: result.value, scoreReasons: result.reasons };
 
-    await renterSnap.ref.set(
+    await renterRef.set(
       {
         riskScore: result.value,
         scoreUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -108,6 +113,17 @@ const recomputeRenterScoreFlow = ai.defineFlow(
       },
       {merge: true}
     );
+    
+    await logAudit({
+      actorUid: uid,
+      actorRole: role,
+      companyId: companyId,
+      action: 'recomputeRenterScore',
+      targetPath: `renters/${renterId}`,
+      before: beforeData,
+      after: afterData,
+    });
+
 
     return {value: result.value, reasons: result.reasons};
   }

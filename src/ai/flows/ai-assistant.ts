@@ -31,20 +31,24 @@ const riskExplainPrompt = ai.definePrompt({
   input: {
     schema: z.object({
       score: z.number().nullable(),
+      previousScore: z.number().optional().nullable(),
       reasons: z.array(z.any()),
       incidents: z.array(z.any()),
     }),
   },
-  prompt: `You are a risk analyst for a rental platform. Be concise, neutral, and actionable. 
+  prompt: `You are a risk analyst for a rental platform. Be concise, neutral, and actionable.
 - NEVER INVENT FACTS. Only use the provided data.
 - Output at most 6 bullet points.
+{{#if previousScore}}
+- The user's score changed from {{{previousScore}}} to {{{score}}}. Explain this change.
+{{/if}}
 
 Renter score: {{{score}}}
 Score Reasons: {{{json reasons}}}
 Recent Incidents: {{{json incidents}}}
 
 Explain the score for a non-technical agent. Include:
-- A one-line summary.
+- A one-line summary of the current score and any recent change.
 - Top risk drivers (as bullet points).
 - Suggested actions for the agent (as bullet points).`,
   config: {
@@ -85,9 +89,19 @@ const riskExplainFlow = ai.defineFlow(
             createdAt: data.createdAt?.toDate?.()?.toISOString?.() || ''
         }
     });
+    
+    // Find previous score from audit logs
+    const auditSnap = await db.collection('auditLogs')
+      .where('companyId', '==', companyId)
+      .where('targetPath', '==', `renters/${renterId}`)
+      .where('action', '==', 'recomputeRenterScore')
+      .orderBy('at', 'desc').limit(1).get();
+      
+    const previousScore = auditSnap.empty ? null : auditSnap.docs[0].data().before?.riskScore;
 
     const { text } = await riskExplainPrompt({
       score: renterData.riskScore ?? null,
+      previousScore,
       reasons: renterData.scoreReasons ?? [],
       incidents: incidents,
     });
