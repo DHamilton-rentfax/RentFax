@@ -30,7 +30,7 @@ export default function RiskExplainPanel({ renterId }: { renterId: string }) {
   return (
     <div className="space-y-3">
       <Button onClick={run} disabled={busy} size="sm" variant="outline" className="w-full">
-        {busy ? <Loader2 className="animate-spin" /> : <Sparkles />}
+        {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         {busy ? 'Thinking…' : 'Explain Score with AI'}
       </Button>
       {text && <div className="whitespace-pre-wrap text-sm text-muted-foreground bg-secondary p-3 rounded-md border">{text}</div>}

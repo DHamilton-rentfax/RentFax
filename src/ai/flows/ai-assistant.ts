@@ -6,6 +6,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { FlowAuth } from 'genkit/flow';
 import { admin, dbAdmin as db, authAdmin } from '@/lib/firebase-admin';
+import { formatDistanceToNow } from 'date-fns';
 
 // Common auth policy for assistant flows
 const assistantAuthPolicy = async (auth: FlowAuth) => {
@@ -26,37 +27,6 @@ const RiskExplainOutputSchema = z.object({
 });
 export type RiskExplainOutput = z.infer<typeof RiskExplainOutputSchema>;
 
-const riskExplainPrompt = ai.definePrompt({
-  name: 'riskExplainPrompt',
-  input: {
-    schema: z.object({
-      score: z.number().nullable(),
-      previousScore: z.number().optional().nullable(),
-      reasons: z.array(z.any()),
-      incidents: z.array(z.any()),
-    }),
-  },
-  prompt: `You are a risk analyst for a rental platform. Be concise, neutral, and actionable.
-- NEVER INVENT FACTS. Only use the provided data.
-- Output at most 6 bullet points.
-{{#if previousScore}}
-- The user's score changed from {{{previousScore}}} to {{{score}}}. Explain this change.
-{{/if}}
-
-Renter score: {{{score}}}
-Score Reasons: {{{json reasons}}}
-Recent Incidents: {{{json incidents}}}
-
-Explain the score for a non-technical agent. Include:
-- A one-line summary of the current score and any recent change.
-- Top risk drivers (as bullet points).
-- Suggested actions for the agent (as bullet points).`,
-  config: {
-    temperature: 0.2,
-  },
-});
-
-
 const riskExplainFlow = ai.defineFlow(
   {
     name: 'riskExplainFlow',
@@ -75,20 +45,6 @@ const riskExplainFlow = ai.defineFlow(
     if (renterSnap.data()?.companyId !== companyId) throw new Error('Permission denied.');
 
     const renterData = renterSnap.data()!;
-    const incidentsSnap = await db.collection('incidents')
-      .where('companyId', '==', companyId)
-      .where('renterId', '==', renterId)
-      .orderBy('createdAt', 'desc').limit(5).get();
-    
-    const incidents = incidentsSnap.docs.map(d => {
-        const data = d.data();
-        return {
-            type: data.type,
-            severity: data.severity,
-            amount: data.amount || 0,
-            createdAt: data.createdAt?.toDate?.()?.toISOString?.() || ''
-        }
-    });
     
     // Find previous score from audit logs
     const auditSnap = await db.collection('auditLogs')
@@ -97,16 +53,51 @@ const riskExplainFlow = ai.defineFlow(
       .where('action', '==', 'recomputeRenterScore')
       .orderBy('at', 'desc').limit(1).get();
       
-    const previousScore = auditSnap.empty ? null : auditSnap.docs[0].data().before?.riskScore;
+    const previousScore = auditSnap.empty ? renterData.riskScore : auditSnap.docs[0].data().before?.riskScore;
+    const currentScore = renterData.riskScore;
 
-    const { text } = await riskExplainPrompt({
-      score: renterData.riskScore ?? null,
-      previousScore,
-      reasons: renterData.scoreReasons ?? [],
-      incidents: incidents,
-    });
+    const incidentsSnap = await db.collection('incidents')
+      .where('companyId', '==', companyId)
+      .where('renterId', '==', renterId)
+      .orderBy('createdAt', 'desc').limit(10).get();
     
-    return { explanation: text };
+    const allIncidents = incidentsSnap.docs.map(d => {
+        const data = d.data();
+        return {
+            type: data.type,
+            severity: data.severity,
+            createdAt: data.createdAt?.toDate?.()
+        }
+    });
+
+    // Deterministic explanation logic
+    const scoreDiff = currentScore - previousScore;
+    let explanation = "Renter's score ";
+    if (scoreDiff === 0) {
+        explanation += `remained unchanged at ${currentScore}.`;
+    } else if (scoreDiff > 0) {
+        explanation += `improved from ${previousScore} to ${currentScore} (+${scoreDiff} pts).`;
+    } else {
+        explanation += `dropped from ${previousScore} to ${currentScore} (${scoreDiff} pts).`;
+    }
+
+    const recentIncidents = allIncidents.filter(inc => {
+        if (!inc.createdAt) return false;
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        return inc.createdAt > thirtyDaysAgo;
+    });
+
+    if (recentIncidents.length > 0) {
+        explanation += `\n\nThis change was likely driven by ${recentIncidents.length} incident(s) in the last 30 days:`;
+        recentIncidents.forEach(inc => {
+            explanation += `\n• A "${inc.severity}" ${inc.type} incident ${formatDistanceToNow(inc.createdAt, { addSuffix: true })}.`
+        });
+    } else {
+        explanation += '\n\nThere have been no new incidents in the last 30 days.';
+    }
+
+    return { explanation };
   }
 );
 
