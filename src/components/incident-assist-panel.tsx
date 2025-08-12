@@ -18,7 +18,7 @@ export default function IncidentAssistPanel({ incidentId }: { incidentId: string
     setBusy(true);
     setOut(null);
     try {
-      const res = await aiIncidentAssist({ incidentId, freeformNotes: notes });
+      const res = await incidentAssist({ incidentId, freeformNotes: notes });
       setOut(res);
     } catch (e: any) {
       toast({ title: 'AI Assistant Error', description: e.message, variant: 'destructive' });
