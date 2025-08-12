@@ -37,15 +37,17 @@ export default function FeatureGate({
           const companyData = companySnap.data();
           const currentPlan = (companyData.plan || 'starter') as Plan;
           const currentStatus = (companyData.status || 'active') as CompanyStatus;
-          const aiEnabled = companyData.ai?.enabled ?? true; // Default to on
+          // Check the company-wide toggle. Default to true if not explicitly set.
+          const aiEnabled = companyData.ai?.enabled ?? true; 
           
           setPlan(currentPlan);
           setStatus(currentStatus);
 
           const planHasFeature = PLAN_FEATURES[currentPlan]?.[name];
+          // For AI features, also check if the admin has enabled them.
           const companyAllowsFeature = name.startsWith('ai_') ? aiEnabled : true;
           
-          setIsAllowed(currentStatus !== 'locked' && !!planHasFeature && companyAllowsFeature);
+          setIsAllowed(currentStatus === 'active' && !!planHasFeature && companyAllowsFeature);
         } else {
           setIsAllowed(false);
         }
