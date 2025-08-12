@@ -7,79 +7,73 @@ service cloud.firestore {
     function isAuthed() {
       return request.auth != null;
     }
-    function isSuperAdmin() {
-      return isAuthed() && request.auth.token.role == 'superadmin';
-    }
     function isOwner(companyId) {
-      return isAuthed() && request.auth.token.companyId == companyId && request.auth.token.role == 'owner';
+      return request.auth.token.role == 'owner' && request.auth.token.companyId == companyId;
     }
     function isManager(companyId) {
-      return isAuthed() && request.auth.token.companyId == companyId && ['owner','manager'].includes(request.auth.token.role);
+       return request.auth.token.role == 'manager' && request.auth.token.companyId == companyId;
     }
     function isAgent(companyId) {
-       return isAuthed() && request.auth.token.companyId == companyId && ['owner','manager','agent'].includes(request.auth.token.role);
+       return request.auth.token.role == 'agent' && request.auth.token.companyId == companyId;
     }
-    function belongsToCompany(companyId) {
-        return isAuthed() && request.auth.token.companyId == companyId;
+     function isStaff(companyId) {
+       return isOwner(companyId) || isManager(companyId) || isAgent(companyId);
+    }
+    function isSuperadmin() {
+        return request.auth.token.role == 'superadmin';
     }
 
-    // Company: must be owner to edit, any member to read.
+    // Collection Rules
     match /companies/{companyId} {
-      allow read: if belongsToCompany(companyId) || isSuperAdmin();
-      allow update: if isOwner(companyId) || isSuperAdmin();
-      allow create: if isAuthed(); // User must be able to create a company on signup
+      allow read: if isAuthed() && request.auth.token.companyId == companyId;
+      allow write: if isOwner(companyId) || isManager(companyId) || isSuperadmin(); // Or on create for new owner
     }
 
-    // Company Rules: Manager can edit, public can read
-    match /companyRules/{companyId} {
-        allow read: if true;
-        allow write: if isManager(companyId) || isSuperAdmin();
-    }
-    
-    // Renters: Agents can create/update, only for their company
-    match /renters/{renterId} {
-      allow read: if belongsToCompany(request.resource.data.companyId);
-      allow create, update: if isAgent(request.resource.data.companyId);
-      allow delete: if isManager(request.resource.data.companyId);
-    }
-    
-    // Rentals: Agents can manage
-    match /rentals/{rentalId} {
-        allow read: if belongsToCompany(request.resource.data.companyId);
-        allow create, update: if isAgent(request.resource.data.companyId);
-        allow delete: if isManager(request.resource.data.companyId);
-    }
-
-    // Incidents: Agents can manage
-    match /incidents/{incidentId} {
-        allow read: if belongsToCompany(request.resource.data.companyId);
-        allow create, update: if isAgent(request.resource.data.companyId);
-        allow delete: if isManager(request.resource.data.companyId);
-    }
-
-    // Disputes: company members can read, only specific roles can create/update
-    match /disputes/{disputeId} {
-        allow read: if belongsToCompany(resource.data.companyId);
-        allow create: if isAuthed(); // Both renters and agents can create
-        allow update: if belongsToCompany(resource.data.companyId); // Logic is handled in flow
-    }
-
-    // Invites: Managers can create, anyone can read if they have the token (ID)
-    match /invites/{inviteId} {
-        allow read: if isAuthed();
-        allow create: if isManager(request.resource.data.companyId);
-        allow update: if isAuthed(); // For accepting invite
-    }
-
-    // Audit Logs: Read-only for managers
-    match /auditLogs/{logId} {
-        allow read: if isManager(resource.data.companyId);
-        allow write: if false; // Only backend can write
-    }
-
-    // User profile: only user can access
     match /users/{userId} {
       allow read, write: if request.auth.uid == userId;
     }
+    
+    match /renters/{renterId} {
+      allow read, write: if isAuthed() && resource.data.companyId == request.auth.token.companyId;
+      allow create: if isAuthed() && request.resource.data.companyId == request.auth.token.companyId;
+    }
+
+    match /rentals/{rentalId} {
+       allow read, write: if isAuthed() && resource.data.companyId == request.auth.token.companyId;
+       allow create: if isAuthed() && request.resource.data.companyId == request.auth.token.companyId;
+    }
+    
+    match /incidents/{incidentId} {
+      allow read, write: if isAuthed() && resource.data.companyId == request.auth.token.companyId;
+      allow create: if isAuthed() && request.resource.data.companyId == request.auth.token.companyId;
+    }
+
+    match /disputes/{disputeId} {
+      allow read: if isAuthed() && resource.data.companyId == request.auth.token.companyId;
+      // Allow renter who opened it, or company staff
+      allow write: if isAuthed() && resource.data.companyId == request.auth.token.companyId &&
+                  (isStaff(resource.data.companyId) || request.auth.uid == resource.data.renterUid);
+    }
+
+    match /invites/{inviteId} {
+        allow read: if isAuthed() && resource.data.companyId == request.auth.token.companyId;
+        allow create, write: if isAuthed() && request.auth.token.companyId == request.resource.data.companyId && (isOwner(request.resource.data.companyId) || isManager(request.resource.data.companyId));
+    }
+    
+    match /auditLogs/{logId} {
+        allow read: if isAuthed() && resource.data.companyId == request.auth.token.companyId && (isOwner(resource.data.companyId) || isManager(resource.data.companyId));
+        allow create: if isAuthed(); // Flow can write
+    }
+    
+    match /companyRules/{companyId} {
+        allow read: true; // Publicly readable
+        allow write: if isAuthed() && (isOwner(companyId) || isManager(companyId));
+    }
+    
+    match /uploadBatches/{batchId} {
+      allow read, write: if isAuthed() && (isOwner(resource.data.companyId) || isManager(resource.data.companyId));
+      allow create: if isAuthed() && (isOwner(request.resource.data.companyId) || isManager(request.resource.data.companyId));
+    }
+
   }
 }
