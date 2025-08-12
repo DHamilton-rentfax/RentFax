@@ -1,3 +1,4 @@
+
 'use client';
 import { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
@@ -36,10 +37,15 @@ export default function FeatureGate({
           const companyData = companySnap.data();
           const currentPlan = (companyData.plan || 'starter') as Plan;
           const currentStatus = (companyData.status || 'active') as CompanyStatus;
+          const aiEnabled = companyData.ai?.enabled ?? true; // Default to on
           
           setPlan(currentPlan);
           setStatus(currentStatus);
-          setIsAllowed(currentStatus !== 'locked' && !!PLAN_FEATURES[currentPlan]?.[name]);
+
+          const planHasFeature = PLAN_FEATURES[currentPlan]?.[name];
+          const companyAllowsFeature = name.startsWith('ai_') ? aiEnabled : true;
+          
+          setIsAllowed(currentStatus !== 'locked' && !!planHasFeature && companyAllowsFeature);
         } else {
           setIsAllowed(false);
         }

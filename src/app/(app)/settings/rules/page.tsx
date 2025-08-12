@@ -1,3 +1,4 @@
+
 'use client';
 import { useEffect, useState } from 'react';
 import Protected from '@/components/protected';
@@ -10,8 +11,16 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
+
+const ALL_FLAGS = [
+    { id: 'duplicateIdentity', label: 'Duplicate Identity' },
+    { id: 'repeatOffender', label: 'Repeat Offender' },
+    { id: 'sharedAddressRisk', label: 'Shared Address Risk' },
+];
 
 export default function RulesSettings() {
   const { claims } = useAuth();
@@ -20,7 +29,6 @@ export default function RulesSettings() {
   const [saving, setSaving] = useState(false);
 
   const [companyId, setCompanyId] = useState('');
-  const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
   const [primary, setPrimary] = useState('#3F51B5');
@@ -29,6 +37,9 @@ export default function RulesSettings() {
   const [fees, setFees] = useState('');
   const [smoking, setSmoking] = useState('');
   const [other, setOther] = useState('');
+
+  const [aiEnabled, setAiEnabled] = useState(true);
+  const [enabledFlags, setEnabledFlags] = useState<string[]>(ALL_FLAGS.map(f => f.id));
 
   useEffect(() => {
     if (claims?.companyId) {
@@ -44,10 +55,11 @@ export default function RulesSettings() {
         const c = await getDoc(doc(db, 'companies', companyId));
         if (c.exists()) {
           const d = c.data() as any;
-          setName(d.name || '');
           setSlug(d.slug || '');
           setLogoUrl(d.brand?.logoUrl || '');
           setPrimary(d.brand?.primary || '#3F51B5');
+          setAiEnabled(d.ai?.enabled ?? true);
+          setEnabledFlags(d.ai?.enabledFlags ?? ALL_FLAGS.map(f => f.id));
         }
         // Using a separate doc for rules is a good pattern
         const rs = await getDoc(doc(db, 'companyRules', companyId));
@@ -81,7 +93,14 @@ export default function RulesSettings() {
           return;
         }
       }
-      await setDoc(doc(db, 'companies', companyId), { name, slug, brand: { logoUrl, primary } }, { merge: true });
+      
+      const companyUpdates = {
+          slug,
+          brand: { logoUrl, primary },
+          ai: { enabled: aiEnabled, enabledFlags },
+      };
+
+      await setDoc(doc(db, 'companies', companyId), companyUpdates, { merge: true });
       await setDoc(doc(db, 'companyRules', companyId), { driverEligibility, fees, smoking, other }, { merge: true });
       toast({ title: 'Settings Saved!' });
     } catch (error: any) {
@@ -90,6 +109,10 @@ export default function RulesSettings() {
       setSaving(false);
     }
   };
+  
+  const toggleFlag = (flagId: string) => {
+    setEnabledFlags(prev => prev.includes(flagId) ? prev.filter(f => f !== flagId) : [...prev, flagId]);
+  }
 
   if (loading) {
     return (
@@ -106,7 +129,7 @@ export default function RulesSettings() {
   return (
     <Protected roles={['owner', 'manager']}>
       <div className="max-w-2xl mx-auto p-4 md:p-10">
-        <h1 className="text-2xl md:text-3xl font-headline mb-6">Public Rules & Branding</h1>
+        <h1 className="text-2xl md:text-3xl font-headline mb-6">Company Settings</h1>
         <div className="space-y-6">
             <Card>
                 <CardHeader>
@@ -155,10 +178,35 @@ export default function RulesSettings() {
                 </CardContent>
             </Card>
 
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Sparkles className="text-primary"/>AI Risk Assistant Settings</CardTitle>
+                    <CardDescription>Configure how the AI assistant behaves for your company.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex items-center space-x-2">
+                        <Switch id="ai-enabled" checked={aiEnabled} onCheckedChange={setAiEnabled} />
+                        <Label htmlFor="ai-enabled">Enable AI Risk Assistant</Label>
+                    </div>
+                    <div className="space-y-2 pt-2">
+                        <Label>Enabled Risk Flags</Label>
+                        <p className="text-sm text-muted-foreground">Select which automatic flags to show.</p>
+                        <div className="grid grid-cols-2 gap-2 pt-2">
+                        {ALL_FLAGS.map(flag => (
+                            <div key={flag.id} className="flex items-center space-x-2">
+                                <Checkbox id={`flag-${flag.id}`} checked={enabledFlags.includes(flag.id)} onCheckedChange={() => toggleFlag(flag.id)} />
+                                <Label htmlFor={`flag-${flag.id}`}>{flag.label}</Label>
+                            </div>
+                        ))}
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
             <div className="flex items-center gap-4">
                 <Button onClick={save} disabled={saving}>
                     {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Save Settings
+                    Save All Settings
                 </Button>
                  {slug && <Button asChild variant="outline"><Link href={`/rules/${slug}`} target="_blank">View Public Page</Link></Button>}
             </div>
