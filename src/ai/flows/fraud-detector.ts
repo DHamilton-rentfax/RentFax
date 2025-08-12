@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview A Genkit flow for detecting potential fraud signals.
+ * @fileOverview A Genkit flow for detecting potential fraud and risk signals.
  */
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
@@ -19,9 +19,11 @@ const MatchSchema = z.object({
 });
 
 const FraudSignalSchema = z.object({
+  code: z.enum(['duplicateIdentity', 'sharedAddressRisk', 'repeatOffender']),
   identifier: z.string(),
   value: z.string(),
-  matches: z.array(MatchSchema),
+  matches: z.array(MatchSchema).optional(),
+  details: z.string().optional(),
 });
 export type FraudSignal = z.infer<typeof FraudSignalSchema>;
 
@@ -42,7 +44,7 @@ const detectFraudSignalsFlow = ai.defineFlow(
     authPolicy: async (auth, input) => {
       if (!auth) throw new Error('Authentication is required.');
       const { role } = (await authAdmin.getUser(auth.uid)).customClaims || {};
-      if (!['owner', 'manager'].includes(role)) throw new Error('Permission denied.');
+      if (!['owner', 'manager', 'agent'].includes(role)) throw new Error('Permission denied.');
     },
   },
   async ({ renterId }, { auth }) => {
@@ -56,9 +58,10 @@ const detectFraudSignalsFlow = ai.defineFlow(
 
     const renter = renterSnap.data()!;
     const signals: FraudSignal[] = [];
-    const fieldsToTest = ['email', 'phone', 'licenseNumber'].filter(f => !!renter[f]);
-
-    for (const field of fieldsToTest) {
+    
+    // 1. Duplicate Identity Check
+    const identityFields = ['email', 'phone', 'licenseNumber'].filter(f => !!renter[f]);
+    for (const field of identityFields) {
         const value = renter[field];
         if (!value) continue;
 
@@ -68,16 +71,35 @@ const detectFraudSignalsFlow = ai.defineFlow(
         if (results.size > 1) {
             const matches = results.docs
                 .map(doc => ({ id: doc.id, ...doc.data() } as any))
-                .filter(doc => doc.id !== renterId); // Exclude the source renter
+                .filter(doc => doc.id !== renterId); 
 
             if (matches.length > 0) {
                  signals.push({
+                    code: 'duplicateIdentity',
                     identifier: field,
                     value: value,
                     matches: matches.map(m => ({ id: m.id, name: m.name, companyId: m.companyId })),
                 });
             }
         }
+    }
+
+    // 2. Repeat Offender Check
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const recentIncidentsSnap = await db.collection('incidents')
+        .where('renterId', '==', renterId)
+        .where('createdAt', '>=', thirtyDaysAgo)
+        .get();
+
+    if (recentIncidentsSnap.size >= 3) {
+        signals.push({
+            code: 'repeatOffender',
+            identifier: 'recentIncidents',
+            value: `${recentIncidentsSnap.size}`,
+            details: `Renter has had ${recentIncidentsSnap.size} incidents in the last 30 days.`
+        });
     }
     
     return { signals };
