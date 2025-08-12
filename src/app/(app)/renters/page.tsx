@@ -79,11 +79,13 @@ export default function RentersPage() {
               <DropdownMenuCheckboxItem>Archived</DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button size="sm" variant="outline" className="h-8 gap-1">
-            <File className="h-3.5 w-3.5" />
-            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-              Export
-            </span>
+          <Button asChild size="sm" variant="outline" className="h-8 gap-1">
+            <Link href="/admin/upload">
+              <File className="h-3.5 w-3.5" />
+              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                Import CSV
+              </span>
+            </Link>
           </Button>
           <RenterActions />
         </div>
@@ -103,10 +105,9 @@ export default function RentersPage() {
                   <span className="sr-only">Image</span>
                 </TableHead>
                 <TableHead>Name</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead>Risk Score</TableHead>
                 <TableHead className="hidden md:table-cell">
-                  Total Incidents
+                  Incidents
                 </TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
@@ -123,9 +124,6 @@ export default function RentersPage() {
                       <TableCell>
                         <Skeleton className="h-5 w-24" />
                         <Skeleton className="h-4 w-32 mt-1" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-6 w-20" />
                       </TableCell>
                       <TableCell>
                         <Skeleton className="h-6 w-12" />
@@ -153,7 +151,7 @@ export default function RentersPage() {
                       <TableCell className="font-medium">
                         <Link
                           href={`/renters/${renter.id}`}
-                          className="hover:underline"
+                          className="hover:underline text-primary"
                         >
                           {renter.name}
                         </Link>
@@ -161,20 +159,9 @@ export default function RentersPage() {
                           {renter.email}
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            renter.status === 'High Risk'
-                              ? 'destructive'
-                              : 'default'
-                          }
-                        >
-                          {renter.status}
-                        </Badge>
-                      </TableCell>
                        <TableCell>
-                        <Badge variant={renter.riskScore > 75 ? 'destructive' : (renter.riskScore < 50 ? 'default' : 'secondary')}>
-                          {renter.riskScore}
+                        <Badge variant={!renter.riskScore ? 'secondary' : renter.riskScore < 50 ? 'destructive' : (renter.riskScore < 75 ? 'secondary' : 'default')}>
+                          {renter.riskScore ?? 'N/A'}
                         </Badge>
                       </TableCell>
                       <TableCell className="hidden md:table-cell">

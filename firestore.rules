@@ -1,77 +1,85 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
+    
+    // Auth helper functions
+    function isAuthed() {
+      return request.auth != null;
+    }
     function isSuperAdmin() {
-      return request.auth.token.role == 'superadmin';
+      return isAuthed() && request.auth.token.role == 'superadmin';
     }
-    function isCompanyOwner(companyId) {
-      return request.auth.token.role == 'owner' && request.auth.token.companyId == companyId;
+    function isOwner(companyId) {
+      return isAuthed() && request.auth.token.companyId == companyId && request.auth.token.role == 'owner';
     }
-    function isCompanyManager(companyId) {
-      return request.auth.token.role in ['owner', 'manager'] && request.auth.token.companyId == companyId;
+    function isManager(companyId) {
+      return isAuthed() && request.auth.token.companyId == companyId && ['owner','manager'].includes(request.auth.token.role);
     }
-    function isCompanyMember(companyId) {
-      return request.auth.token.role in ['owner', 'manager', 'agent', 'collections'] && request.auth.token.companyId == companyId;
+    function isAgent(companyId) {
+       return isAuthed() && request.auth.token.companyId == companyId && ['owner','manager','agent'].includes(request.auth.token.role);
     }
-    function isRenter(renterId) {
-      let renterUid = get(/databases/$(database)/documents/renters/$(renterId)).data.renterUid;
-      return renterUid != null && request.auth.uid == renterUid;
+    function belongsToCompany(companyId) {
+        return isAuthed() && request.auth.token.companyId == companyId;
     }
 
+    // Company: must be owner to edit, any member to read.
     match /companies/{companyId} {
-      allow read: if isCompanyMember(companyId);
-      allow write: if isCompanyOwner(companyId);
+      allow read: if belongsToCompany(companyId) || isSuperAdmin();
+      allow update: if isOwner(companyId) || isSuperAdmin();
+      allow create: if isAuthed(); // User must be able to create a company on signup
     }
 
+    // Company Rules: Manager can edit, public can read
     match /companyRules/{companyId} {
-        allow read: if true; // Publicly readable
-        allow write: if isCompanyManager(companyId);
+        allow read: if true;
+        allow write: if isManager(companyId) || isSuperAdmin();
     }
     
-    match /companyStats/{companyId} {
-        allow read: if isCompanyMember(companyId);
-        // Only allow server-side writes
-        allow write: if false;
-    }
-
+    // Renters: Agents can create/update, only for their company
     match /renters/{renterId} {
-      allow read: if isCompanyMember(resource.data.companyId) || isRenter(renterId);
-      allow create, update: if isCompanyMember(request.resource.data.companyId);
-      allow delete: if isCompanyManager(resource.data.companyId);
+      allow read: if belongsToCompany(request.resource.data.companyId);
+      allow create, update: if isAgent(request.resource.data.companyId);
+      allow delete: if isManager(request.resource.data.companyId);
     }
     
+    // Rentals: Agents can manage
     match /rentals/{rentalId} {
-      allow read: if isCompanyMember(resource.data.companyId) || isRenter(resource.data.renterId);
-      allow create, update: if isCompanyMember(request.resource.data.companyId);
-      allow delete: if isCompanyManager(resource.data.companyId);
+        allow read: if belongsToCompany(request.resource.data.companyId);
+        allow create, update: if isAgent(request.resource.data.companyId);
+        allow delete: if isManager(request.resource.data.companyId);
     }
 
+    // Incidents: Agents can manage
     match /incidents/{incidentId} {
-      allow read: if isCompanyMember(resource.data.companyId) || isRenter(resource.data.renterId);
-      allow create, update: if isCompanyMember(request.resource.data.companyId);
-      allow delete: if isCompanyManager(resource.data.companyId);
+        allow read: if belongsToCompany(request.resource.data.companyId);
+        allow create, update: if isAgent(request.resource.data.companyId);
+        allow delete: if isManager(request.resource.data.companyId);
     }
 
+    // Disputes: company members can read, only specific roles can create/update
     match /disputes/{disputeId} {
-      allow read, write: if isCompanyMember(resource.data.companyId) || isRenter(resource.data.renterId);
-    }
-    
-    match /invites/{inviteId} {
-        allow read: if isCompanyManager(resource.data.companyId);
-        // Let server handle create/accept logic
-        allow write: if false; 
+        allow read: if belongsToCompany(resource.data.companyId);
+        allow create: if isAuthed(); // Both renters and agents can create
+        allow update: if belongsToCompany(resource.data.companyId); // Logic is handled in flow
     }
 
-    match /auditLogs/{logId} {
-        allow read: if isCompanyManager(resource.data.companyId);
-        allow write: if false; // Server-only
+    // Invites: Managers can create, anyone can read if they have the token (ID)
+    match /invites/{inviteId} {
+        allow read: if isAuthed();
+        allow create: if isManager(request.resource.data.companyId);
+        allow update: if isAuthed(); // For accepting invite
     }
-    
-     match /mail/{mailId} {
-      allow read, write: if false; // Server-only
+
+    // Audit Logs: Read-only for managers
+    match /auditLogs/{logId} {
+        allow read: if isManager(resource.data.companyId);
+        allow write: if false; // Only backend can write
+    }
+
+    // User profile: only user can access
+    match /users/{userId} {
+      allow read, write: if request.auth.uid == userId;
     }
   }
 }

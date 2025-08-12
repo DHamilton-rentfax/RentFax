@@ -5,7 +5,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -19,9 +18,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
-import { Renter } from '@/lib/mock-data';
 import RenterForm from './renter-form';
-import { useToast } from './ui/use-toast';
+import { Renter } from '@/ai/flows/renters';
+import Link from 'next/link';
 
 interface RenterActionsProps {
   renter?: Renter;
@@ -30,16 +29,6 @@ interface RenterActionsProps {
 
 export default function RenterActions({ renter, isIcon }: RenterActionsProps) {
   const [open, setOpen] = useState(false);
-  const { toast } = useToast();
-
-  const handleSave = (values: any) => {
-    console.log('Saving renter:', values);
-    toast({
-      title: renter ? 'Renter Updated' : 'Renter Created',
-      description: `${values.name} has been saved successfully.`,
-    });
-    setOpen(false);
-  };
 
   const triggerButton = renter ? (
     isIcon ? (
@@ -78,11 +67,12 @@ export default function RenterActions({ renter, isIcon }: RenterActionsProps) {
                         Update the details for {renter.name}.
                     </DialogDescription>
                 </DialogHeader>
-                <RenterForm renter={renter} onSave={handleSave} />
+                <RenterForm renter={renter} onSave={() => setOpen(false)} />
             </DialogContent>
         </Dialog>
-        <DropdownMenuItem>View Rentals</DropdownMenuItem>
-        <DropdownMenuItem>Add Incident</DropdownMenuItem>
+        <Link href={`/renters/${renter.id}`}>
+          <DropdownMenuItem>View Profile</DropdownMenuItem>
+        </Link>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="text-destructive">
           Delete Renter
@@ -99,7 +89,7 @@ export default function RenterActions({ renter, isIcon }: RenterActionsProps) {
             Enter the details for the new renter.
           </DialogDescription>
         </DialogHeader>
-        <RenterForm onSave={handleSave} />
+        <RenterForm onSave={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   );
