@@ -28,5 +28,3 @@ test.describe('Analytics Page', () => {
     await expect(page.locator('g.recharts-bar-rectangle')).toBeVisible();
   });
 });
-
-    

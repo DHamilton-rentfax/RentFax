@@ -32,14 +32,10 @@ test.describe('Renter, Rental, and Incident Flow', () => {
     const href = await renterLink.getAttribute('href');
     renterId = href!.split('/').pop()!;
     
-    // Create Incident
-    await page.goto('/incidents'); // Assuming you have a page to list/create incidents
-    // This part is a stub as there's no "Add Incident" button on the list page yet
-    // In a real scenario, you'd click "Add Incident", fill a form, and save.
-    // For now, we assume an incident is created via API or another flow.
-    // Let's pretend one exists for our renter for the next tests.
-    // A better implementation would be creating it via an action.
-    incidentId = 'stub-incident-id'; // Placeholder
+    // This part is a stub as there's no UI to create an incident directly on the incident list page yet
+    // In a real scenario, you'd go to a renter, click "Add Incident", fill a form, and save.
+    // For now, we'll assume an incident has been created via another flow to test the detail page.
+    incidentId = 'stub-incident-id'; // This will be improved when incident creation UI is added.
     await page.close();
   });
 
@@ -70,8 +66,8 @@ test.describe('Renter, Rental, and Incident Flow', () => {
   });
 
   test('AI Incident Assist works for an incident', async ({ page }) => {
-    test.skip(!incidentId || incidentId === 'stub-incident-id', 'Incident not created yet');
-    await page.goto(`/incidents/${incidentId}`); // Navigate to a specific incident
+    test.skip(!incidentId || incidentId === 'stub-incident-id', 'Incident not created yet. Cannot test detail page.');
+    await page.goto(`/incidents/${incidentId}`);
     
     await page.fill('textarea[placeholder*="extra context"]', 'The driver seemed nervous.');
     await page.click('button:has-text("Generate Summary")');
@@ -85,5 +81,3 @@ test.describe('Renter, Rental, and Incident Flow', () => {
     await expect(checklist.locator('li')).toHaveCount(5);
   });
 });
-
-    

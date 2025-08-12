@@ -34,5 +34,3 @@ test.describe('Billing and Feature Gating', () => {
         await expect(page.locator('input[placeholder*="How do I"]')).toBeVisible();
     });
 });
-
-    
