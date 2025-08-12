@@ -23,7 +23,9 @@ const RiskExplainInputSchema = z.object({
 export type RiskExplainInput = z.infer<typeof RiskExplainInputSchema>;
 
 const RiskExplainOutputSchema = z.object({
-  explanation: z.string(),
+  explanation: z.string().describe("A 2-3 sentence summary of the renter's risk profile, mentioning score changes and key incident types."),
+  recommendation: z.string().describe("A brief, actionable recommendation for the rental agent (e.g., 'Request additional deposit')."),
+  confidence: z.enum(['Low', 'Medium', 'High']).describe("The AI's confidence level in its assessment."),
 });
 export type RiskExplainOutput = z.infer<typeof RiskExplainOutputSchema>;
 
@@ -32,10 +34,10 @@ const riskExplainPrompt = ai.definePrompt({
     input: { schema: z.any() },
     output: { schema: RiskExplainOutputSchema },
     prompt: `You are a concise risk analyst for a rental company.
-Summarize the renter's profile based on the data below.
-- Start by stating if the score improved, dropped, or stayed the same, and by how much.
-- Mention the number of recent incidents and their severity.
-- Keep the summary to 2-3 short sentences.
+Analyze the renter's profile to generate a summary, a recommendation, and a confidence level.
+- The summary should state if the score improved or dropped and why, mentioning key incidents. (2-3 sentences).
+- The recommendation should be a short, actionable next step for the agent.
+- Confidence is based on the amount and severity of available data.
 
 Renter Info:
 - Name: {{{name}}}
@@ -51,7 +53,7 @@ Recent Incidents (last 30 days):
 - None
 {{/if}}`,
     config: {
-        temperature: 0.3,
+        temperature: 0.4,
     }
 });
 
