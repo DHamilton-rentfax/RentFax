@@ -76,6 +76,11 @@ import {
   type IncidentAssistInput,
   type IncidentAssistOutput,
 } from '@/ai/flows/ai-assistant';
+import {
+    detectFraudSignals as detectFraudSignalsFlow,
+    type DetectFraudSignalsInput,
+    type DetectFraudSignalsOutput,
+} from '@/ai/flows/fraud-detector';
 import {headers} from 'next/headers';
 import {FlowAuth} from 'genkit/flow';
 import { authAdmin } from '@/lib/firebase-admin';
@@ -180,4 +185,9 @@ export async function riskExplain(params: RiskExplainInput): Promise<RiskExplain
 export async function incidentAssist(params: IncidentAssistInput): Promise<IncidentAssistOutput> {
     const auth = await getAuth();
     return await incidentAssistFlow(params, auth);
+}
+
+export async function detectFraudSignals(params: DetectFraudSignalsInput): Promise<DetectFraudSignalsOutput> {
+    const auth = await getAuth();
+    return await detectFraudSignalsFlow(params, auth);
 }

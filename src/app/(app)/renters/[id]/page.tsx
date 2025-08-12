@@ -25,6 +25,7 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import FeatureGate from '@/components/feature-gate';
 import RiskExplainPanel from '@/components/risk-explain-panel';
+import FraudSignalsPanel from '@/components/fraud-signals-panel';
 
 export default function RenterDetailPage() {
   const params = useParams();
@@ -131,6 +132,9 @@ export default function RenterDetailPage() {
                 </p>
             </CardContent>
           </Card>
+          <FeatureGate name="fraud_graph">
+            <FraudSignalsPanel renter={renter} />
+          </FeatureGate>
         </div>
 
         {/* Right Column (Timeline) */}

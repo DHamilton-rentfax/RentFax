@@ -16,3 +16,4 @@ import '@/ai/flows/audit.ts';
 import '@/ai/flows/seed.ts';
 import '@/ai/flows/health.ts';
 import '@/ai/flows/ai-assistant.ts';
+import '@/ai/flows/fraud-detector.ts';
