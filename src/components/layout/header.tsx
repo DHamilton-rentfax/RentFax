@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Building2, Menu, X, LogOut, Settings, CreditCard, ShieldQuestion, BarChart2, User, Users, FileText, Bot, Hammer, CheckCircle } from 'lucide-react';
+import { Building2, Menu, X, LogOut, Settings, CreditCard, ShieldQuestion, BarChart2, User, Users, FileText, Bot, Hammer, CheckCircle, UploadCloud } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -37,6 +37,7 @@ const appNavLinks = [
 
 const adminNavLinks = [
     { href: '/admin/audit', label: 'Audit Logs', icon: FileText },
+    { href: '/admin/upload', label: 'Upload Renters', icon: UploadCloud },
     { href: '/admin/seed', label: 'Seed Data', icon: Hammer },
     { href: '/admin/readiness', label: 'Readiness', icon: CheckCircle },
 ]
@@ -67,6 +68,7 @@ export default function Header() {
   ].some(p => pathname.startsWith(p));
   
   const isSuperAdmin = claims?.role === 'superadmin';
+  const isAdmin = isSuperAdmin || ['owner', 'manager'].includes(claims?.role);
 
   const navLinks = isAppRoute ? appNavLinks : marketingNavLinks;
 
@@ -91,7 +93,7 @@ export default function Header() {
               {link.label}
             </Link>
           ))}
-          {isAppRoute && isSuperAdmin && (
+          {isAppRoute && isAdmin && (
              <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className={cn(
@@ -100,7 +102,7 @@ export default function Header() {
                     )}>Admin</Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                    {adminNavLinks.map(link => (
+                    {adminNavLinks.filter(l => isSuperAdmin || !['/admin/seed'].includes(l.href)).map(link => (
                          <Link key={link.href} href={link.href} passHref>
                             <DropdownMenuItem className="cursor-pointer">
                                 <link.icon className="mr-2 h-4 w-4" />
@@ -204,7 +206,7 @@ export default function Header() {
                 </Button>
               </div>
               <nav className="flex flex-col space-y-4 p-4">
-                {[...navLinks, ...(isAppRoute && isSuperAdmin ? adminNavLinks : [])].map((link) => (
+                {[...navLinks, ...(isAppRoute && isAdmin ? adminNavLinks.filter(l => isSuperAdmin || !['/admin/seed'].includes(l.href)) : [])].map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}

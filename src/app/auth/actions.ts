@@ -31,6 +31,14 @@ import {
   type DeleteRentalOutput,
 } from '@/ai/flows/rentals';
 import {
+  upsertRenter as upsertRenterFlow,
+  importRenters as importRentersFlow,
+  type Renter as RenterType,
+  type UpsertRenterOutput,
+  type ImportRentersInput,
+  type ImportRentersOutput,
+} from '@/ai/flows/renters';
+import {
   createIncident as createIncidentFlow,
   type CreateIncidentInput,
   type CreateIncidentOutput,
@@ -108,6 +116,16 @@ export async function createInvite(params: CreateInviteInput): Promise<CreateInv
 export async function acceptInvite(params: AcceptInviteInput): Promise<AcceptInviteOutput> {
   const auth = await getAuth();
   return await acceptInviteFlow(params, auth);
+}
+
+export async function upsertRenter(params: RenterType): Promise<UpsertRenterOutput> {
+    const auth = await getAuth();
+    return await upsertRenterFlow(params, auth);
+}
+
+export async function importRenters(params: ImportRentersInput): Promise<ImportRentersOutput> {
+    const auth = await getAuth();
+    return await importRentersFlow(params, auth);
 }
 
 export async function upsertRental(params: UpsertRentalInput): Promise<UpsertRentalOutput> {
