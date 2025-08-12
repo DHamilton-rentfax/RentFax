@@ -27,6 +27,35 @@ const RiskExplainOutputSchema = z.object({
 });
 export type RiskExplainOutput = z.infer<typeof RiskExplainOutputSchema>;
 
+const riskExplainPrompt = ai.definePrompt({
+    name: 'riskExplainPrompt',
+    input: { schema: z.any() },
+    output: { schema: RiskExplainOutputSchema },
+    prompt: `You are a concise risk analyst for a rental company.
+Summarize the renter's profile based on the data below.
+- Start by stating if the score improved, dropped, or stayed the same, and by how much.
+- Mention the number of recent incidents and their severity.
+- Keep the summary to 2-3 short sentences.
+
+Renter Info:
+- Name: {{{name}}}
+- Current Score: {{{currentScore}}}
+- Previous Score: {{{previousScore}}}
+
+Recent Incidents (last 30 days):
+{{#if incidents}}
+{{#each incidents}}
+- A "{{this.severity}}" {{this.type}} incident {{this.created}}.
+{{/each}}
+{{else}}
+- None
+{{/if}}`,
+    config: {
+        temperature: 0.3,
+    }
+});
+
+
 const riskExplainFlow = ai.defineFlow(
   {
     name: 'riskExplainFlow',
@@ -61,43 +90,26 @@ const riskExplainFlow = ai.defineFlow(
       .where('renterId', '==', renterId)
       .orderBy('createdAt', 'desc').limit(10).get();
     
-    const allIncidents = incidentsSnap.docs.map(d => {
-        const data = d.data();
-        return {
-            type: data.type,
-            severity: data.severity,
-            createdAt: data.createdAt?.toDate?.()
-        }
+    const recentIncidents = incidentsSnap.docs
+        .map(d => {
+            const data = d.data();
+            return { type: data.type, severity: data.severity, created: data.createdAt?.toDate?.() };
+        })
+        .filter(inc => {
+            if (!inc.created) return false;
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            return inc.created > thirtyDaysAgo;
+        }).map(inc => ({...inc, created: formatDistanceToNow(inc.created, { addSuffix: true })}));
+
+    const { output } = await riskExplainPrompt({
+        name: renterData.name,
+        currentScore,
+        previousScore,
+        incidents: recentIncidents,
     });
-
-    // Deterministic explanation logic
-    const scoreDiff = currentScore - previousScore;
-    let explanation = "Renter's score ";
-    if (scoreDiff === 0) {
-        explanation += `remained unchanged at ${currentScore}.`;
-    } else if (scoreDiff > 0) {
-        explanation += `improved from ${previousScore} to ${currentScore} (+${scoreDiff} pts).`;
-    } else {
-        explanation += `dropped from ${previousScore} to ${currentScore} (${scoreDiff} pts).`;
-    }
-
-    const recentIncidents = allIncidents.filter(inc => {
-        if (!inc.createdAt) return false;
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        return inc.createdAt > thirtyDaysAgo;
-    });
-
-    if (recentIncidents.length > 0) {
-        explanation += `\n\nThis change was likely driven by ${recentIncidents.length} incident(s) in the last 30 days:`;
-        recentIncidents.forEach(inc => {
-            explanation += `\n• A "${inc.severity}" ${inc.type} incident ${formatDistanceToNow(inc.createdAt, { addSuffix: true })}.`
-        });
-    } else {
-        explanation += '\n\nThere have been no new incidents in the last 30 days.';
-    }
-
-    return { explanation };
+    
+    return output!;
   }
 );
 
