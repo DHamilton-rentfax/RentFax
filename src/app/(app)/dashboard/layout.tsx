@@ -7,10 +7,13 @@ import {
     ShieldQuestion,
     BarChart2,
     Settings,
-    Building2
+    Building2,
+    FileUp,
+    Hammer,
+    CheckCircle,
+    ListChecks
 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/layout/header";
 
@@ -19,8 +22,14 @@ const navLinks = [
     { href: "/dashboard/renters", label: "Renters", icon: Users },
     { href: "/dashboard/incidents", label: "Incidents", icon: FileText },
     { href: "/dashboard/disputes", label: "Disputes", icon: ShieldQuestion },
-    { href: "/dashboard/analytics", label: "Analytics", icon: BarChart2 },
 ];
+
+const adminNavLinks = [
+    { href: '/dashboard/audit', label: 'Audit Logs', icon: ListChecks },
+    { href: '/dashboard/upload', label: 'Upload Renters', icon: FileUp },
+    { href: '/dashboard/seed', label: 'Seed Data', icon: Hammer },
+    { href: '/dashboard/readiness', label: 'Readiness', icon: CheckCircle },
+]
 
 export default function DashboardLayout({
     children,
@@ -39,7 +48,19 @@ export default function DashboardLayout({
                     </div>
                     <div className="flex-1">
                         <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+                            <p className="px-3 py-2 text-xs font-semibold text-muted-foreground">MENU</p>
                             {navLinks.map(link => (
+                                <Link
+                                    key={link.href}
+                                    href={link.href}
+                                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                                >
+                                    <link.icon className="h-4 w-4" />
+                                    {link.label}
+                                </Link>
+                            ))}
+                            <p className="px-3 py-2 mt-4 text-xs font-semibold text-muted-foreground">ADMIN</p>
+                             {adminNavLinks.map(link => (
                                 <Link
                                     key={link.href}
                                     href={link.href}
@@ -55,7 +76,7 @@ export default function DashboardLayout({
             </div>
             <div className="flex flex-col">
                 <Header />
-                <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/40">
+                <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background">
                     {children}
                 </main>
             </div>

@@ -20,10 +20,11 @@ import { Pie, Cell, ResponsiveContainer as RC, Bar, XAxis, YAxis, Tooltip, BarCh
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
+const COLORS = ["#10b981", "#fbbf24", "#ef4444", "#3b82f6", "#8b5cf6"];
 
 interface Stats {
   rentersCount: number;
+  incidentsCount: number;
   incidentTypes: { name: string; value: number }[];
   riskBuckets: { name: string; value: number }[];
   disputesOpen: number;
@@ -65,6 +66,7 @@ export default function AnalyticsPage() {
         
         const newStats: Stats = {
           rentersCount: rentersSnap.size,
+          incidentsCount: incidentsSnap.size,
           incidentTypes: Object.entries(incidentTypes).map(([name, value]) => ({ name, value })),
           riskBuckets: Object.entries(riskDist).map(([name, value]) => ({ name, value })),
           disputesOpen: disputesSnap.docs.filter(d => d.data().status === 'open').length,
@@ -90,6 +92,8 @@ export default function AnalyticsPage() {
         {loading ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {Array.from({length: 4}).map((_, i) => <Skeleton key={i} className="h-28" />)}
+             <div className="md:col-span-2"><Skeleton className="h-80" /></div>
+             <div className="md:col-span-2"><Skeleton className="h-80" /></div>
           </div>
         ) : error ? (
            <div className="rounded-md border border-destructive/50 bg-destructive/10 p-4 text-center text-destructive">
@@ -115,7 +119,7 @@ export default function AnalyticsPage() {
                   <FileText className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.incidentTypes.reduce((acc, t) => acc + t.value, 0)}</div>
+                  <div className="text-2xl font-bold">{stats.incidentsCount}</div>
                 </CardContent>
               </Card>
               <Card>
