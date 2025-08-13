@@ -17,8 +17,7 @@ if (!admin.apps.length) {
   }
 }
 
-const app = admin.app();
-const authAdmin = getAuth(app);
-const dbAdmin = getFirestore(app);
+const authAdmin = getAuth();
+const dbAdmin = getFirestore();
 
 export { admin, authAdmin, dbAdmin };
