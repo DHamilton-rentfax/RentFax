@@ -29,9 +29,9 @@ const navLinks = [
 ];
 
 const settingsLinks = [
-    { href: '/dashboard/team', label: 'Team', icon: Users },
-    { href: '/dashboard/rules', label: 'Rules & Branding', icon: ShieldQuestion },
-    { href: '/dashboard/billing', label: 'Billing', icon: Settings },
+    { href: '/dashboard/settings/team', label: 'Team', icon: Users },
+    { href: '/dashboard/settings/rules', label: 'Rules & Branding', icon: ShieldQuestion },
+    { href: '/dashboard/settings/billing', label: 'Billing', icon: Settings },
 ]
 
 const adminNavLinks = [

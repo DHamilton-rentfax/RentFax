@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, createContext, useContext, ReactNode } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { fetchClaims } from '@/lib/auth';
@@ -11,7 +11,9 @@ interface AuthInfo {
   claims: any;
 }
 
-export function useAuth(): AuthInfo {
+const AuthContext = createContext<AuthInfo>({ user: null, loading: true, claims: null });
+
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [authInfo, setAuthInfo] = useState<AuthInfo>({
     user: null,
     loading: true,
@@ -31,5 +33,9 @@ export function useAuth(): AuthInfo {
     return () => unsubscribe();
   }, []);
 
-  return authInfo;
+  return <AuthContext.Provider value={authInfo}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth(): AuthInfo {
+  return useContext(AuthContext);
 }
