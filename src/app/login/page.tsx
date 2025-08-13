@@ -22,8 +22,10 @@ export default function LoginPage() {
     setLoading(true); 
     setError(null);
     try {
-      await signInWithEmailAndPassword(auth, email.trim(), password);
-      await auth.currentUser?.getIdToken(true);
+      const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
+      // Force a refresh of the user's ID token to get the latest claims.
+      // This is crucial to prevent race conditions with protected routes.
+      await userCredential.user.getIdToken(true);
       router.push('/dashboard');
     } catch (e: any) {
       setError(e.message || 'Login failed. Please check your credentials.');
