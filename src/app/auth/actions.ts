@@ -81,6 +81,12 @@ import {
     type DetectFraudSignalsInput,
     type DetectFraudSignalsOutput,
 } from '@/ai/flows/fraud-detector';
+import { 
+    getCompanySettings as getCompanySettingsFlow,
+    updateCompanySettings as updateCompanySettingsFlow,
+    type CompanySettings,
+    type UpdateCompanySettingsInput,
+} from '@/ai/flows/settings';
 import {headers} from 'next/headers';
 import {FlowAuth} from 'genkit/flow';
 import { authAdmin } from '@/lib/firebase-admin';
@@ -190,4 +196,14 @@ export async function incidentAssist(params: IncidentAssistInput): Promise<Incid
 export async function detectFraudSignals(params: DetectFraudSignalsInput): Promise<DetectFraudSignalsOutput> {
     const auth = await getAuth();
     return await detectFraudSignalsFlow(params, auth);
+}
+
+export async function getCompanySettings(): Promise<CompanySettings | null> {
+    const auth = await getAuth();
+    return await getCompanySettingsFlow(auth);
+}
+
+export async function updateCompanySettings(params: UpdateCompanySettingsInput): Promise<void> {
+    const auth = await getAuth();
+    return await updateCompanySettingsFlow(params, auth);
 }

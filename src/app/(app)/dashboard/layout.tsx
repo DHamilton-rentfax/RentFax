@@ -11,11 +11,13 @@ import {
     FileUp,
     Hammer,
     CheckCircle,
-    ListChecks
+    ListChecks,
+    Megaphone
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import Header from "@/components/layout/header";
+import BannerMessage from "@/components/banner-message";
 
 const navLinks = [
     { href: "/dashboard", label: "Dashboard", icon: Home },
@@ -27,8 +29,9 @@ const navLinks = [
 const adminNavLinks = [
     { href: '/dashboard/audit', label: 'Audit Logs', icon: ListChecks },
     { href: '/dashboard/upload', label: 'Upload Renters', icon: FileUp },
-    { href: '/dashboard/seed', label: 'Seed Data', icon: Hammer },
-    { href: '/dashboard/readiness', label: 'Readiness', icon: CheckCircle },
+    { href: '/admin/alerts', label: 'Global Alert', icon: Megaphone },
+    { href: '/admin/seed', label: 'Seed Data', icon: Hammer },
+    { href: '/admin/readiness', label: 'Readiness', icon: CheckCircle },
 ]
 
 export default function DashboardLayout({
@@ -76,6 +79,7 @@ export default function DashboardLayout({
             </div>
             <div className="flex flex-col">
                 <Header />
+                <BannerMessage />
                 <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background">
                     {children}
                 </main>
