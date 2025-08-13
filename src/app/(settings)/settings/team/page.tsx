@@ -58,8 +58,13 @@ export default function TeamSettings() {
 
   return (
     <Protected roles={['owner', 'manager']}>
-      <div className="max-w-4xl mx-auto p-4 md:p-10">
-        <h1 className="text-2xl md:text-3xl font-headline mb-6">Team Management</h1>
+      <div className="space-y-6">
+        <div>
+            <h3 className="text-lg font-medium">Team Management</h3>
+            <p className="text-sm text-muted-foreground">
+                Invite new team members and manage roles.
+            </p>
+        </div>
         <div className="grid gap-8 md:grid-cols-2">
             <Card>
             <CardHeader>

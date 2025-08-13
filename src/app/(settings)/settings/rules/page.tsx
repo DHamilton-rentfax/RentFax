@@ -116,21 +116,25 @@ export default function RulesSettings() {
 
   if (loading) {
     return (
-        <div className="p-4 md:p-10 max-w-2xl mx-auto space-y-4">
-            <Skeleton className="h-8 w-1/2" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-24 w-full" />
+        <div className="space-y-4">
+            <div className="h-8 w-1/2" />
+            <div className="h-10 w-full" />
+            <div className="h-10 w-full" />
+            <div className="h-24 w-full" />
+            <div className="h-24 w-full" />
         </div>
     )
   }
 
   return (
     <Protected roles={['owner', 'manager']}>
-      <div className="max-w-2xl mx-auto p-4 md:p-10">
-        <h1 className="text-2xl md:text-3xl font-headline mb-6">Company Settings</h1>
-        <div className="space-y-6">
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-lg font-medium">Rules & Branding</h3>
+          <p className="text-sm text-muted-foreground">
+            Customize the look of your public rules page.
+          </p>
+        </div>
             <Card>
                 <CardHeader>
                     <CardTitle>Branding</CardTitle>
@@ -210,7 +214,6 @@ export default function RulesSettings() {
                 </Button>
                  {slug && <Button asChild variant="outline"><Link href={`/rules/${slug}`} target="_blank">View Public Page</Link></Button>}
             </div>
-        </div>
       </div>
     </Protected>
   );

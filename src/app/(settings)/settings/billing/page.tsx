@@ -31,8 +31,13 @@ export default function BillingPage() {
 
   return (
     <Protected roles={['owner', 'manager']}>
-      <div className="max-w-4xl mx-auto p-4 md:p-10">
-        <h1 className="text-2xl md:text-3xl font-headline mb-6">Billing & Subscription</h1>
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-lg font-medium">Billing & Subscription</h3>
+          <p className="text-sm text-muted-foreground">
+            Manage your subscription and payment methods.
+          </p>
+        </div>
         <Card>
           <CardHeader>
             <CardTitle>Manage Your Plan</CardTitle>
