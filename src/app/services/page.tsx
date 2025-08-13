@@ -1,7 +1,7 @@
 import RenterScreener from '@/components/renter-screener';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default function ServicesPage() {
+export default function ScreenPage() {
   return (
     <div className="container mx-auto py-12 px-4">
       <div className="max-w-3xl mx-auto">

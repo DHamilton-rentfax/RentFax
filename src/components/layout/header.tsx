@@ -21,9 +21,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { useAuth } from '@/hooks/use-auth';
 
 const marketingNavLinks = [
-  { href: '/services', label: 'Services' },
+  { href: '/screen', label: 'Screen a Renter' },
   { href: '/success-stories', label: 'Success Stories' },
   { href: '/support', label: 'Support' },
+  { href: '/blog', label: 'Blog' },
 ];
 
 const appNavLinks = [
