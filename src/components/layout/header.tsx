@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -22,6 +23,7 @@ import { useAuth } from '@/hooks/use-auth';
 
 const marketingNavLinks = [
   { href: '/screen', label: 'Screen a Renter' },
+  { href: '/pricing', label: 'Pricing' },
   { href: '/success-stories', label: 'Success Stories' },
   { href: '/support', label: 'Support' },
   { href: '/blog', label: 'Blog' },
