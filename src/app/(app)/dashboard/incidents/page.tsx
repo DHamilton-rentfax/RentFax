@@ -28,6 +28,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import ExportButton from '@/components/ui/ExportButton';
 
 export default function IncidentsPage() {
   const { claims } = useAuth();
@@ -57,7 +58,10 @@ export default function IncidentsPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-headline">Incidents</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-headline">Incidents</h1>
+        <ExportButton type="incidents" />
+      </div>
       <Card>
         <CardHeader>
           <CardTitle>Incident Log</CardTitle>
