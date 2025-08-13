@@ -1,14 +1,4 @@
-
 'use client';
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
   Activity,
@@ -22,10 +12,34 @@ import {
   PlusCircle,
   Upload,
 } from "lucide-react"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+
+function StatCard({ title, value, link, linkText }: { title: string; value: string | number, link: string, linkText: string }) {
+  return (
+    <Card>
+      <CardHeader>
+          <CardTitle className="text-sm font-medium">{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        <Link href={link} className="text-xs text-muted-foreground hover:underline">
+          {linkText}
+        </Link>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function DashboardPage() {
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <div className="space-y-6">
        <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold font-headline">Dashboard</h1>
@@ -48,55 +62,10 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Renters</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">53</div>
-            <Link href="/renters" className="text-xs text-muted-foreground hover:underline">
-              View all renters
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Incidents</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-             <div className="text-2xl font-bold">17</div>
-            <Link href="/incidents" className="text-xs text-muted-foreground hover:underline">
-             Review recent incidents
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Disputes</CardTitle>
-            <ShieldQuestion className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-             <div className="text-2xl font-bold">4</div>
-            <Link href="/disputes" className="text-xs text-muted-foreground hover:underline">
-              Manage open disputes
-            </Link>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-             <div className="text-2xl font-bold">$45,231</div>
-            <p className="text-xs text-muted-foreground">+20.1% from last month</p>
-          </CardContent>
-        </Card>
+        <StatCard title="Renters" value="53" link="/dashboard/renters" linkText="View all renters" />
+        <StatCard title="Incidents" value="17" link="/dashboard/incidents" linkText="Review recent incidents" />
+        <StatCard title="Active Disputes" value="4" link="/dashboard/disputes" linkText="Manage open disputes" />
+        <StatCard title="Total Revenue" value="$45,231" link="/dashboard/analytics" linkText="+20.1% from last month" />
       </div>
 
     </div>
