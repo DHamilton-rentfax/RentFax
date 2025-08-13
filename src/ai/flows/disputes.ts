@@ -4,7 +4,6 @@
  */
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {CloudTasksClient} from '@google-cloud/tasks';
 import {logAudit} from './audit';
 import {safeNotify} from '@/lib/notifications';
 import {FlowAuth} from 'genkit/flow';
@@ -15,18 +14,27 @@ const LOCATION = process.env.TASKS_LOCATION || 'us-central1';
 const QUEUE_ID = process.env.TASKS_QUEUE_ID || 'rentfax-disputes';
 const REMINDER_URL = process.env.DISPUTE_REMINDER_URL || ''; // Should be a secure webhook/function URL
 
-const tasksClient = new CloudTasksClient();
+let tasksClient: any;
+
+async function getTasksClient() {
+  if (tasksClient) return tasksClient;
+  const {CloudTasksClient} = await import('@google-cloud/tasks');
+  tasksClient = new CloudTasksClient();
+  return tasksClient;
+}
+
 
 async function scheduleReminder(disputeId: string, hoursFromNow: number) {
   if (!REMINDER_URL) {
     console.warn('DISPUTE_REMINDER_URL not set, skipping task scheduling.');
     return;
   }
-  const parent = tasksClient.queuePath(PROJECT_ID, LOCATION, QUEUE_ID);
+  const client = await getTasksClient();
+  const parent = client.queuePath(PROJECT_ID, LOCATION, QUEUE_ID);
   const body = Buffer.from(JSON.stringify({disputeId})).toString('base64');
   const scheduleTime = {seconds: Math.floor(Date.now() / 1000) + hoursFromNow * 3600};
 
-  await tasksClient.createTask({
+  await client.createTask({
     parent,
     task: {
       httpRequest: {
