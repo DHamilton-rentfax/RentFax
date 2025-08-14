@@ -38,14 +38,14 @@ const appNavLinks = [
 ];
 
 const settingsLinks = [
-    { href: '/dashboard/team', label: 'Team', icon: Users },
-    { href: '/dashboard/rules', label: 'Rules & Branding', icon: ShieldQuestion },
-    { href: '/dashboard/billing', label: 'Billing', icon: Settings },
+    { href: '/dashboard/settings/team', label: 'Team', icon: Users },
+    { href: '/dashboard/settings/rules', label: 'Rules & Branding', icon: ShieldQuestion },
+    { href: '/dashboard/settings/billing', label: 'Billing', icon: Settings },
 ]
 
 const adminNavLinks = [
     { href: '/dashboard/audit', label: 'Audit Logs', icon: ListChecks },
-    { href: '/dashboard/upload', label: 'Upload Renters', icon: FileUp },
+    { href: '/admin/upload', label: 'Upload Renters', icon: FileUp },
     { href: '/admin/alerts', label: 'Global Alert', icon: Megaphone },
     { href: '/admin/seed', label: 'Seed Data', icon: Hammer },
     { href: '/admin/readiness', label: 'Readiness', icon: CheckCircle },
@@ -187,20 +187,36 @@ export default function Header() {
                       {link.label}
                     </Link>
                   ))}
-                  <div className="border-t pt-4">
+                  <div className="border-t pt-4 space-y-2">
                     { !user ? (
                          <>
-                            <Button asChild className="w-full mt-4" variant="outline">
+                            <Button asChild className="w-full" variant="outline">
                                 <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>Login</Link>
                             </Button>
-                            <Button asChild className="w-full mt-2">
+                            <Button asChild className="w-full">
                                 <Link href="/signup" onClick={() => setIsMobileMenuOpen(false)}>Sign Up</Link>
                             </Button>
                         </>
                     ) : (
-                         <Button onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} className="w-full" variant="outline" >
-                            Log Out
-                        </Button>
+                         <>
+                           {!isAppRoute && (
+                             <Button asChild className="w-full">
+                               <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
+                                 Dashboard
+                               </Link>
+                             </Button>
+                           )}
+                           <Button
+                             onClick={() => {
+                               handleLogout();
+                               setIsMobileMenuOpen(false);
+                             }}
+                             className="w-full"
+                             variant="outline"
+                           >
+                             Log Out
+                           </Button>
+                         </>
                     )}
                   </div>
                  </nav>
