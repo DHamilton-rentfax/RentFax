@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 import { Building2, Menu, X, LogOut, Settings, CreditCard, ShieldQuestion, BarChart2, User, Users, FileText, Bot, Hammer, CheckCircle, UploadCloud, Home, ListChecks, Megaphone, FileUp } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -150,24 +150,29 @@ export default function Header() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-full max-w-xs bg-card p-0">
-                <div className="flex justify-between items-center p-4 border-b">
-                  <Link
-                    href="/"
-                    className="flex items-center gap-2"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <Building2 className="h-6 w-6 text-primary" />
-                    <span className="font-headline text-xl font-bold">RentFAX</span>
-                  </Link>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <X className="h-6 w-6" />
-                    <span className="sr-only">Close menu</span>
-                  </Button>
-                </div>
+                <SheetHeader className="p-4 border-b">
+                   <SheetTitle className="sr-only">Main Menu</SheetTitle>
+                   <div className="flex justify-between items-center">
+                    <Link
+                        href="/"
+                        className="flex items-center gap-2"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                        <Building2 className="h-6 w-6 text-primary" />
+                        <span className="font-headline text-xl font-bold">RentFAX</span>
+                    </Link>
+                    <SheetTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            <X className="h-6 w-6" />
+                            <span className="sr-only">Close menu</span>
+                        </Button>
+                    </SheetTrigger>
+                    </div>
+                </SheetHeader>
                  <nav className="flex flex-col space-y-4 p-4">
                   {(isAppRoute ? appNavLinks : marketingNavLinks).map((link) => (
                     <Link
