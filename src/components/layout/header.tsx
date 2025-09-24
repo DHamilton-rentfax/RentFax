@@ -161,16 +161,6 @@ export default function Header() {
                         <Building2 className="h-6 w-6 text-primary" />
                         <span className="font-headline text-xl font-bold">RentFAX</span>
                     </Link>
-                    <SheetTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                            <X className="h-6 w-6" />
-                            <span className="sr-only">Close menu</span>
-                        </Button>
-                    </SheetTrigger>
                     </div>
                 </SheetHeader>
                  <nav className="flex flex-col space-y-4 p-4">
