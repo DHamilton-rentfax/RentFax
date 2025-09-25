@@ -1,39 +1,95 @@
-// src/app/page.tsx
+
 "use client";
 
 import Link from "next/link";
+import { ArrowRight, ShieldCheck, Users, BarChart3, FileText, Sparkles } from "lucide-react";
 
 export default function HomePage() {
+  const logos = ["Urban Rentals NYC", "FleetCo", "PropManage", "DriveTrust", "LeaseGuard"];
+
+  const features = [
+    {
+      title: "Fraud Detection",
+      desc: "Catch duplicate IDs, shared addresses, and suspicious renters before they cost you money.",
+      icon: ShieldCheck,
+    },
+    {
+      title: "AI Risk Assistant",
+      desc: "Get AI-driven recommendations with context on renter behavior and portfolio risk.",
+      icon: Sparkles,
+    },
+    {
+      title: "Dispute Resolution",
+      desc: "Streamlined workflows to resolve renter disputes with audit-ready documentation.",
+      icon: FileText,
+    },
+    {
+      title: "Compliance Reporting",
+      desc: "Generate reports for insurers, regulators, and courts in just a few clicks.",
+      icon: BarChart3,
+    },
+    {
+      title: "Analytics Dashboard",
+      desc: "Track renter trends and business performance across your entire portfolio.",
+      icon: BarChart3,
+    },
+    {
+      title: "Team Controls",
+      desc: "Enterprise-ready role-based permissions and activity logs for your staff.",
+      icon: Users,
+    },
+  ];
+
+  const blogs = [
+    {
+      title: "Why Fraud Detection is the Future of Rentals",
+      excerpt: "Rental businesses lose billions annually to fraud. Learn how AI can protect your fleet.",
+      author: "RentFAX Team",
+      date: "Sept 12, 2025",
+    },
+    {
+      title: "Top 5 Risks Every Rental Company Should Know",
+      excerpt: "From chargebacks to disputes, here’s what keeps fleet owners awake at night.",
+      author: "Jane Smith",
+      date: "Sept 5, 2025",
+    },
+    {
+      title: "Compliance in Rentals: A Practical Guide",
+      excerpt: "Avoid lawsuits and fines with better compliance reporting built into your workflow.",
+      author: "RentFAX Legal",
+      date: "Aug 28, 2025",
+    },
+  ];
+
   return (
     <main className="bg-white text-gray-900">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-700 to-blue-900 text-white">
-        <div className="relative z-10 max-w-7xl mx-auto px-6 pt-32 pb-40 text-center">
+      {/* Hero */}
+      <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
+        <div className="max-w-7xl mx-auto px-6 pt-32 pb-40 text-center">
           <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
             The Credit Score for Renters
           </h1>
-          <p className="mt-6 text-lg md:text-xl text-blue-100 max-w-2xl mx-auto">
-            RentFAX delivers instant renter risk scores, AI-powered fraud
-            detection, and compliance-ready reports — so you can protect your
-            fleet, property, and revenue.
+          <p className="mt-6 text-lg md:text-xl text-gray-300 max-w-2xl mx-auto">
+            Instant renter risk reports, AI fraud detection, and compliance tools
+            that protect your business — big or small.
           </p>
           <div className="mt-8 flex justify-center gap-4">
             <Link
               href="/signup"
-              className="px-8 py-4 rounded-xl bg-white text-blue-700 font-semibold shadow hover:bg-gray-100 transition"
+              className="px-8 py-4 rounded-xl bg-emerald-500 text-white font-semibold shadow hover:bg-emerald-600 transition"
             >
               Start Free
             </Link>
+          </div>
+          <div className="mt-6">
             <Link
               href="/contact"
-              className="px-8 py-4 rounded-xl border border-white/50 text-white font-semibold hover:bg-white/10 transition"
+              className="inline-block text-gray-300 hover:text-white underline"
             >
               Book Enterprise Demo
             </Link>
           </div>
         </div>
-        {/* Subtle gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
       </section>
 
       {/* Trusted Logos */}
@@ -42,64 +98,9 @@ export default function HomePage() {
           <p className="text-gray-500 text-sm uppercase tracking-wide">
             Trusted by rental businesses nationwide
           </p>
-          <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-8 opacity-70">
-            <div className="h-10 bg-gray-200 rounded"></div>
-            <div className="h-10 bg-gray-200 rounded"></div>
-            <div className="h-10 bg-gray-200 rounded"></div>
-            <div className="h-10 bg-gray-200 rounded"></div>
-          </div>
-        </div>
-      </section>
-
-      {/* Problem / Solution */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
-          <div>
-            <h2 className="text-3xl font-bold">The Problem</h2>
-            <p className="mt-4 text-gray-600 leading-relaxed">
-              Bad renters cost fleets and property owners millions each year.
-              Fraud, unpaid fees, disputes, and damages drain profits and waste
-              time. Traditional screening is slow, inconsistent, and reactive.
-            </p>
-          </div>
-          <div>
-            <h2 className="text-3xl font-bold">The RentFAX Solution</h2>
-            <p className="mt-4 text-gray-600 leading-relaxed">
-              Our platform provides instant AI-powered renter risk scoring, fraud
-              detection signals, and compliance-ready reporting. Make smarter
-              rental decisions in seconds, protect your business, and grow with
-              confidence.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section className="py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold">How It Works</h2>
-          <div className="mt-12 grid gap-8 md:grid-cols-3">
-            {[
-              {
-                title: "Upload Renter",
-                desc: "Enter renter details or upload via CSV/API.",
-              },
-              {
-                title: "Instant Risk Score",
-                desc: "Our AI engine flags fraud and delivers clear risk scoring.",
-              },
-              {
-                title: "Decide Confidently",
-                desc: "Approve, deny, or flag renters with a defensible audit trail.",
-              },
-            ].map((step, idx) => (
-              <div
-                key={idx}
-                className="p-8 bg-white border rounded-2xl shadow-sm hover:shadow-lg transition"
-              >
-                <h3 className="text-xl font-semibold">{step.title}</h3>
-                <p className="mt-4 text-gray-600">{step.desc}</p>
-              </div>
+          <div className="mt-8 grid grid-cols-2 sm:grid-cols-5 gap-6 text-gray-700 font-semibold">
+            {logos.map((logo, idx) => (
+              <div key={idx} className="text-lg">{logo}</div>
             ))}
           </div>
         </div>
@@ -113,37 +114,13 @@ export default function HomePage() {
             Everything rental businesses need to manage risk — built in.
           </p>
           <div className="mt-12 grid gap-8 md:grid-cols-3">
-            {[
-              {
-                title: "Fraud Detection",
-                desc: "Catch duplicate IDs, shared addresses, and suspicious renters.",
-              },
-              {
-                title: "AI Risk Assistant",
-                desc: "Receive contextual recommendations from AI insights.",
-              },
-              {
-                title: "Dispute Resolution Portal",
-                desc: "Streamlined process for managing renter disputes.",
-              },
-              {
-                title: "Compliance Reporting",
-                desc: "Generate reports for insurers, regulators, and legal.",
-              },
-              {
-                title: "Analytics Dashboard",
-                desc: "Track renter trends and monitor portfolio risk exposure.",
-              },
-              {
-                title: "Team Controls",
-                desc: "Role-based access and enterprise-grade collaboration.",
-              },
-            ].map((feature, idx) => (
+            {features.map((feature, idx) => (
               <div
                 key={idx}
-                className="p-8 bg-gray-50 border rounded-2xl shadow-sm hover:shadow-md transition"
+                className="p-8 border rounded-2xl shadow-md hover:shadow-xl transition bg-gradient-to-br from-gray-50 to-white"
               >
-                <h3 className="text-lg font-semibold text-gray-900">
+                <feature.icon className="mx-auto h-10 w-10 text-emerald-500" />
+                <h3 className="mt-6 text-lg font-semibold text-gray-900">
                   {feature.title}
                 </h3>
                 <p className="mt-4 text-gray-600">{feature.desc}</p>
@@ -153,65 +130,26 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Case Study Banner */}
-      <section className="py-20 bg-gradient-to-r from-blue-700 to-indigo-800 text-white text-center">
-        <h2 className="text-2xl font-bold">
-          “Urban Rentals NYC reduced renter fraud by 40% using RentFAX.”
-        </h2>
-        <p className="mt-4 text-blue-200">
-          Real results from rental businesses just like yours.
-        </p>
-      </section>
-
-      {/* Pricing Preview */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold">Plans for Every Business</h2>
-          <p className="mt-4 text-gray-600">
-            Start free, or unlock unlimited reports with PRO & Enterprise.
-          </p>
+      {/* Blog Section */}
+      <section className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-6">
+          <h2 className="text-3xl font-bold text-center">From the RentFAX Blog</h2>
           <div className="mt-12 grid gap-8 md:grid-cols-3">
-            {[
-              {
-                name: "Risk Report",
-                price: "$20 / report",
-                features: ["Pay-as-you-go", "Single renter check"],
-              },
-              {
-                name: "Pro",
-                price: "$149 / mo",
-                features: [
-                  "Unlimited reports",
-                  "AI Risk Assistant",
-                  "Fraud detection",
-                ],
-              },
-              {
-                name: "Unlimited",
-                price: "$299 / mo",
-                features: [
-                  "All Pro features",
-                  "Enterprise seats",
-                  "Full analytics",
-                ],
-              },
-            ].map((plan, idx) => (
+            {blogs.map((post, idx) => (
               <div
                 key={idx}
-                className="p-8 border rounded-2xl shadow-sm hover:shadow-md transition"
+                className="p-6 bg-white border rounded-xl shadow hover:shadow-md transition flex flex-col"
               >
-                <h3 className="text-xl font-semibold">{plan.name}</h3>
-                <p className="mt-2 text-2xl font-bold">{plan.price}</p>
-                <ul className="mt-6 space-y-2 text-gray-600">
-                  {plan.features.map((f, i) => (
-                    <li key={i}>✔ {f}</li>
-                  ))}
-                </ul>
+                <h3 className="text-xl font-semibold text-gray-900">{post.title}</h3>
+                <p className="mt-3 text-gray-600 flex-grow">{post.excerpt}</p>
+                <div className="mt-4 text-sm text-gray-500">
+                  {post.author} — {post.date}
+                </div>
                 <Link
-                  href="/pricing"
-                  className="mt-6 inline-block px-6 py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700"
+                  href="/blog"
+                  className="mt-6 inline-flex items-center text-emerald-600 hover:text-emerald-700 font-medium"
                 >
-                  View Pricing
+                  Read More <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </div>
             ))}
@@ -219,24 +157,22 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA Banner */}
-      <section className="py-20 bg-gray-50 text-center">
-        <h2 className="text-3xl font-bold text-gray-900">
-          Ready to protect your rentals?
-        </h2>
-        <p className="mt-4 text-gray-600">
+      {/* CTA */}
+      <section className="py-20 bg-gray-900 text-white text-center">
+        <h2 className="text-3xl font-bold">Ready to protect your rentals?</h2>
+        <p className="mt-4 text-gray-300">
           Join rental businesses nationwide using RentFAX to manage renter risk.
         </p>
         <div className="mt-6 flex justify-center gap-4">
           <Link
             href="/signup"
-            className="px-6 py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700"
+            className="px-6 py-3 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600"
           >
             Get Started
           </Link>
           <Link
             href="/contact"
-            className="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100"
+            className="px-6 py-3 rounded-lg border border-white/30 text-white hover:bg-white/10"
           >
             Contact Sales
           </Link>
@@ -244,7 +180,7 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-300 py-16">
+      <footer className="bg-gray-950 text-gray-400 py-16">
         <div className="max-w-7xl mx-auto px-6 grid gap-8 md:grid-cols-4">
           <div>
             <h3 className="text-white font-semibold">RentFAX</h3>
@@ -256,49 +192,27 @@ export default function HomePage() {
           <div>
             <h4 className="text-white font-semibold">Company</h4>
             <ul className="mt-4 space-y-2 text-sm">
-              <li>
-                <Link href="/about">About</Link>
-              </li>
-              <li>
-                <Link href="/careers">Careers</Link>
-              </li>
-              <li>
-                <Link href="/blog">Blog</Link>
-              </li>
-              <li>
-                <Link href="/contact">Contact</Link>
-              </li>
+              <li><Link href="/about">About</Link></li>
+              <li><Link href="/careers">Careers</Link></li>
+              <li><Link href="/blog">Blog</Link></li>
+              <li><Link href="/contact">Contact</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="text-white font-semibold">Product</h4>
             <ul className="mt-4 space-y-2 text-sm">
-              <li>
-                <Link href="/pricing">Pricing</Link>
-              </li>
-              <li>
-                <Link href="/docs">Documentation</Link>
-              </li>
-              <li>
-                <Link href="/api">API</Link>
-              </li>
+              <li><Link href="/pricing">Pricing</Link></li>
+              <li><Link href="/docs">Documentation</Link></li>
+              <li><Link href="/api">API</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="text-white font-semibold">Legal</h4>
             <ul className="mt-4 space-y-2 text-sm">
-              <li>
-                <Link href="/legal/terms">Terms</Link>
-              </li>
-              <li>
-                <Link href="/legal/privacy">Privacy</Link>
-              </li>
-              <li>
-                <Link href="/legal/security">Security</Link>
-              </li>
-              <li>
-                <Link href="/status">Status</Link>
-              </li>
+              <li><Link href="/legal/terms">Terms</Link></li>
+              <li><Link href="/legal/privacy">Privacy</Link></li>
+              <li><Link href="/legal/security">Security</Link></li>
+              <li><Link href="/status">Status</Link></li>
             </ul>
           </div>
         </div>
