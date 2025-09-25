@@ -16,11 +16,13 @@ import { Loader2 } from "lucide-react";
 import Protected from "@/components/protected";
 import { createInvite as createInviteAction } from "@/app/auth/actions";
 import { formatDistanceToNow } from "date-fns";
+import { useAuth } from "@/hooks/use-auth";
 
 type Role = 'editor' | 'admin';
 
 export default function InvitesPage() {
   const { toast } = useToast();
+  const { claims } = useAuth();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<Role>("editor");
   const [invites, setInvites] = useState<any[]>([]);
@@ -28,14 +30,15 @@ export default function InvitesPage() {
   const [loadingInvites, setLoadingInvites] = useState(true);
 
   useEffect(() => {
+    if (!claims?.companyId) return;
     setLoadingInvites(true);
-    const q = query(collection(db, "invites"), orderBy("createdAt", "desc"));
+    const q = query(collection(db, "invites"), where("companyId", "==", claims.companyId), orderBy("createdAt", "desc"));
     const unsub = onSnapshot(q, (snap) => {
       setInvites(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
       setLoadingInvites(false);
     });
     return () => unsub();
-  }, []);
+  }, [claims?.companyId]);
 
   const createInvite = async () => {
     if (!email) {
@@ -61,7 +64,7 @@ export default function InvitesPage() {
   };
   
   const getStatus = (invite: any) => {
-    if (invite.accepted) return <Badge variant="default">Accepted</Badge>;
+    if (invite.status === 'accepted') return <Badge variant="default">Accepted</Badge>;
     if (invite.expiresAt && invite.expiresAt.toDate() < new Date()) return <Badge variant="destructive">Expired</Badge>;
     return <Badge variant="secondary">Pending</Badge>;
   }

@@ -47,7 +47,8 @@ const createInviteFlow = ai.defineFlow(
 
     const token = uuid();
     const inviteId = token; // Using token as ID is convenient
-    const expiresAt = Date.now() + 1000 * 60 * 60 * 24 * 7; // 7 days
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
 
     await db.doc(`invites/${inviteId}`).set({
       email: email.toLowerCase().trim(),
@@ -56,8 +57,8 @@ const createInviteFlow = ai.defineFlow(
       token,
       status: 'pending',
       createdBy: auth.uid,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      expiresAt: admin.firestore.Timestamp.fromMillis(expiresAt),
+      createdAt: admin.firestore.Timestamp.fromDate(now),
+      expiresAt: admin.firestore.Timestamp.fromDate(expiresAt),
     });
 
     const acceptUrl = `${process.env.INVITE_ACCEPT_BASE_URL || 'http://localhost:9002'}/invite/${token}`;
@@ -101,7 +102,9 @@ const acceptInviteFlow = ai.defineFlow(
 
     const inv = doc.data()!;
     if (inv.status !== 'pending') throw new Error('This invite has already been used.');
-    if (inv.expiresAt && inv.expiresAt.toMillis() < Date.now()) throw new Error('This invite has expired.');
+    if (inv.expiresAt && inv.expiresAt.toDate() < new Date()) {
+      throw new Error('This invite has expired.');
+    }
 
     const user = await authAdmin.getUser(auth.uid);
     if ((user.email || '').toLowerCase() !== inv.email) {
