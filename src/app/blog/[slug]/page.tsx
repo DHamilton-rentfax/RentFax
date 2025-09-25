@@ -48,18 +48,6 @@ export default function BlogPostPage() {
 
   return (
     <article className="mx-auto max-w-3xl px-6 pt-16 pb-24">
-       {post.image && (
-        <div className="relative w-full h-96 my-8 rounded-2xl overflow-hidden">
-            <Image 
-                src={post.image.src}
-                alt={post.title}
-                fill
-                className="object-cover"
-                data-ai-hint={post.image.hint}
-            />
-        </div>
-      )}
-
       {/* Metadata */}
       <p className="text-sm text-zinc-500">
         {post.date} · {post.read}
@@ -72,6 +60,18 @@ export default function BlogPostPage() {
 
       {/* Excerpt */}
       <p className="mt-6 text-lg text-zinc-600">{post.excerpt}</p>
+      
+       {post.image && (
+        <div className="relative w-full h-96 my-8 rounded-2xl overflow-hidden">
+            <Image 
+                src={post.image.src}
+                alt={post.title}
+                fill
+                className="object-cover"
+                data-ai-hint={post.image.hint}
+            />
+        </div>
+      )}
 
       {/* Body */}
       <div
