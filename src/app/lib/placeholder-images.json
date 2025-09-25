@@ -1,0 +1,23 @@
+
+{
+  "blog": {
+    "riskScore": {
+      "src": "https://picsum.photos/seed/rf-bs1/800/600",
+      "width": 800,
+      "height": 600,
+      "hint": "data graph"
+    },
+    "disputeDesign": {
+      "src": "https://picsum.photos/seed/rf-bs2/800/600",
+      "width": 800,
+      "height": 600,
+      "hint": "interface design"
+    },
+    "fraudSignals": {
+      "src": "https://picsum.photos/seed/rf-bs3/800/600",
+      "width": 800,
+      "height": 600,
+      "hint": "security lock"
+    }
+  }
+}
