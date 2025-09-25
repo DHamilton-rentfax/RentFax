@@ -1,202 +1,177 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import TestimonialCard from '@/components/testimonial-card';
-import {
-  BrainCircuit,
-  History,
-  ShieldAlert,
-  BadgeCheck,
-  Flag,
-  LineChart,
-  Database,
-  Search,
-  CheckCircle,
-} from 'lucide-react';
-import Link from 'next/link';
 
-const features = [
-  {
-    icon: <History className="w-12 h-12 text-primary" />,
-    title: 'Behavioral History',
-    description: 'Access incident-level history like damage, smoking, or late returns submitted by verified rental operators.',
-    dataAiHint: 'data history',
-  },
-  {
-    icon: <BrainCircuit className="w-12 h-12 text-primary" />,
-    title: 'Risk Scoring',
-    description: 'Instantly calculate renter risk using behavioral, financial, and fraud signals with each application.',
-    dataAiHint: 'risk analysis',
-  },
-  {
-    icon: <ShieldAlert className="w-12 h-12 text-primary" />,
-    title: 'AI Fraud Detection',
-    description: 'Prevent scams with facial recognition, ID analysis, and real-time behavioral modeling.',
-    dataAiHint: 'fraud prevention',
-  },
-  {
-    icon: <BadgeCheck className="w-12 h-12 text-primary" />,
-    title: 'Verified Identity',
-    description: 'Cross-check state-issued licenses, expiration status, and digital ID matches in seconds.',
-    dataAiHint: 'identity check',
-  },
-  {
-    icon: <Flag className="w-12 h-12 text-primary" />,
-    title: 'Network-Wide Flags',
-    description: 'See alerts from other companies about renters flagged for damage, nonpayment, or fraud.',
-    dataAiHint: 'alert system',
-  },
-  {
-    icon: <LineChart className="w-12 h-12 text-primary" />,
-    title: 'Dispute Resolution',
-    description: 'A transparent process for renters to dispute inaccurate records and for operators to resolve them.',
-    dataAiHint: 'analytics chart',
-  },
-];
+// src/app/page.tsx
+"use client";
 
-const howItWorks = [
-    {
-        icon: <Database className="w-12 h-12 text-primary" />,
-        title: '1. Submit Data',
-        description: 'Rental companies securely log incident, payment, and behavioral data into our system.',
-    },
-    {
-        icon: <Search className="w-12 h-12 text-primary" />,
-        title: '2. Generate Report',
-        description: 'Our AI generates a comprehensive risk score based on history, severity, and frequency.',
-    },
-    {
-        icon: <CheckCircle className="w-12 h-12 text-primary" />,
-        title: '3. Screen Renter',
-        description: 'Query a renter’s RentFAX profile before you rent to make an informed decision.',
-    },
-]
+import Link from "next/link";
 
-const testimonials = [
-  {
-    quote:
-      'RentFAX has completely transformed how we handle tenant screening. The AI insights are a game-changer, saving us time and preventing potential issues.',
-    name: 'Sarah L.',
-    title: 'Property Manager',
-    avatar: 'SL',
-    imageUrl: 'https://placehold.co/100x100.png',
-    dataAiHint: 'woman smiling',
-  },
-  {
-    quote:
-      'The vehicle history reports are a must-have. We\'ve reduced our insurance claims and feel much more secure renting out our fleet.',
-    name: 'David C.',
-    title: 'Car Rental Agency Owner',
-    avatar: 'DC',
-    imageUrl: 'https://placehold.co/100x100.png',
-    dataAiHint: 'man portrait',
-  },
-  {
-    quote:
-      'As an independent landlord, RentFAX gives me the same tools as the big companies. It\'s easy to use and provides incredible peace of mind.',
-    name: 'Jessica T.',
-    title: 'Landlord',
-    avatar: 'JT',
-    imageUrl: 'https://placehold.co/100x100.png',
-    dataAiHint: 'woman portrait',
-  },
-];
-
-export default function Home() {
+export default function HomePage() {
   return (
-    <div className="flex flex-col items-center bg-background">
-      <section className="w-full bg-background py-20 md:py-32">
-        <div className="container mx-auto text-center px-4">
-          <h1 className="font-headline text-4xl md:text-6xl font-bold tracking-tighter mb-4">
-            The Global Renter Risk Network
+    <main className="min-h-screen bg-white flex flex-col">
+      {/* Hero Section */}
+      <section className="relative bg-gradient-to-b from-blue-50 to-white">
+        <div className="max-w-7xl mx-auto px-6 py-20 text-center">
+          <h1 className="text-5xl font-bold text-gray-900">
+            The Credit Score for Renters
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-            A real-time, data-driven network for rental operators to assess risk, log incidents, and give renters a transparent portal to manage their history.
+          <p className="mt-6 text-lg text-gray-600 max-w-2xl mx-auto">
+            RentFAX gives rental businesses instant risk scores to protect fleets,
+            properties, and revenue.
           </p>
-          <div className="flex justify-center gap-4">
-            <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              <Link href="/signup">Get Started</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="#features">Learn More</Link>
-            </Button>
+          <div className="mt-8 flex justify-center gap-4">
+            <Link
+              href="/signup"
+              className="px-6 py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700"
+            >
+              Start Free
+            </Link>
+            <Link
+              href="/contact"
+              className="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+            >
+              Book a Demo
+            </Link>
           </div>
         </div>
       </section>
 
-      <section id="features" className="w-full bg-card py-16 md:py-24">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="font-headline text-3xl md:text-4xl font-bold">
-              RentFAX Core Features
-            </h2>
-            <p className="text-lg text-muted-foreground mt-2">
-              Powerful tools to protect your rental business.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature) => (
-              <Card key={feature.title} className="text-center shadow-lg hover:shadow-xl transition-shadow duration-300 border-none">
-                <CardHeader>
-                  <div className="flex justify-center mb-4">{feature.icon}</div>
-                  <CardTitle className="font-headline text-xl">{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">{feature.description}</p>
-                </CardContent>
-              </Card>
+      {/* How It Works */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <h2 className="text-3xl font-bold text-gray-900">How It Works</h2>
+          <div className="mt-12 grid gap-8 md:grid-cols-3">
+            {[
+              {
+                title: "1. Upload Renter",
+                desc: "Enter renter details or upload via CSV.",
+              },
+              {
+                title: "2. Instant Risk Report",
+                desc: "AI & fraud checks generate a clear risk score.",
+              },
+              {
+                title: "3. Confident Decision",
+                desc: "Approve, deny, or flag renters with confidence.",
+              },
+            ].map((step, idx) => (
+              <div
+                key={idx}
+                className="p-6 border rounded-2xl shadow-sm hover:shadow-md transition"
+              >
+                <h3 className="text-xl font-semibold text-gray-800">
+                  {step.title}
+                </h3>
+                <p className="mt-4 text-gray-600">{step.desc}</p>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="w-full bg-background py-16 md:py-24">
-        <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-                <h2 className="font-headline text-3xl md:text-4xl font-bold">
-                How It Works
-                </h2>
-                <p className="text-lg text-muted-foreground mt-2">
-                A simple process to get the insights you need.
+      {/* Features */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <h2 className="text-3xl font-bold text-gray-900">Key Features</h2>
+          <div className="mt-12 grid gap-8 md:grid-cols-3">
+            {[
+              {
+                title: "Fraud Detection",
+                desc: "Catch duplicate IDs, shared addresses, and suspicious renters.",
+              },
+              {
+                title: "Automated Risk Scoring",
+                desc: "Standardized renter ratings across your business.",
+              },
+              {
+                title: "Dispute Resolution",
+                desc: "Handle renter disputes with built-in workflow tools.",
+              },
+              {
+                title: "AI Risk Assistant",
+                desc: "Get contextual recommendations from AI insights.",
+              },
+              {
+                title: "Compliance Reporting",
+                desc: "Export reports for regulators, insurance, and legal.",
+              },
+              {
+                title: "Team & Enterprise",
+                desc: "Seat-based access controls and custom integrations.",
+              },
+            ].map((feature, idx) => (
+              <div
+                key={idx}
+                className="p-6 bg-white rounded-2xl shadow-sm hover:shadow-md transition"
+              >
+                <h3 className="text-lg font-semibold text-gray-800">
+                  {feature.title}
+                </h3>
+                <p className="mt-4 text-gray-600">{feature.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Preview */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <h2 className="text-3xl font-bold text-gray-900">Pricing</h2>
+          <p className="mt-4 text-gray-600">
+            Start free, upgrade as your business grows.
+          </p>
+          <div className="mt-12 grid gap-8 md:grid-cols-3">
+            {[
+              {
+                name: "Free",
+                price: "$0",
+                features: ["3 reports / month", "Basic scoring"],
+              },
+              {
+                name: "Pro",
+                price: "$29 / mo",
+                features: [
+                  "Unlimited reports",
+                  "AI Risk Assistant",
+                  "Fraud detection",
+                ],
+              },
+              {
+                name: "Enterprise",
+                price: "Contact Sales",
+                features: [
+                  "Custom limits",
+                  "Team seats",
+                  "Compliance tools",
+                  "Dedicated support",
+                ],
+              },
+            ].map((plan, idx) => (
+              <div
+                key={idx}
+                className="p-8 border rounded-2xl shadow-sm bg-gray-50 hover:shadow-md transition"
+              >
+                <h3 className="text-xl font-semibold text-gray-800">
+                  {plan.name}
+                </h3>
+                <p className="mt-2 text-2xl font-bold text-gray-900">
+                  {plan.price}
                 </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {howItWorks.map((step) => (
-                    <Card key={step.title} className="text-center shadow-lg hover:shadow-xl transition-shadow duration-300 border-none">
-                        <CardHeader>
-                            <div className="flex justify-center mb-4">{step.icon}</div>
-                            <CardTitle className="font-headline text-xl">{step.title}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-muted-foreground">{step.description}</p>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
-        </div>
-      </section>
-
-      <section className="w-full bg-card py-16 md:py-24">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="font-headline text-3xl md:text-4xl font-bold">
-              Trusted by Professionals
-            </h2>
-            <p className="text-lg text-muted-foreground mt-2">
-              Hear what our users have to say about RentFAX.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {testimonials.map((testimonial) => (
-              <TestimonialCard key={testimonial.name} {...testimonial} />
+                <ul className="mt-6 space-y-2 text-gray-600">
+                  {plan.features.map((f, i) => (
+                    <li key={i}>✔ {f}</li>
+                  ))}
+                </ul>
+                <Link
+                  href="/signup"
+                  className="mt-6 inline-block px-6 py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700"
+                >
+                  Get Started
+                </Link>
+              </div>
             ))}
           </div>
-           <div className="text-center mt-12">
-            <Button asChild variant="link" className="text-primary text-lg">
-              <Link href="/success-stories">View All Success Stories →</Link>
-            </Button>
-          </div>
         </div>
       </section>
-    </div>
+    </main>
   );
 }

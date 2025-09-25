@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { useAuth } from '@/hooks/use-auth';
+import NotificationBell from '@/components/ui/NotificationBell';
 
 const marketingNavLinks = [
   { href: '/screen', label: 'Screen a Renter' },
@@ -105,6 +106,8 @@ export default function Header() {
               </>
             ) : (
                 isAppRoute ? (
+                  <div className='flex items-center gap-4'>
+                    {user && <NotificationBell uid={user.uid} />}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -133,6 +136,7 @@ export default function Header() {
                         </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
+                  </div>
                 ) : (
                     <Button asChild>
                         <Link href="/dashboard">Dashboard</Link>

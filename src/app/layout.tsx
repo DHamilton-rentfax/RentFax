@@ -1,23 +1,23 @@
-import type { Metadata } from 'next';
-import './globals.css';
-import { Toaster } from '@/components/ui/toaster';
-import Footer from '@/components/layout/footer';
-import Header from '@/components/layout/header';
-import { AuthProvider } from '@/hooks/use-auth.tsx';
+import "./globals.css";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { AuthProvider } from "@/hooks/use-auth.tsx";
+import { Toaster } from "@/components/ui/toaster";
+import Header from "@/components/layout/header";
 
 export const metadata: Metadata = {
-  title: 'RentFAX | Verified Rental Intelligence',
-  description: 'Improving rental decisions for properties and vehicles with data-driven insights.',
+  title: "RentFAX | Verified Rental Intelligence",
+  description: "Improving rental decisions for properties and vehicles with data-driven insights.",
   icons: {
-    icon: '/favicon.ico',
+    icon: "/favicon.ico",
   },
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en" className="h-full scroll-smooth">
       <head>
@@ -36,7 +36,6 @@ export default function RootLayout({
         <AuthProvider>
           <Header />
           <main className="flex-grow">{children}</main>
-          <Footer />
           <Toaster />
         </AuthProvider>
       </body>
