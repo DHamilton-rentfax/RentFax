@@ -105,6 +105,54 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      
+      {/* Why RentFAX Section */}
+      <section className="py-24 bg-white">
+        <div className="max-w-6xl mx-auto px-6 text-center">
+          <h2 className="text-3xl font-bold">Why RentFAX?</h2>
+          <p className="mt-6 text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            The rental industry loses billions each year to fraud, unpaid fees, and
+            disputes. Traditional screening methods are outdated, slow, and
+            inconsistent. RentFAX was built to change that — to give rental
+            businesses the same protection credit scores provide to lenders.
+          </p>
+        </div>
+      </section>
+
+      {/* Problems We Solve */}
+      <section className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <h2 className="text-3xl font-bold">The Problems We Solve</h2>
+          <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                title: "Fraudulent Applications",
+                desc: "Detect duplicate IDs, shared addresses, and high-risk renters instantly.",
+              },
+              {
+                title: "Disputes & Chargebacks",
+                desc: "Manage conflicts with a built-in renter dispute resolution portal.",
+              },
+              {
+                title: "Compliance Burden",
+                desc: "Generate regulator- and insurer-ready reports with one click.",
+              },
+              {
+                title: "Lost Revenue",
+                desc: "Approve more good renters faster and cut losses from bad actors.",
+              },
+            ].map((item, idx) => (
+              <div
+                key={idx}
+                className="p-6 bg-white border rounded-xl shadow hover:shadow-md transition"
+              >
+                <h3 className="text-lg font-semibold text-gray-900">{item.title}</h3>
+                <p className="mt-3 text-gray-600">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Features */}
       <section className="py-24 bg-white">
@@ -127,6 +175,19 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Why This Platform Matters */}
+      <section className="py-24 bg-gray-900 text-white">
+        <div className="max-w-6xl mx-auto px-6 text-center">
+          <h2 className="text-3xl font-bold">Why This Platform Matters Now</h2>
+          <p className="mt-6 text-lg text-gray-300 max-w-3xl mx-auto leading-relaxed">
+            The rental industry has never had a unified standard for measuring renter
+            risk. RentFAX fills that gap. Just as FICO scores transformed lending,
+            RentFAX is redefining rentals with instant AI-driven scoring, fraud
+            detection, and compliance built in.
+          </p>
         </div>
       </section>
 
@@ -157,24 +218,24 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-20 bg-gray-900 text-white text-center">
-        <h2 className="text-3xl font-bold">Ready to protect your rentals?</h2>
-        <p className="mt-4 text-gray-300">
-          Join rental businesses nationwide using RentFAX to manage renter risk.
+      {/* Expanded CTA Banner */}
+      <section className="py-20 bg-emerald-600 text-white text-center">
+        <h2 className="text-3xl font-bold">Ready to transform your rental business?</h2>
+        <p className="mt-4 text-emerald-100">
+          Join companies nationwide who use RentFAX to protect revenue and reduce fraud.
         </p>
         <div className="mt-6 flex justify-center gap-4">
           <Link
             href="/signup"
-            className="px-6 py-3 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600"
+            className="px-6 py-3 rounded-lg bg-white text-emerald-700 font-medium hover:bg-gray-100"
           >
-            Get Started
+            Start Free
           </Link>
           <Link
             href="/contact"
-            className="px-6 py-3 rounded-lg border border-white/30 text-white hover:bg-white/10"
+            className="px-6 py-3 rounded-lg border border-white text-white hover:bg-emerald-700 hover:border-emerald-700"
           >
-            Contact Sales
+            Book a Demo
           </Link>
         </div>
       </section>
