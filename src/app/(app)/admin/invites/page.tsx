@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { db } from "@/firebase/client";
-import { collection, addDoc, getDocs, Timestamp } from "firebase/firestore";
+import { collection, query, where, onSnapshot, Timestamp, orderBy } from "firebase/firestore";
 import { v4 as uuidv4 } from "uuid";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +14,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import Protected from "@/components/protected";
+import { createInvite as createInviteAction } from "@/app/auth/actions";
+import { formatDistanceToNow } from "date-fns";
 
 type Role = 'editor' | 'admin';
 
@@ -25,15 +27,14 @@ export default function InvitesPage() {
   const [loading, setLoading] = useState(false);
   const [loadingInvites, setLoadingInvites] = useState(true);
 
-  const loadInvites = async () => {
-    setLoadingInvites(true);
-    const snap = await getDocs(collection(db, "invites"));
-    setInvites(snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a,b) => b.createdAt.toMillis() - a.createdAt.toMillis()));
-    setLoadingInvites(false);
-  };
-
   useEffect(() => {
-    loadInvites();
+    setLoadingInvites(true);
+    const q = query(collection(db, "invites"), orderBy("createdAt", "desc"));
+    const unsub = onSnapshot(q, (snap) => {
+      setInvites(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      setLoadingInvites(false);
+    });
+    return () => unsub();
   }, []);
 
   const createInvite = async () => {
@@ -43,34 +44,27 @@ export default function InvitesPage() {
     };
     setLoading(true);
 
-    const token = uuidv4();
     try {
-        await addDoc(collection(db, "invites"), {
-            email,
-            role,
-            token,
-            createdAt: Timestamp.now(),
-            accepted: false,
-        });
+        await createInviteAction({ email, role: role as any });
 
         toast({
-            title: "Invite Created",
-            description: "Share this secure link with the new team member.",
-            action: (
-                <div className="mt-2">
-                    <Input readOnly value={`${window.location.origin}/invite/${token}`} />
-                </div>
-            )
+            title: "Invite Sent",
+            description: `An invitation has been emailed to ${email}.`,
         })
 
         setEmail("");
-        loadInvites();
     } catch(e: any) {
         toast({ title: "Failed to create invite", description: e.message, variant: "destructive"});
     } finally {
         setLoading(false);
     }
   };
+  
+  const getStatus = (invite: any) => {
+    if (invite.accepted) return <Badge variant="default">Accepted</Badge>;
+    if (invite.expiresAt && invite.expiresAt.toDate() < new Date()) return <Badge variant="destructive">Expired</Badge>;
+    return <Badge variant="secondary">Pending</Badge>;
+  }
 
   return (
     <Protected roles={['owner', 'manager']}>
@@ -118,24 +112,26 @@ export default function InvitesPage() {
                             <TableHead>Role</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead>Date Sent</TableHead>
+                            <TableHead>Expires</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {loadingInvites ? (
-                            <TableRow><TableCell colSpan={4} className="text-center">Loading invites...</TableCell></TableRow>
+                            <TableRow><TableCell colSpan={5} className="text-center">Loading invites...</TableCell></TableRow>
                         ) : invites.length === 0 ? (
-                            <TableRow><TableCell colSpan={4} className="text-center">No invites sent yet.</TableCell></TableRow>
+                            <TableRow><TableCell colSpan={5} className="text-center">No invites sent yet.</TableCell></TableRow>
                         ) : (
                             invites.map((i) => (
                             <TableRow key={i.id}>
                                 <TableCell className="font-medium">{i.email}</TableCell>
                                 <TableCell className="capitalize">{i.role}</TableCell>
                                 <TableCell>
-                                    <Badge variant={i.accepted ? "default" : "secondary"}>
-                                        {i.accepted ? "Accepted" : "Pending"}
-                                    </Badge>
+                                    {getStatus(i)}
                                 </TableCell>
                                 <TableCell>{i.createdAt.toDate().toLocaleDateString()}</TableCell>
+                                <TableCell>
+                                    {i.expiresAt ? formatDistanceToNow(i.expiresAt.toDate(), { addSuffix: true }) : 'N/A'}
+                                </TableCell>
                             </TableRow>
                             ))
                         )}
