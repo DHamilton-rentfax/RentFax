@@ -1,45 +1,49 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Require auth for everything
-    match /{document=**} {
-      allow read, write: if request.auth != null;
-    }
-
-    // Companies (orgs)
+    // Org-level data is private
     match /orgs/{orgId} {
-      allow read, write: if isOrgMember(orgId);
+      allow read, write: if request.auth.uid != null && request.auth.token.orgId == orgId;
+
+      // Renters are readable by org members
+      match /renters/{renterId} {
+        allow read: if request.auth.uid != null && request.auth.token.orgId == orgId;
+        allow write: if request.auth.uid != null && request.auth.token.orgId == orgId;
+      }
+
+      // Tamper-proof audit logs
+      match /logs/{logId} {
+        allow read: if request.auth.uid != null && request.auth.token.orgId == orgId;
+        allow create: if request.auth.uid != null;
+        allow update, delete: if false; // Immutable
+      }
     }
 
-    // Renter data
-    match /orgs/{orgId}/renters/{renterId} {
-      allow read: if isOrgMember(orgId);
-      allow create, update, delete: if isOrgAdmin(orgId);
+    // Renter-specific data (for portal access)
+    match /renters/{renterId} {
+        allow read: if request.auth.uid == renterId;
+        // Allow renters to update their own dispute info
+        allow update: if request.auth.uid == renterId && request.resource.data.keys().hasOnly(['dispute']);
     }
 
-    // Renter documents
-    match /orgs/{orgId}/renters/{renterId}/docs/{docId} {
-        allow read, write: if isOrgMember(orgId);
+    // Protect invites collection
+    match /invites/{inviteId} {
+      allow read: if request.auth != null; // Any authenticated user can read to check token
+      allow create: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['owner', 'manager'];
+      allow update: if request.auth != null; // Allow user to update to 'accepted'
     }
 
-    // Audit logs – read-only to org admins
-    match /orgs/{orgId}/audit/{logId} {
-      allow read: if isOrgAdmin(orgId);
-      allow write: if request.auth != null && request.auth.uid == resource.data.actorUid;
+    // Blog posts can be managed by admins/editors
+    match /blogs/{slug} {
+      allow read: if resource.data.published == true || (request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['owner', 'manager', 'editor']);
+      allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['owner', 'manager', 'editor'];
     }
 
-    // Document metadata
-    match /orgs/{orgId}/docs/{docId} {
-      allow read, write: if isOrgMember(orgId);
+    // User roles can be read by anyone, but only written by admins or the user themselves
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.uid == userId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['owner', 'manager'];
     }
   }
-}
-
-function isOrgMember(orgId) {
-  return exists(/databases/$(database)/documents/orgs/$(orgId)/members/$(request.auth.uid));
-}
-
-function isOrgAdmin(orgId) {
-  return get(/databases/$(database)/documents/orgs/$(orgId)/members/$(request.auth.uid)).data.role in ['OWNER','ADMIN'];
 }

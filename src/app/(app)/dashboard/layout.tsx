@@ -13,7 +13,8 @@ import {
     Hammer,
     CheckCircle,
     ListChecks,
-    Megaphone
+    Megaphone,
+    Mail
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -36,7 +37,8 @@ const settingsLinks = [
 
 const adminNavLinks = [
     { href: '/dashboard/audit', label: 'Audit Logs', icon: ListChecks },
-    { href: '/dashboard/upload', label: 'Upload Renters', icon: FileUp },
+    { href: '/admin/upload', label: 'Upload Renters', icon: FileUp },
+    { href: '/admin/invites', label: 'Invites', icon: Mail },
     { href: '/admin/alerts', label: 'Global Alert', icon: Megaphone },
     { href: '/admin/seed', label: 'Seed Data', icon: Hammer },
     { href: '/admin/readiness', label: 'Readiness', icon: CheckCircle },
