@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/tooltip';
 import { plans, addons, Addon, Plan } from '@/lib/pricing-data';
 import PricingCart from './pricing-cart';
+import { Button } from '@/components/ui/button';
 
 const categoryIcons: { [key: string]: React.ReactNode } = {
   'Risk & AI': <Zap className="h-5 w-5" />,
