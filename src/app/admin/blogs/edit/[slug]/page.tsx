@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { db, storage } from "@/firebase/client";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter, useParams } from "next/navigation";
 import dynamic from "next/dynamic";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db, storage } from "@/firebase/client";
 
 // Import Tiptap dynamically (avoid SSR issues)
 const Editor = dynamic(() => import("@/components/BlogEditor"), { ssr: false });
@@ -65,7 +65,7 @@ export default function EditBlogPage() {
   };
 
   if (loading) {
-    return <p>Loading post...</p>;
+    return <p className="p-6">Loading post...</p>;
   }
 
   return (
