@@ -72,6 +72,7 @@
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",
     "@playwright/test": "^1.45.3",
+    "@tailwindcss/typography": "^0.5.13",
     "@types/node": "^20",
     "@types/papaparse": "^5.3.14",
     "@types/react": "^18",

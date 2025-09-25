@@ -1,274 +1,159 @@
+
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, ShieldCheck, Users, BarChart3, FileText, Sparkles } from "lucide-react";
 
 export default function HomePage() {
-  const logos = ["Urban Rentals NYC", "FleetCo", "PropManage", "DriveTrust", "LeaseGuard"];
-
-  const features = [
-    {
-      title: "Fraud Detection",
-      desc: "Catch duplicate IDs, shared addresses, and suspicious renters before they cost you money.",
-      icon: ShieldCheck,
-    },
-    {
-      title: "AI Risk Assistant",
-      desc: "Get AI-driven recommendations with context on renter behavior and portfolio risk.",
-      icon: Sparkles,
-    },
-    {
-      title: "Dispute Resolution",
-      desc: "Streamlined workflows to resolve renter disputes with audit-ready documentation.",
-      icon: FileText,
-    },
-    {
-      title: "Compliance Reporting",
-      desc: "Generate reports for insurers, regulators, and courts in just a few clicks.",
-      icon: BarChart3,
-    },
-    {
-      title: "Analytics Dashboard",
-      desc: "Track renter trends and business performance across your entire portfolio.",
-      icon: BarChart3,
-    },
-    {
-      title: "Team Controls",
-      desc: "Enterprise-ready role-based permissions and activity logs for your staff.",
-      icon: Users,
-    },
-  ];
-
-  const blogs = [
-    {
-      title: "Why Fraud Detection is the Future of Rentals",
-      excerpt: "Rental businesses lose billions annually to fraud. Learn how AI can protect your fleet.",
-      author: "RentFAX Team",
-      date: "Sept 12, 2025",
-    },
-    {
-      title: "Top 5 Risks Every Rental Company Should Know",
-      excerpt: "From chargebacks to disputes, here’s what keeps fleet owners awake at night.",
-      author: "Jane Smith",
-      date: "Sept 5, 2025",
-    },
-    {
-      title: "Compliance in Rentals: A Practical Guide",
-      excerpt: "Avoid lawsuits and fines with better compliance reporting built into your workflow.",
-      author: "RentFAX Legal",
-      date: "Aug 28, 2025",
-    },
-  ];
-
   return (
-    <main className="bg-white text-gray-900">
+    <div>
       {/* Hero */}
-      <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-        <div className="max-w-7xl mx-auto px-6 pt-32 pb-40 text-center">
-          <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
-            The Credit Score for Renters
+      <section className="relative">
+        <div className="mx-auto max-w-5xl px-6 pt-24 pb-10 text-center">
+          <h1 className="font-[var(--font-newsreader)] text-5xl md:text-6xl leading-tight tracking-tight">
+            Smarter Risk. <span className="text-zinc-500">Safer Rentals.</span>
           </h1>
-          <p className="mt-6 text-lg md:text-xl text-gray-300 max-w-2xl mx-auto">
-            Instant renter risk reports, AI fraud detection, and compliance tools
-            that protect your business — big or small.
+          <p className="mt-6 text-lg text-zinc-600 max-w-2xl mx-auto">
+            Real-time risk scoring, fraud detection, and transparent dispute workflows —
+            built for modern rental teams.
           </p>
-          <div className="mt-8 flex justify-center gap-4">
-            <Link
-              href="/signup"
-              className="px-8 py-4 rounded-xl bg-emerald-500 text-white font-semibold shadow hover:bg-emerald-600 transition"
-            >
-              Start Free
+          <div className="mt-8 flex items-center justify-center gap-3">
+            <Link href="/signup" className="rounded-full bg-black text-white px-5 py-2.5 text-sm hover:bg-zinc-900">
+              Start free
             </Link>
-          </div>
-          <div className="mt-6">
-            <Link
-              href="/contact"
-              className="inline-block text-gray-300 hover:text-white underline"
-            >
-              Book Enterprise Demo
+            <Link href="/pricing" className="rounded-full border border-black/10 px-5 py-2.5 text-sm hover:bg-black/5">
+              See pricing
             </Link>
           </div>
         </div>
-      </section>
 
-      {/* Trusted Logos */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-6xl mx-auto px-6 text-center">
-          <p className="text-gray-500 text-sm uppercase tracking-wide">
-            Trusted by rental businesses nationwide
-          </p>
-          <div className="mt-8 grid grid-cols-2 sm:grid-cols-5 gap-6 text-gray-700 font-semibold">
-            {logos.map((logo, idx) => (
-              <div key={idx} className="text-lg">{logo}</div>
+        {/* Logo cloud */}
+        <div className="mx-auto max-w-6xl px-6 pb-16">
+          <div className="grid grid-cols-2 md:grid-cols-6 items-center gap-x-10 gap-y-6 opacity-70">
+            {["stripe","plaid","firebase","vercel","aws","gcp"].map(k => (
+              <div key={k} className="flex items-center justify-center">
+                <img src={`/logos/${k}.svg`} alt={k} className="h-8" />
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Why RentFAX Section */}
-<section className="py-24 bg-white">
-  <div className="max-w-6xl mx-auto px-6 text-center">
-    <h2 className="text-3xl font-bold">Why RentFAX?</h2>
-    <p className="mt-6 text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
-      The rental industry loses billions each year to fraud, unpaid fees, and
-      disputes. Traditional screening methods are outdated, slow, and
-      inconsistent. RentFAX was built to change that — to give rental
-      businesses the same protection credit scores provide to lenders.
-    </p>
-  </div>
-</section>
-
-{/* Problems We Solve */}
-<section className="py-24 bg-gray-50">
-  <div className="max-w-7xl mx-auto px-6 text-center">
-    <h2 className="text-3xl font-bold">The Problems We Solve</h2>
-    <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-      {[
-        {
-          title: "Fraudulent Applications",
-          desc: "Detect duplicate IDs, shared addresses, and high-risk renters instantly.",
-        },
-        {
-          title: "Disputes & Chargebacks",
-          desc: "Manage conflicts with a built-in renter dispute resolution portal.",
-        },
-        {
-          title: "Compliance Burden",
-          desc: "Generate regulator- and insurer-ready reports with one click.",
-        },
-        {
-          title: "Lost Revenue",
-          desc: "Approve more good renters faster and cut losses from bad actors.",
-        },
-      ].map((item, idx) => (
-        <div
-          key={idx}
-          className="p-6 bg-white border rounded-xl shadow hover:shadow-md transition"
-        >
-          <h3 className="text-lg font-semibold text-gray-900">{item.title}</h3>
-          <p className="mt-3 text-gray-600">{item.desc}</p>
+      {/* 3-up value props (quiet cards) */}
+      <section className="border-t border-black/5 bg-white">
+        <div className="mx-auto max-w-6xl px-6 py-16 grid gap-10 md:grid-cols-3">
+          {[
+            { t: "AI Risk Scores", d: "Instant signals on fraud, duplicate identity, shared addresses, and more." },
+            { t: "Dispute Portal", d: "Give renters a fair, documented path to resolution. Reduce chargebacks." },
+            { t: "Enterprise Security", d: "Encryption in transit/at rest, audit logs, SSO, SOC2-aligned workflows." },
+          ].map((f) => (
+            <div key={f.t} className="rounded-2xl border border-black/5 p-8 hover:shadow-sm transition">
+              <div className="text-xs uppercase tracking-wider text-zinc-500">Capability</div>
+              <h3 className="mt-2 text-xl font-medium">{f.t}</h3>
+              <p className="mt-3 text-zinc-600">{f.d}</p>
+            </div>
+          ))}
         </div>
-      ))}
-    </div>
-  </div>
-</section>
+      </section>
 
-      {/* How It Works */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold">How It Works</h2>
-          <div className="mt-12 grid gap-8 md:grid-cols-3">
+      {/* Product spotlight (device frame) */}
+      <section className="border-t border-black/5">
+        <div className="mx-auto max-w-6xl px-6 py-20 grid gap-10 md:grid-cols-2 items-center">
+          <div>
+            <h2 className="font-[var(--font-newsreader)] text-3xl md:text-4xl leading-tight">
+              See risks before they become losses.
+            </h2>
+            <p className="mt-4 text-zinc-600">
+              Upload renter data or connect APIs. Our engine runs checks, scores risk,
+              and surfaces explanations so your team can act decisively.
+            </p>
+            <ul className="mt-6 space-y-2 text-sm text-zinc-700">
+              <li>• Duplicate identity & shared address detection</li>
+              <li>• Payment risk & chargeback likelihood</li>
+              <li>• Audit trail of decisions & disputes</li>
+            </ul>
+            <div className="mt-6 flex gap-3">
+              <Link href="/signup" className="rounded-full bg-black text-white px-5 py-2.5 text-sm hover:bg-zinc-900">
+                Try a sample report
+              </Link>
+              <Link href="/contact" className="rounded-full border border-black/10 px-5 py-2.5 text-sm hover:bg-black/5">
+                Talk to sales
+              </Link>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-black/10 bg-white p-2 shadow-sm">
+            <img src="/screens/risk-dashboard.png" alt="Risk dashboard" className="rounded-xl" />
+          </div>
+        </div>
+      </section>
+
+      {/* Metrics row */}
+      <section className="border-t border-black/5 bg-white">
+        <div className="mx-auto max-w-6xl px-6 py-14 grid gap-8 md:grid-cols-3 text-center">
+          {[
+            { n: "45%", l: "fewer loss events" },
+            { n: "5k+", l: "reports / month" },
+            { n: "99.95%", l: "uptime (SLA)" },
+          ].map((m) => (
+            <div key={m.l}>
+              <div className="text-4xl font-[var(--font-newsreader)]">{m.n}</div>
+              <div className="mt-2 text-zinc-600">{m.l}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Testimonials (quiet editorial) */}
+      <section className="border-t border-black/5">
+        <div className="mx-auto max-w-5xl px-6 py-20 grid gap-10 md:grid-cols-3">
+          {[
+            { q: "Caught bad apps before keys were handed over.", a: "Fleet Ops Lead" },
+            { q: "The dispute portal cut our chargebacks in half.", a: "Owner, Rentals NYC" },
+            { q: "Executive-level clarity on risk in one place.", a: "CFO, PropCo" },
+          ].map((t) => (
+            <div key={t.q} className="space-y-3">
+              <p className="italic">“{t.q}”</p>
+              <div className="text-sm text-zinc-600">— {t.a}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Blog preview (Adaline-style section) */}
+      <section className="border-t border-black/5 bg-white">
+        <div className="mx-auto max-w-5xl px-6 py-20">
+          <div className="flex items-end justify-between">
+            <h2 className="font-[var(--font-newsreader)] text-3xl">From the Lab</h2>
+            <Link href="/blog" className="text-sm text-zinc-700 hover:text-black">All posts →</Link>
+          </div>
+          <div className="mt-8 divide-y divide-black/5">
             {[
-              {
-                title: "Upload Renter",
-                desc: "Enter renter details or upload via CSV/API.",
-              },
-              {
-                title: "Instant Risk Score",
-                desc: "Our AI engine flags fraud and delivers clear risk scoring.",
-              },
-              {
-                title: "Decide Confidently",
-                desc: "Approve, deny, or flag renters with a defensible audit trail.",
-              },
-            ].map((step, idx) => (
-              <div
-                key={idx}
-                className="p-8 border rounded-2xl shadow-sm hover:shadow-lg transition"
-              >
-                <h3 className="text-xl font-semibold">{step.title}</h3>
-                <p className="mt-4 text-gray-600">{step.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section className="py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold">Powerful Features</h2>
-          <p className="mt-4 text-gray-600">
-            Everything rental businesses need to manage risk — built in.
-          </p>
-          <div className="mt-12 grid gap-8 md:grid-cols-3">
-            {features.map((feature, idx) => (
-              <div
-                key={idx}
-                className="p-8 bg-white border rounded-2xl shadow-md hover:shadow-xl transition"
-              >
-                <feature.icon className="mx-auto h-10 w-10 text-emerald-500" />
-                <h3 className="mt-6 text-lg font-semibold text-gray-900">
-                  {feature.title}
-                </h3>
-                <p className="mt-4 text-gray-600">{feature.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Why This Platform Matters */}
-<section className="py-24 bg-gray-900 text-white">
-  <div className="max-w-6xl mx-auto px-6 text-center">
-    <h2 className="text-3xl font-bold">Why This Platform Matters Now</h2>
-    <p className="mt-6 text-lg text-gray-300 max-w-3xl mx-auto leading-relaxed">
-      The rental industry has never had a unified standard for measuring renter
-      risk. RentFAX fills that gap. Just as FICO scores transformed lending,
-      RentFAX is redefining rentals with instant AI-driven scoring, fraud
-      detection, and compliance built in.
-    </p>
-  </div>
-</section>
-
-      {/* Blog Section */}
-      <section className="py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center">From the RentFAX Blog</h2>
-          <div className="mt-12 grid gap-8 md:grid-cols-3">
-            {blogs.map((post, idx) => (
-              <div
-                key={idx}
-                className="p-6 bg-white border rounded-xl shadow hover:shadow-md transition flex flex-col"
-              >
-                <h3 className="text-xl font-semibold text-gray-900">{post.title}</h3>
-                <p className="mt-3 text-gray-600 flex-grow">{post.excerpt}</p>
-                <div className="mt-4 text-sm text-gray-500">
-                  {post.author} — {post.date}
+              { slug: "building-a-risk-score", title: "How we build a renter risk score (and why it matters)", date: "Sep 20, 2025", read: "7 min" },
+              { slug: "dispute-design", title: "Designing a dispute flow renters actually trust", date: "Sep 12, 2025", read: "5 min" },
+              { slug: "fraud-signals", title: "The fraud signals that predict costly incidents", date: "Sep 2, 2025", read: "6 min" },
+            ].map((p) => (
+              <Link key={p.slug} href={`/blog/${p.slug}`} className="block py-5 hover:bg-black/2 rounded-lg">
+                <div className="flex items-baseline justify-between">
+                  <h3 className="text-lg md:text-xl font-medium leading-snug">{p.title}</h3>
+                  <div className="hidden md:block text-sm text-zinc-500">{p.date} · {p.read}</div>
                 </div>
-                <Link
-                  href="/blog"
-                  className="mt-6 inline-flex items-center text-emerald-600 hover:text-emerald-700 font-medium"
-                >
-                  Read More <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </div>
+                <div className="mt-1 md:hidden text-sm text-zinc-500">{p.date} · {p.read}</div>
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Expanded CTA Banner */}
-<section className="py-20 bg-emerald-600 text-white text-center">
-  <h2 className="text-3xl font-bold">Ready to transform your rental business?</h2>
-  <p className="mt-4 text-emerald-100">
-    Join companies nationwide who use RentFAX to protect revenue and reduce fraud.
-  </p>
-  <div className="mt-6 flex justify-center gap-4">
-    <Link
-      href="/signup"
-      className="px-6 py-3 rounded-lg bg-white text-emerald-700 font-medium hover:bg-gray-100"
-    >
-      Start Free
-    </Link>
-    <Link
-      href="/contact"
-      className="px-6 py-3 rounded-lg border border-white text-white hover:bg-emerald-700 hover:border-emerald-700"
-    >
-      Book a Demo
-    </Link>
-  </div>
-</section>
-    </main>
+      {/* CTA */}
+      <section className="border-t border-black/5">
+        <div className="mx-auto max-w-5xl px-6 py-16 text-center">
+          <h2 className="font-[var(--font-newsreader)] text-3xl md:text-4xl">Ready to protect your rentals?</h2>
+          <p className="mt-4 text-zinc-600">Start free, invite your team, and see risk clearly.</p>
+          <div className="mt-6 flex justify-center gap-3">
+            <Link href="/signup" className="rounded-full bg-black text-white px-5 py-2.5 text-sm hover:bg-zinc-900">Get started</Link>
+            <Link href="/contact" className="rounded-full border border-black/10 px-5 py-2.5 text-sm hover:bg-black/5">Contact sales</Link>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }
