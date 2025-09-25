@@ -8,6 +8,7 @@ export default function AppLayout({
 }) {
   return (
     <Protected roles={['owner', 'manager', 'agent', 'collections', 'superadmin']}>
+      <Header />
       {children}
     </Protected>
   );
