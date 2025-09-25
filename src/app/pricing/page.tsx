@@ -20,11 +20,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { plans, addons, Addon, Plan } from '@/lib/pricing-data';
 import PricingCart from './pricing-cart';
 
@@ -124,6 +123,28 @@ export default function PricingPage() {
         ))}
       </section>
 
+      <section className="pb-16 max-w-7xl mx-auto px-6">
+        <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold font-headline">
+              Or Start With a Free Report
+            </h2>
+            <p className="text-muted-foreground mt-2">
+              Not ready to commit? Screen one renter for free, on us.
+            </p>
+        </div>
+        <Card className="max-w-2xl mx-auto bg-muted/50">
+            <CardHeader>
+                <CardTitle>Free Renter Report</CardTitle>
+                <CardDescription>Get 1 free renter risk report — no credit card required.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Button asChild variant="secondary">
+                    <Link href="/screen">Try Free Report</Link>
+                </Button>
+            </CardContent>
+        </Card>
+      </section>
+
       <section className="py-16 bg-muted/50">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-12">
@@ -144,36 +165,36 @@ export default function PricingPage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {addonsInCategory.map((addon) => (
-                    <Card key={addon.id} className="flex flex-col">
+                    <Card key={addon.id} className="flex flex-col relative overflow-hidden">
+                      {addon.popular && (
+                            <div className="absolute top-2 right-[-28px] bg-accent text-accent-foreground px-6 py-1 text-xs font-bold rotate-45">
+                                Popular
+                            </div>
+                        )}
                       <CardHeader>
                         <CardTitle className="text-lg flex items-center justify-between">
                           <span>{addon.name}</span>
-                          <Switch
+                           <Switch
                             id={addon.id}
                             checked={selectedAddons.some((a) => a.id === addon.id)}
                             onCheckedChange={() => toggleAddon(addon)}
                           />
                         </CardTitle>
-                        <CardDescription className="flex items-center gap-1">
-                          {addon.description}
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Info className="h-3 w-3 cursor-pointer shrink-0" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>{addon.description}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                        <CardDescription className="flex items-center gap-1 pt-2">
+                            <span>
+                                {addon.description}
+                            </span>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Info className="h-4 w-4 cursor-pointer shrink-0 text-muted-foreground hover:text-foreground" />
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80">
+                                    <p className="text-sm">{addon.description}</p>
+                                </PopoverContent>
+                            </Popover>
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="flex-grow flex items-end justify-between">
-                         {addon.popular && (
-                            <span className="flex items-center gap-1 text-xs text-accent-foreground bg-accent px-2 py-0.5 rounded-full">
-                                <Sparkles className="h-3 w-3" /> Popular
-                            </span>
-                        )}
                         <div className="text-right ml-auto">
                           <p className="font-semibold text-base">
                             +
