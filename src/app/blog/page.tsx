@@ -1,11 +1,45 @@
-
 "use client";
 
 import Link from "next/link";
 import Image from "next/image";
-import { posts } from "@/content/posts";
+import { useEffect, useState } from "react";
+import { collection, getDocs, orderBy, query } from "firebase/firestore";
+import { db } from "@/firebase/client";
+
+type Post = {
+    slug: string;
+    title: string;
+    date: string;
+    read: string;
+    excerpt: string;
+    featured: boolean;
+    image: {
+        src: string;
+        width: number;
+        height: number;
+        hint: string;
+    }
+}
 
 export default function BlogIndex() {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      const q = query(collection(db, "blogs"), orderBy("date", "desc"));
+      const snapshot = await getDocs(q);
+      const postsData = snapshot.docs.map(doc => ({ slug: doc.id, ...doc.data() } as Post));
+      setPosts(postsData);
+      setLoading(false);
+    };
+    fetchPosts();
+  }, []);
+
+  if (loading) {
+      return <div className="text-center py-24">Loading posts...</div>;
+  }
+
   const featured = posts.find((p) => p.featured);
   const rest = posts.filter((p) => !p.featured);
 

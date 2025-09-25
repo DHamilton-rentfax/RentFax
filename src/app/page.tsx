@@ -1,9 +1,29 @@
-
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
+import { db } from "@/firebase/client";
+
+type Post = {
+    slug: string;
+    title: string;
+    date: string;
+    read: string;
+}
 
 export default function HomePage() {
+  const [posts, setPosts] = useState<Post[]>([]);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      const q = query(collection(db, "blogs"), orderBy("date", "desc"), limit(3));
+      const snapshot = await getDocs(q);
+      setPosts(snapshot.docs.map(doc => ({ slug: doc.id, ...doc.data() } as Post)));
+    };
+    fetchPosts();
+  }, []);
+
   return (
     <div>
       {/* Hero */}
@@ -126,11 +146,7 @@ export default function HomePage() {
             <Link href="/blog" className="text-sm text-zinc-700 hover:text-black">All posts →</Link>
           </div>
           <div className="mt-8 divide-y divide-black/5">
-            {[
-              { slug: "building-a-risk-score", title: "How we build a renter risk score (and why it matters)", date: "Sep 20, 2025", read: "7 min" },
-              { slug: "dispute-design", title: "Designing a dispute flow renters actually trust", date: "Sep 12, 2025", read: "5 min" },
-              { slug: "fraud-signals", title: "The fraud signals that predict costly incidents", date: "Sep 2, 2025", read: "6 min" },
-            ].map((p) => (
+            {posts.map((p) => (
               <Link key={p.slug} href={`/blog/${p.slug}`} className="block py-5 hover:bg-black/2 rounded-lg">
                 <div className="flex items-baseline justify-between">
                   <h3 className="text-lg md:text-xl font-medium leading-snug">{p.title}</h3>
