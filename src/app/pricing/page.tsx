@@ -15,12 +15,8 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import {
@@ -31,7 +27,6 @@ import {
 } from '@/components/ui/tooltip';
 import { plans, addons, Addon, Plan } from '@/lib/pricing-data';
 import PricingCart from './pricing-cart';
-import { Button } from '@/components/ui/button';
 
 const categoryIcons: { [key: string]: React.ReactNode } = {
   'Risk & AI': <Zap className="h-5 w-5" />,
@@ -130,7 +125,7 @@ export default function PricingPage() {
       </section>
 
       <section className="py-16 bg-muted/50">
-        <div className="max-w-4xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold font-headline">
               Customize with Add-Ons
@@ -139,72 +134,61 @@ export default function PricingPage() {
               Tailor your plan with powerful features to match your workflow.
             </p>
           </div>
-          <Accordion type="single" collapsible className="w-full" defaultValue="item-0">
-            {Object.entries(groupedAddons).map(([category, addonsInCategory], index) => (
-              <AccordionItem value={`item-${index}`} key={category}>
-                <AccordionTrigger className="text-lg font-semibold">
-                  <div className="flex items-center gap-3">
-                    {categoryIcons[category]}
-                    {category}
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-4 pt-2">
-                    {addonsInCategory.map((addon) => (
-                      <div
-                        key={addon.id}
-                        className="flex items-center justify-between p-4 rounded-lg bg-background border"
-                      >
-                        <div className="flex items-center gap-4">
+          
+          <div className="space-y-12">
+            {Object.entries(groupedAddons).map(([category, addonsInCategory]) => (
+              <div key={category}>
+                <h3 className="text-2xl font-semibold mb-6 flex items-center gap-3">
+                  {categoryIcons[category]}
+                  {category}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {addonsInCategory.map((addon) => (
+                    <Card key={addon.id} className="flex flex-col">
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center justify-between">
+                          <span>{addon.name}</span>
                           <Switch
                             id={addon.id}
-                            checked={selectedAddons.some(
-                              (a) => a.id === addon.id
-                            )}
+                            checked={selectedAddons.some((a) => a.id === addon.id)}
                             onCheckedChange={() => toggleAddon(addon)}
                           />
-                          <div>
-                            <Label
-                              htmlFor={addon.id}
-                              className="font-medium flex items-center gap-2"
-                            >
-                              {addon.name}
-                              {addon.popular && (
-                                <span className="flex items-center gap-1 text-xs text-accent-foreground bg-accent px-2 py-0.5 rounded-full">
-                                  <Sparkles className="h-3 w-3" /> Popular
-                                </span>
-                              )}
-                            </Label>
-                            <div className="text-xs text-muted-foreground flex items-center gap-1">
-                                {addon.description}
-                                <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                    <Info className="h-3 w-3 cursor-pointer" />
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                    <p>{addon.description}</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                                </TooltipProvider>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-sm">
+                        </CardTitle>
+                        <CardDescription className="flex items-center gap-1">
+                          {addon.description}
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="h-3 w-3 cursor-pointer shrink-0" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{addon.description}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="flex-grow flex items-end justify-between">
+                         {addon.popular && (
+                            <span className="flex items-center gap-1 text-xs text-accent-foreground bg-accent px-2 py-0.5 rounded-full">
+                                <Sparkles className="h-3 w-3" /> Popular
+                            </span>
+                        )}
+                        <div className="text-right ml-auto">
+                          <p className="font-semibold text-base">
                             +
                             {isAnnual
                               ? `$${addon.priceAnnual}/yr`
                               : `$${addon.priceMonthly}/mo`}
                           </p>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
             ))}
-          </Accordion>
+          </div>
         </div>
       </section>
 
