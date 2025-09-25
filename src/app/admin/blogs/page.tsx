@@ -7,63 +7,131 @@ import {
   getDocs,
   doc,
   deleteDoc,
+  updateDoc,
+  orderBy,
+  query,
 } from "firebase/firestore";
 import Link from "next/link";
+import Protected from "@/components/protected";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { MoreHorizontal } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function AdminBlogsPage() {
   const [blogs, setBlogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
-      const snap = await getDocs(collection(db, "blogs"));
+      setLoading(true);
+      const q = query(collection(db, "blogs"), orderBy("date", "desc"));
+      const snap = await getDocs(q);
       setBlogs(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      setLoading(false);
     };
     load();
   }, []);
 
   const deleteBlog = async (id: string) => {
-    if (confirm("Delete this post?")) {
+    if (confirm("Are you sure you want to delete this post? This cannot be undone.")) {
       await deleteDoc(doc(db, "blogs", id));
       setBlogs((prev) => prev.filter((b) => b.id !== id));
     }
   };
 
-  return (
-    <div className="mx-auto max-w-5xl px-6 py-20">
-      <div className="flex items-center justify-between mb-10">
-        <h1 className="text-3xl font-bold">Manage Blog Posts</h1>
-        <Link
-          href="/admin/blogs/new"
-          className="rounded bg-indigo-600 text-white px-4 py-2 hover:bg-indigo-700"
-        >
-          + New Post
-        </Link>
-      </div>
+  const togglePublish = async (id: string, published: boolean) => {
+    await updateDoc(doc(db, "blogs", id), { published: !published });
+    setBlogs((prev) =>
+      prev.map((b) => (b.id === id ? { ...b, published: !published } : b))
+    );
+  };
 
-      <ul className="space-y-4">
-        {blogs.map((b) => (
-          <li key={b.id} className="p-4 border rounded-lg flex justify-between items-center">
-            <div>
-              <div className="font-medium">{b.title}</div>
-              <div className="text-sm text-zinc-500">{b.date} · {b.read}</div>
+  return (
+    <Protected roles={['owner', 'manager']}>
+        <div className="space-y-4">
+            <div className="flex items-center justify-between">
+                <h1 className="text-2xl font-headline">Blog Dashboard</h1>
+                <Button asChild>
+                    <Link href="/admin/blogs/new">
+                    + New Post
+                    </Link>
+                </Button>
             </div>
-            <div className="flex gap-3">
-              <Link
-                href={`/admin/blogs/edit/${b.id}`}
-                className="text-indigo-600 hover:underline text-sm"
-              >
-                Edit
-              </Link>
-              <button
-                onClick={() => deleteBlog(b.id)}
-                className="text-red-600 hover:underline text-sm"
-              >
-                Delete
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </div>
+             <Card>
+                <CardHeader>
+                    <CardTitle>Manage Posts</CardTitle>
+                    <CardDescription>Create, edit, and manage all blog posts for your public website.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Title</TableHead>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead><span className="sr-only">Actions</span></TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                             {loading ? (
+                                <TableRow><TableCell colSpan={4} className="text-center">Loading posts...</TableCell></TableRow>
+                            ) : blogs.length === 0 ? (
+                                <TableRow><TableCell colSpan={4} className="text-center">No blog posts found.</TableCell></TableRow>
+                            ) : (
+                                blogs.map((b) => (
+                                <TableRow key={b.id}>
+                                    <TableCell className="font-medium">{b.title}</TableCell>
+                                    <TableCell>{b.date}</TableCell>
+                                    <TableCell>
+                                        {b.published ? (
+                                            <Badge variant="default">Published</Badge>
+                                        ) : (
+                                            <Badge variant="secondary">Draft</Badge>
+                                        )}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                         <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                 <Button variant="ghost" size="icon">
+                                                    <MoreHorizontal />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                 <DropdownMenuItem asChild>
+                                                    <Link href={`/admin/blogs/edit/${b.id}`}>Edit</Link>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => togglePublish(b.id, b.published)}>
+                                                    {b.published ? "Unpublish" : "Publish"}
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => deleteBlog(b.id)} className="text-destructive">
+                                                    Delete
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </TableCell>
+                                </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        </div>
+    </Protected>
   );
 }
