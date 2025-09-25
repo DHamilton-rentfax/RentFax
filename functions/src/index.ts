@@ -1,3 +1,4 @@
+
 'use server';
 
 import Stripe from 'stripe';
@@ -5,6 +6,13 @@ import { onRequest } from 'firebase-functions/v2/https';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { PLAN_FEATURES, Plan, CompanyStatus, nextStatus } from '../../src/lib/plan-features'; 
 import { admin, dbAdmin as db } from '../../src/lib/firebase-admin';
+import * as functions from "firebase-functions";
+import sgMail from "@sendgrid/mail";
+
+if (functions.config().sendgrid && functions.config().sendgrid.key) {
+  sgMail.setApiKey(functions.config().sendgrid.key);
+}
+
 
 // Ensure Stripe is initialized with a default empty string if API key is not set,
 // although it should always be set in a real environment.
@@ -102,3 +110,35 @@ export const createBillingPortalSession = onCall({ secrets: ["STRIPE_API_KEY"] }
 
   return { url: session.url };
 });
+
+
+export const notifyNewApplication = functions.firestore
+  .document("applications/{appId}")
+  .onCreate(async (snap) => {
+    const app = snap.data();
+    if (!app) return;
+
+    const msg = {
+      to: "hr@rentfax.ai", // your hiring inbox
+      from: "noreply@rentfax.ai",
+      subject: `New Application for ${app.role}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height:1.6">
+          <h2>New Application: ${app.role}</h2>
+          <p><strong>Name:</strong> ${app.name}</p>
+          <p><strong>Email:</strong> ${app.email}</p>
+          <p><strong>Cover Letter:</strong></p>
+          <p>${app.coverLetter || "(none)"}</p>
+          <p><a href="${app.resumeUrl}">Download Resume</a></p>
+        </div>
+      `,
+    };
+
+    try {
+        await sgMail.send(msg);
+        console.log(`Notified HR of new application: ${app.name}`);
+    } catch(e: any) {
+        console.error("Failed to send application notification email", e);
+    }
+  });
+
