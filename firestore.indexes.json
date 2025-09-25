@@ -10,6 +10,14 @@
       ]
     },
     {
+      "collectionGroup": "blogs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "published", "order": "ASCENDING" },
+        { "fieldPath": "date", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "companies",
       "queryScope": "COLLECTION",
       "fields": [
