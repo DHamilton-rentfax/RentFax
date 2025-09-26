@@ -2,7 +2,7 @@
 'use server';
 
 import Stripe from 'stripe';
-import { onRequest } from 'firebase-functions/v2/https';
+import { onRequest } from 'firebase-functions/v2/onRequest';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { PLAN_FEATURES, Plan, CompanyStatus, nextStatus } from '../../src/lib/plan-features'; 
 import { admin, dbAdmin as db } from '../../src/lib/firebase-admin';
@@ -142,3 +142,5 @@ export const notifyNewApplication = functions.firestore
     }
   });
 
+export * from './send-invite-email';
+export * from './consume-credit';

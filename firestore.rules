@@ -1,61 +1,55 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Org-level data is private
-    match /orgs/{orgId} {
-      allow read, write: if request.auth.uid != null && request.auth.token.orgId == orgId;
 
-      // Renters are readable by org members
-      match /renters/{renterId} {
-        allow read: if request.auth.uid != null && request.auth.token.orgId == orgId;
-        allow write: if request.auth.uid != null && request.auth.token.orgId == orgId;
-      }
-
-      // Tamper-proof audit logs
-      match /logs/{logId} {
-        allow read: if request.auth.uid != null && request.auth.token.orgId == orgId;
-        allow create: if request.auth.uid != null;
-        allow update, delete: if false; // Immutable
-      }
-    }
-
-    // Renter-specific data (for portal access)
-    match /renters/{renterId} {
-        allow read: if request.auth.uid == renterId;
-        // Allow renters to update their own dispute info
-        allow update: if request.auth.uid == renterId && request.resource.data.keys().hasOnly(['dispute']);
-    }
-    
-    // Blog posts can be read by anyone, but only written by admins/editors
-    match /blogs/{slug} {
-      allow read: if true;
-      allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'editor'];
-    }
-
-    // Invites can only be created/read by admins
-    match /invites/{inviteId} {
-      allow read, write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-
-    // User profiles can be read by anyone, but only the user can write to their own doc
+    // ---------------- USERS ----------------
     match /users/{userId} {
-      allow read: if true;
-      allow write: if request.auth.uid == userId;
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      // Allow profile updates but NOT billing fields
+      allow update: if request.auth != null 
+                    && request.auth.uid == userId
+                    && !(
+                      "plan" in request.resource.data
+                      || "addons" in request.resource.data
+                      || "subscriptionStatus" in request.resource.data
+                      || "currentPeriodEnd" in request.resource.data
+                    )
+                    // Credits rule: allow decrement only
+                    && (
+                      !("credits" in request.resource.data)
+                      || (
+                        "credits" in resource.data
+                        && "credits" in request.resource.data
+                        && request.resource.data.credits <= resource.data.credits
+                      )
+                    );
+
+      // Full writes allowed only by server/webhook (admin token)
+      allow write: if request.auth.token.admin == true;
     }
 
-    // Careers Applications: public can create, only admin can read/update
+    // ---------------- AUDIT LOGS ----------------
+    match /auditLogs/{logId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.token.admin == true;
+    }
+
+    // ---------------- ORGS ----------------
+    match /orgs/{orgId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.token.admin == true;
+    }
+
+    // ---------------- INVITES ----------------
+    match /invites/{inviteId} {
+        allow read, write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'owner', 'manager'];
+    }
+
+    // ---------------- APPLICATIONS ----------------
     match /applications/{appId} {
-      allow create: if true;
-      allow read, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-
-    // Prevent clients from modifying their own billing status
-    match /companies/{companyId} {
-      allow read: if request.auth != null && request.auth.token.companyId == companyId;
-      allow update: if request.auth != null && 
-                       request.auth.token.companyId == companyId &&
-                       !('plan' in request.resource.data) &&
-                       !('status' in request.resource.data);
+      allow create: if true; // applicants can submit
+      allow read, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'owner', 'manager'];
     }
   }
 }
