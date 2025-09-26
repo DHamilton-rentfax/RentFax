@@ -9,6 +9,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
 
 // ----------------- Plan Catalog -----------------
 const plans = [
@@ -198,6 +199,30 @@ export default function PricingPage() {
     );
   };
 
+  const handleCheckout = async () => {
+    if (!selectedPlan) {
+      alert("Please select a plan before checkout.");
+      return;
+    }
+
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        plan: selectedPlan,
+        addons: selectedAddons,
+        billing,
+      }),
+    });
+
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      alert("Checkout error: " + data.error);
+    }
+  };
+
   const total =
     (selectedPlan
       ? typeof plans.find((p) => p.id === selectedPlan)?.price === "number"
@@ -226,22 +251,20 @@ export default function PricingPage() {
           grows.
         </p>
         <div className="inline-flex rounded-full bg-gray-200 p-1">
-          <button
+          <Button
             onClick={() => setBilling("monthly")}
-            className={`px-6 py-2 rounded-full font-medium ${
-              billing === "monthly" ? "bg-blue-600 text-white" : "text-gray-600"
-            }`}
+            variant={billing === 'monthly' ? 'default' : 'ghost'}
+            className="rounded-full"
           >
             Monthly
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => setBilling("annual")}
-            className={`px-6 py-2 rounded-full font-medium ${
-              billing === "annual" ? "bg-blue-600 text-white" : "text-gray-600"
-            }`}
+            variant={billing === 'annual' ? 'default' : 'ghost'}
+            className="rounded-full"
           >
             Annual (save 15%)
-          </button>
+          </Button>
         </div>
       </section>
 
@@ -273,16 +296,13 @@ export default function PricingPage() {
                 ))}
               </ul>
             </div>
-            <button
+            <Button
               onClick={() => setSelectedPlan(plan.id === selectedPlan ? null : plan.id)}
-              className={`w-full py-2 rounded-lg font-semibold ${
-                selectedPlan === plan.id
-                  ? "bg-red-500 text-white"
-                  : "bg-blue-600 text-white hover:bg-blue-700"
-              }`}
+              variant={selectedPlan === plan.id ? 'destructive' : 'default'}
+              className="w-full"
             >
               {selectedPlan === plan.id ? "Remove" : "Select"}
-            </button>
+            </Button>
           </div>
         ))}
       </section>
@@ -313,16 +333,14 @@ export default function PricingPage() {
                           : `$${addon.annual}/yr`}
                       </span>
                     </div>
-                    <button
+                    <Button
                       onClick={() => toggleAddon(addon.id)}
-                      className={`mt-4 px-3 py-2 rounded ${
-                        isSelected
-                          ? "bg-red-500 text-white"
-                          : "bg-blue-600 text-white hover:bg-blue-700"
-                      }`}
+                      variant={isSelected ? 'destructive' : 'default'}
+                      size="sm"
+                      className="mt-4"
                     >
                       {isSelected ? "Remove" : "Add"}
-                    </button>
+                    </Button>
                   </div>
                 );
               })}
@@ -383,15 +401,20 @@ export default function PricingPage() {
           )}
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-lg font-bold">Total: ${total}/mo</span>
-          <button className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">
+          <span className="text-lg font-bold">Total: ${total.toFixed(2)}/mo</span>
+          <Button
+            onClick={handleCheckout}
+            variant="default"
+            size="lg"
+            className="bg-green-600 hover:bg-green-700"
+          >
             Checkout
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* Chat Widget */}
-      <button className="fixed bottom-20 right-6 bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 z-50">
+      <button className="fixed bottom-24 right-6 bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 z-50">
         <MessageCircle className="w-6 h-6" />
       </button>
     </div>

@@ -1,35 +1,61 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Org-level data is private
+    match /orgs/{orgId} {
+      allow read, write: if request.auth.uid != null && request.auth.token.orgId == orgId;
 
-    // --- Users Collection ---
-    match /users/{userId} {
-      
-      // 1. Users can read their own document.
-      // This is necessary for the app to display the user's current plan, add-ons, etc.
-      allow read: if request.auth != null && request.auth.uid == userId;
-      
-      // 2. Users can create their own document (e.g., at sign-up).
-      allow create: if request.auth != null && request.auth.uid == userId;
+      // Renters are readable by org members
+      match /renters/{renterId} {
+        allow read: if request.auth.uid != null && request.auth.token.orgId == orgId;
+        allow write: if request.auth.uid != null && request.auth.token.orgId == orgId;
+      }
 
-      // 3. Users can update their document ONLY IF they are not touching billing fields.
-      // This allows them to change their name, profile picture, etc., but not their plan.
-      allow update: if request.auth != null && request.auth.uid == userId
-                    // The following fields can ONLY be changed by the secure webhook.
-                    && !('plan' in request.resource.data)
-                    && !('addons' in request.resource.data)
-                    && !('subscriptionStatus' in request.resource.data)
-                    && !('credits' in request.resource.data)
-                    && !('stripeCustomerId' in request.resource.data)
-                    && !('currentPeriodEnd' in request.resource.data);
+      // Tamper-proof audit logs
+      match /logs/{logId} {
+        allow read: if request.auth.uid != null && request.auth.token.orgId == orgId;
+        allow create: if request.auth.uid != null;
+        allow update, delete: if false; // Immutable
+      }
     }
 
-    // --- Audit Logs Collection ---
-    match /auditLogs/{logId} {
-      // Nobody on the client-side can read or write to the audit log.
-      // This is a server-only collection, written to by the webhook.
-      allow read, write: if false;
+    // Renter-specific data (for portal access)
+    match /renters/{renterId} {
+        allow read: if request.auth.uid == renterId;
+        // Allow renters to update their own dispute info
+        allow update: if request.auth.uid == renterId && request.resource.data.keys().hasOnly(['dispute']);
+    }
+    
+    // Blog posts can be read by anyone, but only written by admins/editors
+    match /blogs/{slug} {
+      allow read: if true;
+      allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'editor'];
+    }
+
+    // Invites can only be created/read by admins
+    match /invites/{inviteId} {
+      allow read, write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // User profiles can be read by anyone, but only the user can write to their own doc
+    match /users/{userId} {
+      allow read: if true;
+      allow write: if request.auth.uid == userId;
+    }
+
+    // Careers Applications: public can create, only admin can read/update
+    match /applications/{appId} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Prevent clients from modifying their own billing status
+    match /companies/{companyId} {
+      allow read: if request.auth != null && request.auth.token.companyId == companyId;
+      allow update: if request.auth != null && 
+                       request.auth.token.companyId == companyId &&
+                       !('plan' in request.resource.data) &&
+                       !('status' in request.resource.data);
     }
   }
 }
