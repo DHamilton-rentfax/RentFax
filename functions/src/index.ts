@@ -3,7 +3,7 @@
 
 import Stripe from 'stripe';
 import { onRequest } from 'firebase-functions/v2/onRequest';
-import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import { onCall, HttpsError } from 'firebase-functions/v2/onCall';
 import { PLAN_FEATURES, Plan, CompanyStatus, nextStatus } from '../../src/lib/plan-features'; 
 import { admin, dbAdmin as db } from '../../src/lib/firebase-admin';
 import * as functions from "firebase-functions";

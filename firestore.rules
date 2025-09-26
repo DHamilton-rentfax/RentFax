@@ -1,55 +1,49 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    match /companies/{companyId} {
+      allow read: if request.auth.uid != null && request.auth.token.companyId == companyId;
+      // Disallow all client-side writes to company billing info
+      allow write: if false; 
+    }
 
-    // ---------------- USERS ----------------
+     match /applications/{appId} {
+      // Allow public to submit applications
+      allow create: if true; 
+      // Only authenticated admins can read or modify applications
+      allow read, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role IN ['owner', 'manager'];
+    }
+    
     match /users/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth.uid == userId;
 
-      // Allow profile updates but NOT billing fields
-      allow update: if request.auth != null 
-                    && request.auth.uid == userId
-                    && !(
-                      "plan" in request.resource.data
-                      || "addons" in request.resource.data
-                      || "subscriptionStatus" in request.resource.data
-                      || "currentPeriodEnd" in request.resource.data
-                    )
-                    // Credits rule: allow decrement only
-                    && (
-                      !("credits" in request.resource.data)
-                      || (
-                        "credits" in resource.data
-                        && "credits" in request.resource.data
-                        && request.resource.data.credits <= resource.data.credits
-                      )
-                    );
-
-      // Full writes allowed only by server/webhook (admin token)
-      allow write: if request.auth.token.admin == true;
+      // Allow profile updates but disallow any changes to billing or credit fields.
+      allow update: if request.auth.uid == userId
+                    && !("plan" in request.resource.data)
+                    && !("addons" in request.resource.data)
+                    && !("subscriptionStatus" in request.resource.data)
+                    && !("credits" in request.resource.data);
     }
 
-    // ---------------- AUDIT LOGS ----------------
-    match /auditLogs/{logId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth.token.admin == true;
-    }
-
-    // ---------------- ORGS ----------------
     match /orgs/{orgId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth.token.admin == true;
+      allow read, write: if request.auth.uid != null && request.auth.token.orgId == orgId;
+
+      match /renters/{renterId} {
+        allow read: if request.auth.uid != null && request.auth.token.orgId == orgId;
+        allow write: if request.auth.uid != null && request.auth.token.orgId == orgId;
+      }
+
+      match /logs/{logId} {
+        allow read: if request.auth.uid != null && request.auth.token.orgId == orgId;
+        allow create: if request.auth.uid != null;
+        allow update, delete: if false; // Immutable
+      }
     }
 
-    // ---------------- INVITES ----------------
-    match /invites/{inviteId} {
-        allow read, write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'owner', 'manager'];
-    }
-
-    // ---------------- APPLICATIONS ----------------
-    match /applications/{appId} {
-      allow create: if true; // applicants can submit
-      allow read, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'owner', 'manager'];
+    match /renters/{renterId} {
+        allow read: if request.auth.uid == renterId;
+        allow update: if request.auth.uid == renterId && request.resource.data.keys().hasOnly(['dispute']);
     }
   }
 }
