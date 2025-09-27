@@ -1,7 +1,9 @@
+
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { getAuth } from "firebase-admin/auth";
 import { authAdmin } from '@/lib/firebase-admin';
+import { headers } from "next/headers";
+
 
 const stripe = new Stripe(process.env.STRIPE_API_KEY!, {
   apiVersion: "2024-06-20",
@@ -9,9 +11,9 @@ const stripe = new Stripe(process.env.STRIPE_API_KEY!, {
 
 export async function POST(req: Request) {
   try {
-    const { planId, addons, billingCycle, isPayg } = await req.json();
+    const { mode, planId, addons, billingCycle, isPayg } = await req.json();
 
-    const authHeader = req.headers.get("authorization");
+    const authHeader = headers().get("authorization");
     if (!authHeader) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const token = authHeader.split(" ")[1];
@@ -21,9 +23,10 @@ export async function POST(req: Request) {
 
     if (!decoded.uid) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    if (isPayg) {
+    let session;
+    if (isPayg || mode === "payg") {
       // Handle one-time payment for Pay-As-You-Go
-      const session = await stripe.checkout.sessions.create({
+      session = await stripe.checkout.sessions.create({
         mode: "payment",
         payment_method_types: ["card"],
         customer_email: user.email,
@@ -45,43 +48,47 @@ export async function POST(req: Request) {
         metadata: {
           uid: decoded.uid,
           credits: 1,
+          type: 'payg_report'
         },
       });
-      return NextResponse.json({ url: session.url });
+    } else {
+      // Handle subscription
+      if (!planId) {
+        return NextResponse.json({ error: "No plan selected" }, { status: 400 });
+      }
+
+      const planLookupKey = `${planId}_${billingCycle}`;
+      const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
+        {
+          price: planLookupKey,
+          quantity: 1,
+        },
+      ];
+
+      if (addons && Array.isArray(addons)) {
+          addons.forEach((addon: string) => {
+          const addonLookupKey = `${addon}_${billingCycle}`;
+          lineItems.push({
+              price: addonLookupKey,
+              quantity: 1,
+          });
+          });
+      }
+
+      session = await stripe.checkout.sessions.create({
+        mode: "subscription",
+        payment_method_types: ["card"],
+        customer_email: user.email,
+        line_items: lineItems,
+        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
+        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?canceled=true`,
+        metadata: {
+          uid: decoded.uid,
+          companyId: (decoded as any).companyId || "",
+          type: 'subscription'
+        },
+      });
     }
-    
-    // Handle subscription
-    const planLookupKey = `${planId}_${billingCycle}`;
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
-      {
-        price: planLookupKey,
-        quantity: 1,
-      },
-    ];
-
-    if (addons && Array.isArray(addons)) {
-        addons.forEach((addon: string) => {
-        const addonLookupKey = `${addon}_${billingCycle}`;
-        lineItems.push({
-            price: addonLookupKey,
-            quantity: 1,
-        });
-        });
-    }
-
-
-    const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      payment_method_types: ["card"],
-      customer_email: user.email,
-      line_items: lineItems,
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?canceled=true`,
-      metadata: {
-        uid: decoded.uid,
-        companyId: (decoded.claims as any)?.companyId || "",
-      },
-    });
 
     return NextResponse.json({ url: session.url });
   } catch (err: any) {

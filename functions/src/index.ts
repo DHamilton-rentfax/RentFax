@@ -43,6 +43,20 @@ export const stripeWebhook = onRequest({ maxInstances: 1, secrets: ["STRIPE_API_
 
   try {
     switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        if (session.metadata?.type === 'payg_report') {
+            const userId = session.metadata.uid;
+            if (userId) {
+                const userRef = db.doc(`users/${userId}`);
+                await userRef.update({
+                    credits: admin.firestore.FieldValue.increment(1)
+                });
+                console.log(`Added 1 credit to user ${userId}`);
+            }
+        }
+        break;
+      }
       case 'customer.subscription.created':
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted': {

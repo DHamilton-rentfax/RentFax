@@ -1,7 +1,8 @@
+
 "use client";
 
 import { useState } from "react";
-import { Check, Info, MessageCircle, ShoppingCart } from "lucide-react";
+import { Check, Info, MessageCircle, ShoppingCart, Loader2 } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -18,7 +19,6 @@ import { plans, addons, Plan, Addon } from "@/lib/pricing-data";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { auth } from '@/lib/firebase';
-import { Loader2 } from "lucide-react";
 
 
 export default function PricingPage() {
@@ -104,7 +104,7 @@ export default function PricingPage() {
         const res = await fetch("/api/checkout", {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-            body: JSON.stringify({ isPayg: true }),
+            body: JSON.stringify({ mode: "payg" }),
         });
         const data = await res.json();
         if (data.url) {
