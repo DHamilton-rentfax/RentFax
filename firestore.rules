@@ -2,48 +2,99 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /companies/{companyId} {
-      allow read: if request.auth.uid != null && request.auth.token.companyId == companyId;
-      // Disallow all client-side writes to company billing info
-      allow write: if false; 
-    }
 
-     match /applications/{appId} {
-      // Allow public to submit applications
-      allow create: if true; 
-      // Only authenticated admins can read or modify applications
-      allow read, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role IN ['owner', 'manager'];
+    // Helper function to check for super_admin role
+    function isSuperAdmin() {
+      return request.auth.token.role == 'super_admin';
     }
     
-    match /users/{userId} {
-      allow read: if request.auth.uid == userId;
-
-      // Allow profile updates but disallow any changes to billing or credit fields.
-      allow update: if request.auth.uid == userId
-                    && !("plan" in request.resource.data)
-                    && !("addons" in request.resource.data)
-                    && !("subscriptionStatus" in request.resource.data)
-                    && !("credits" in request.resource.data);
+    // Helper function to check for company ownership or membership
+    function isCompanyMember(companyId) {
+      return request.auth.token.companyId == companyId;
     }
 
-    match /orgs/{orgId} {
-      allow read, write: if request.auth.uid != null && request.auth.token.orgId == orgId;
-
-      match /renters/{renterId} {
-        allow read: if request.auth.uid != null && request.auth.token.orgId == orgId;
-        allow write: if request.auth.uid != null && request.auth.token.orgId == orgId;
-      }
-
-      match /logs/{logId} {
-        allow read: if request.auth.uid != null && request.auth.token.orgId == orgId;
-        allow create: if request.auth.uid != null;
-        allow update, delete: if false; // Immutable
-      }
+    // Helper function to check for specific company roles
+    function hasCompanyRole(roles) {
+      return request.auth.token.role in roles;
     }
 
+    // ---------------- COMPANIES ----------------
+    match /companies/{companyId} {
+      // Allow read for members of the company
+      allow read: if isCompanyMember(companyId);
+
+      // Prevent client-side updates to sensitive billing/plan fields
+      allow update: if isCompanyMember(companyId)
+                    && hasCompanyRole(['owner', 'manager'])
+                    && !('plan' in request.resource.data)
+                    && !('status' in request.resource.data)
+                    && !('stripe' in request.resource.data);
+
+      // Full write access for super admins
+      allow write: if isSuperAdmin();
+    }
+    
+    // ---------------- RENTERS ----------------
     match /renters/{renterId} {
-        allow read: if request.auth.uid == renterId;
-        allow update: if request.auth.uid == renterId && request.resource.data.keys().hasOnly(['dispute']);
+      // Allow read by members of the renter's company or by the renter themselves
+      allow read: if isCompanyMember(resource.data.companyId) || request.auth.uid == resource.data.renterUid;
+      // Allow updates only by company members or by the renter to specific fields
+      allow update: if (isCompanyMember(resource.data.companyId) && hasCompanyRole(['owner', 'manager', 'agent']))
+                    || (request.auth.uid == resource.data.renterUid && request.resource.data.keys().hasOnly(['disputeInfo']));
+      // Allow creation by company members
+      allow create: if isCompanyMember(request.resource.data.companyId) && hasCompanyRole(['owner', 'manager', 'agent']);
+      // Allow deletion only by company owners/managers
+      allow delete: if isCompanyMember(resource.data.companyId) && hasCompanyRole(['owner', 'manager']);
+    }
+
+    // ---------------- INCIDENTS ----------------
+    match /incidents/{incidentId} {
+        allow read, write: if isCompanyMember(resource.data.companyId) && hasCompanyRole(['owner', 'manager', 'agent']);
+    }
+
+    // ---------------- DISPUTES ----------------
+    match /disputes/{disputeId} {
+      // Allow read/write by company members or the associated renter
+      allow read, write: if isCompanyMember(resource.data.companyId) || request.auth.uid == resource.data.renterUid;
+    }
+    
+    // ---------------- AUDIT LOGS (Tamper-proof) ----------------
+    match /auditLogs/{logId} {
+      // Company members can read their own logs
+      allow read: if isCompanyMember(resource.data.companyId);
+      // Only server/super_admin can write logs
+      allow create: if isSuperAdmin();
+      allow update, delete: if false; // Immutable
+    }
+    
+    // ---------------- INVITES ----------------
+    match /invites/{inviteId} {
+       // Allow read by company members
+       allow read: if isCompanyMember(resource.data.companyId);
+       // Allow creation by owners/managers
+       allow create: if isCompanyMember(request.resource.data.companyId) && hasCompanyRole(['owner', 'manager']);
+       // Allow update (e.g., to accept) by any authenticated user (flow will validate email)
+       allow update: if request.auth != null;
+    }
+    
+    // ---------------- APPLICATIONS ----------------
+    match /applications/{appId} {
+      allow create: if true; // Anyone can apply
+      // Read/manage only by super admins or company admins/managers
+      allow read, update, delete: if request.auth != null && (isSuperAdmin() || hasCompanyRole(['owner', 'manager']));
+    }
+    
+    // ---------------- BLOGS ----------------
+    match /blogs/{slug} {
+      // Public can read published posts
+      allow read: if resource.data.published == true;
+      // Admins/Editors can write
+      allow write: if hasCompanyRole(['owner', 'manager', 'editor', 'admin']);
+    }
+    
+    // Default deny all other access
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
