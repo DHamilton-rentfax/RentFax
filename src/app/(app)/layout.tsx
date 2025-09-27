@@ -1,5 +1,4 @@
 import Protected from "@/components/protected";
-import Header from "@/components/layout/header";
 
 export default function AppLayout({
   children,
@@ -7,8 +6,7 @@ export default function AppLayout({
   children: React.ReactNode;
 }) {
   return (
-    <Protected roles={['owner', 'manager', 'agent', 'collections', 'superadmin']}>
-      <Header />
+    <Protected roles={['owner', 'manager', 'agent', 'collections', 'super_admin']}>
       {children}
     </Protected>
   );

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Building2, Menu, X, LogOut, Settings, CreditCard, ShieldQuestion, BarChart2, User, Users, FileText, Bot, Hammer, CheckCircle, UploadCloud, Home, ListChecks, Megaphone, FileUp } from 'lucide-react';
+import { Building2, Menu, LogOut, Settings, User, Shield } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -29,28 +29,6 @@ const marketingNavLinks = [
   { href: '/blog', label: 'Blog' },
 ];
 
-const appNavLinks = [
-    { href: "/dashboard", label: "Dashboard", icon: Home },
-    { href: "/dashboard/renters", label: "Renters", icon: Users },
-    { href: "/dashboard/incidents", label: "Incidents", icon: FileText },
-    { href: "/dashboard/disputes", label: "Disputes", icon: ShieldQuestion },
-    { href: "/dashboard/analytics", label: "Analytics", icon: BarChart2 },
-];
-
-const settingsLinks = [
-    { href: '/dashboard/settings/team', label: 'Team', icon: Users },
-    { href: '/dashboard/settings/rules', label: 'Rules & Branding', icon: ShieldQuestion },
-    { href: '/dashboard/settings/billing', label: 'Billing', icon: Settings },
-]
-
-const adminNavLinks = [
-    { href: '/dashboard/audit', label: 'Audit Logs', icon: ListChecks },
-    { href: '/admin/upload', label: 'Upload Renters', icon: FileUp },
-    { href: '/admin/alerts', label: 'Global Alert', icon: Megaphone },
-    { href: '/admin/seed', label: 'Seed Data', icon: Hammer },
-    { href: '/admin/readiness', label: 'Readiness', icon: CheckCircle },
-]
-
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, loading, claims } = useAuth();
@@ -65,51 +43,59 @@ export default function Header() {
     return email.substring(0, 2).toUpperCase();
   };
 
-  const isAppRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/admin') || pathname.startsWith('/settings') || pathname.startsWith('/setup');
+  const isAppRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/admin') || pathname.startsWith('/settings') || pathname.startsWith('/setup') || pathname.startsWith('/invite') || pathname.startsWith('/renters') || pathname.startsWith('/incidents') || pathname.startsWith('/disputes');
+  const isSuperAdmin = claims?.role === 'super_admin';
 
   const renderDesktopRight = () => {
-    if (loading) return null;
+    if (loading) return <div className="h-8 w-24 rounded-md animate-pulse bg-muted" />;
 
     if (user) {
-        if (isAppRoute) {
-            return (
-                <div className='flex items-center gap-4'>
-                    {user && <NotificationBell uid={user.uid} />}
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                            <Avatar className="h-8 w-8">
-                            <AvatarImage
-                                src={user.photoURL || undefined}
-                                alt={user.displayName || user.email || ''}
-                            />
-                            <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
-                            </Avatar>
-                        </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-56" align="end" forceMount>
-                        <DropdownMenuLabel className="font-normal">
-                            <div className="flex flex-col space-y-1">
-                            <p className="text-sm font-medium leading-none">My Account</p>
-                            <p className="text-xs leading-none text-muted-foreground">
-                                {user.email}
-                            </p>
-                            </div>
-                        </DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-                            <LogOut className="mr-2 h-4 w-4" />
-                            <span>Log out</span>
-                        </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-            );
-        }
         return (
-            <Button asChild>
-                <Link href="/dashboard">Dashboard</Link>
-            </Button>
+            <div className='flex items-center gap-4'>
+                <Button variant="ghost" size="sm" asChild>
+                    <Link href="/dashboard">Dashboard</Link>
+                </Button>
+                {user && <NotificationBell uid={user.uid} />}
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                        <Avatar className="h-8 w-8">
+                        <AvatarImage
+                            src={user.photoURL || undefined}
+                            alt={user.displayName || user.email || ''}
+                        />
+                        <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
+                        </Avatar>
+                    </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuLabel className="font-normal">
+                        <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">My Account</p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                            {user.email}
+                        </p>
+                        </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                     <DropdownMenuGroup>
+                        <DropdownMenuItem asChild className="cursor-pointer">
+                            <Link href="/dashboard/settings/billing"><User className="mr-2 h-4 w-4" /><span>Profile & Billing</span></Link>
+                        </DropdownMenuItem>
+                        {isSuperAdmin && (
+                             <DropdownMenuItem asChild className="cursor-pointer">
+                                <Link href="/admin/control-center"><Shield className="mr-2 h-4 w-4" /><span>Super Admin</span></Link>
+                            </DropdownMenuItem>
+                        )}
+                    </DropdownMenuGroup>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Log out</span>
+                    </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
         );
     }
     // Unauthenticated user
@@ -169,7 +155,7 @@ export default function Header() {
                         </div>
                     </SheetHeader>
                     <nav className="flex flex-col space-y-4 p-4">
-                    {(isAppRoute ? appNavLinks : marketingNavLinks).map((link) => (
+                    {(isAppRoute && user ? [] : marketingNavLinks).map((link) => (
                         <Link
                         key={link.href}
                         href={link.href}
@@ -194,13 +180,11 @@ export default function Header() {
                             </>
                         ) : (
                             <>
-                            {!isAppRoute && (
-                                <Button asChild className="w-full">
+                            <Button asChild className="w-full">
                                 <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
                                     Dashboard
                                 </Link>
-                                </Button>
-                            )}
+                            </Button>
                             <Button
                                 onClick={() => {
                                 handleLogout();
