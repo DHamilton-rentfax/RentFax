@@ -39,6 +39,7 @@ const settingsLinks = [
 
 const adminNavLinks = [
     { href: '/admin/applications', label: 'Applications', icon: Briefcase },
+    { href: '/admin/addons', label: 'Add-Ons Overview', icon: Briefcase },
     { href: '/dashboard/audit', label: 'Audit Logs', icon: ListChecks },
     { href: '/admin/upload', label: 'Upload Renters', icon: FileUp },
     { href: '/admin/invites', label: 'Invites', icon: Mail },
