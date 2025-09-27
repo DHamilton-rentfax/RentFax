@@ -16,7 +16,8 @@ import {
     Megaphone,
     Mail,
     Briefcase,
-    Shield
+    Shield,
+    SlidersHorizontal,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -38,13 +39,11 @@ const settingsLinks = [
 ]
 
 const adminNavLinks = [
-    { href: '/admin/applications', label: 'Applications', icon: Briefcase },
-    { href: '/admin/addons', label: 'Add-Ons Overview', icon: Briefcase },
+    { href: '/admin/dashboard/orgs', label: 'Super Admin', icon: SlidersHorizontal },
     { href: '/dashboard/audit', label: 'Audit Logs', icon: ListChecks },
     { href: '/admin/upload', label: 'Upload Renters', icon: FileUp },
     { href: '/admin/invites', label: 'Invites', icon: Mail },
     { href: '/admin/alerts', label: 'Global Alert', icon: Megaphone },
-    { href: '/admin/roles', label: 'Role Manager', icon: Shield },
     { href: '/admin/seed', label: 'Seed Data', icon: Hammer },
     { href: '/admin/readiness', label: 'Readiness', icon: CheckCircle },
 ]
