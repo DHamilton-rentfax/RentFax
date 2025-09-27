@@ -9,8 +9,8 @@ import { admin, dbAdmin as db } from '../../src/lib/firebase-admin';
 import * as functions from "firebase-functions";
 import sgMail from "@sendgrid/mail";
 
-if (functions.config().sendgrid && functions.config().sendgrid.key) {
-  sgMail.setApiKey(functions.config().sendgrid.key);
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 }
 
 
@@ -24,7 +24,7 @@ const PRICE_TO_PLAN: Record<string, Plan> = {
   [process.env.STRIPE_PRICE_ENTERPRISE || '']: 'enterprise',
 };
 
-export const stripeWebhook = onRequest({ maxInstances: 1, secrets: ["STRIPE_API_KEY", "STRIPE_WEBHOOK_SECRET"] }, async (req, res) => {
+export const stripeWebhook = onRequest({ maxInstances: 1, secrets: ["STRIPE_API_KEY", "STRIPE_WEBHOOK_SECRET", "SENDGRID_API_KEY"] }, async (req, res) => {
   const sig = req.headers['stripe-signature'];
   if (!sig) {
     res.status(400).send('Missing stripe-signature header');
@@ -45,14 +45,57 @@ export const stripeWebhook = onRequest({ maxInstances: 1, secrets: ["STRIPE_API_
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
-        if (session.metadata?.type === 'payg_report') {
-            const userId = session.metadata.uid;
-            if (userId) {
-                const userRef = db.doc(`users/${userId}`);
-                await userRef.update({
-                    credits: admin.firestore.FieldValue.increment(1)
+        const metadata = session.metadata || {};
+
+        if (metadata.type === 'payg_report') {
+            const userId = metadata.uid;
+            const companyId = metadata.companyId;
+            const email = session.customer_details?.email;
+
+            if (userId && companyId) {
+                const companyRef = db.doc(`companies/${companyId}`);
+                await companyRef.set({
+                    reportCredits: admin.firestore.FieldValue.increment(1)
+                }, { merge: true });
+                
+                console.log(`✅ PAYG: Added 1 report credit to company ${companyId}`);
+
+                 // Audit log
+                await db.collection("auditLogs").add({
+                    action: "PAYG_PURCHASE",
+                    actorUid: userId,
+                    companyId: companyId,
+                    after: { creditsAdded: 1 },
+                    at: admin.firestore.FieldValue.serverTimestamp(),
                 });
-                console.log(`PAYG: Added 1 credit to user ${userId}`);
+
+                // SendGrid Email Receipt
+                if (email) {
+                    const msg = {
+                    to: email,
+                    from: {
+                        email: "receipts@rentfax.ai",
+                        name: "RentFAX",
+                    },
+                    subject: "Your RentFAX Report Credit",
+                    html: `
+                        <div style="font-family: Arial, sans-serif; line-height: 1.5;">
+                        <h2>✅ Thank you for your purchase</h2>
+                        <p>Hello,</p>
+                        <p>You have successfully purchased <strong>1 Report Credit</strong> for RentFAX.</p>
+                        <p><strong>Amount Paid:</strong> $20</p>
+                        <p>Your new credit balance is now available in your dashboard.</p>
+                        <p>👉 <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard" style="color: #4f46e5; font-weight: bold;">View My Dashboard</a></p>
+                        <br/>
+                        <p style="font-size: 12px; color: gray;">
+                            RentFAX © ${new Date().getFullYear()} | This is an automated receipt for your records.
+                        </p>
+                        </div>
+                    `,
+                    };
+                    await sgMail.send(msg);
+                    console.log(`📧 Receipt sent to ${email}`);
+                }
             }
         }
         break;
