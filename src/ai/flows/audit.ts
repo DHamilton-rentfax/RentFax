@@ -10,8 +10,8 @@ const AuditLogSchema = z.object({
   actorUid: z.string(),
   actorRole: z.string().optional(),
   companyId: z.string(),
-  targetPath: z.string(),
   action: z.string(),
+  targetPath: z.string(),
   before: z.any().optional(),
   after: z.any().optional(),
 });
