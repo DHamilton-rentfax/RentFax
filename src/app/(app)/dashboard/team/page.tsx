@@ -1,119 +1,116 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { createInvite } from '@/app/auth/actions';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/use-auth';
 import { Loader2 } from 'lucide-react';
+import Protected from '@/components/protected';
+import RenterActions from '@/components/renter-actions';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-const ROLES = ['manager', 'agent', 'collections'] as const;
-type Role = typeof ROLES[number];
+// In a real app, this would be a more sophisticated API call
+async function getOrgUsers(orgId: string) {
+    // This is a simplified client-side query for demonstration.
+    // In a production app, you'd have a secure Cloud Function to list users.
+    const users: any[] = [];
+    const q = query(collection(db, "users"), where("companyId", "==", orgId));
+    const snap = await getDocs(q);
+    snap.forEach(doc => {
+        users.push({ uid: doc.id, ...doc.data() });
+    });
+    return users;
+}
+
 
 export default function TeamPage() {
-  const [email, setEmail] = useState('');
-  const [role, setRole] = useState<Role>('agent');
-  const [loading, setLoading] = useState(false);
-  const [invites, setInvites] = useState<any[]>([]);
-  const [loadingInvites, setLoadingInvites] = useState(true);
   const { toast } = useToast();
   const { claims } = useAuth();
+  const [members, setMembers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!claims?.companyId) return;
-    setLoadingInvites(true);
-    const q = query(collection(db, 'invites'), where('companyId', '==', claims.companyId), where('status', '==', 'pending'));
-    const unsub = onSnapshot(q, (snap) => {
-        setInvites(snap.docs.map(d => ({id: d.id, ...d.data()})));
-        setLoadingInvites(false);
+    // In a real app, you would have a secure backend endpoint to fetch users by org
+    // For this prototype, we are using a simplified Firestore query
+    const unsub = onSnapshot(query(collection(db, "users"), where("companyId", "==", claims.companyId)), (snap) => {
+        const memberData = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+        setMembers(memberData);
+        setLoading(false);
     });
     return () => unsub();
   }, [claims?.companyId]);
-
-
-  const handleInvite = async () => {
-    setLoading(true);
-    try {
-      const result = await createInvite({ email, role });
-      toast({
-        title: 'Invite Sent!',
-        description: (
-          <div>
-            <p>Share this secure link with the new team member:</p>
-            <Input readOnly value={result.acceptUrl} className="mt-2" />
-          </div>
-        )
-      });
-      setEmail('');
-    } catch (err: any) {
-      toast({ title: 'Failed to send invite', description: err.message || 'An error occurred.', variant: 'destructive' });
-    } finally {
-      setLoading(false);
-    }
-  };
+  
+  const handleRoleChange = async (uid: string, role: string) => {
+    // In a real app, this would be a secure call to a Cloud Function (e.g., setUserClaims)
+    console.log(`TODO: Change user ${uid} to role ${role}`);
+    toast({ title: "Role change simulated", description: "In a real app, this would call a secure backend function."});
+  }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold font-headline">Team Management</h1>
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-            <CardHeader>
-            <CardTitle>Invite New Member</CardTitle>
-            <CardDescription>Send an invitation to a new team member to join your company.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="space-y-2">
-                    <Label htmlFor="email">Email address</Label>
-                    <Input
-                        id="email"
-                        placeholder="teammate@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="role">Role</Label>
-                    <Select value={role} onValueChange={(value: Role) => setRole(value)}>
-                        <SelectTrigger id="role" className="w-full">
-                            <SelectValue placeholder="Select a role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {ROLES.map(r => <SelectItem key={r} value={r} className="capitalize">{r}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <Button onClick={handleInvite} disabled={loading || !email}>
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {loading ? 'Sending...' : 'Send Invite'}
-                </Button>
-            </CardContent>
-        </Card>
-         <Card>
-            <CardHeader>
-            <CardTitle>Pending Invites</CardTitle>
-            <CardDescription>These invites have been sent but not yet accepted.</CardDescription>
-            </CardHeader>
-            <CardContent>
-            {loadingInvites ? <p>Loading...</p> : invites.length === 0 ? (
-                <p className="text-muted-foreground">No pending invites.</p>
-            ) : (
-                <ul className="space-y-2 text-sm">
-                {invites.map((invite) => (
-                    <li key={invite.id} className="p-2 bg-secondary rounded-md flex justify-between items-center">
-                        <span>{invite.email}</span>
-                        <span className="capitalize font-medium bg-background px-2 py-1 rounded-md">{invite.role}</span>
-                    </li>
-                ))}
-                </ul>
-            )}
-            </CardContent>
-        </Card>
-      </div>
-    </div>
+    <Protected roles={['owner', 'manager']}>
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <h1 className="text-3xl font-bold font-headline">Team Management</h1>
+                <RenterActions />
+            </div>
+        
+            <Card>
+                <CardHeader>
+                    <CardTitle>Team Members</CardTitle>
+                    <CardDescription>Manage roles and permissions for your team.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>User</TableHead>
+                                <TableHead>Role</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {loading ? (
+                                 Array.from({length: 2}).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                                        <TableCell><Skeleton className="h-8 w-24 ml-auto" /></TableCell>
+                                    </TableRow>
+                                ))
+                            ) : members.map(member => (
+                                <TableRow key={member.uid}>
+                                    <TableCell>
+                                        <div className="font-medium">{member.displayName || member.email}</div>
+                                        <div className="text-sm text-muted-foreground">{member.email}</div>
+                                    </TableCell>
+                                    <TableCell className="capitalize">
+                                        {member.role}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                       <Select defaultValue={member.role} onValueChange={(value) => handleRoleChange(member.uid, value)}>
+                                            <SelectTrigger className="w-[140px] ml-auto">
+                                                <SelectValue placeholder="Set role" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="owner">Owner</SelectItem>
+                                                <SelectItem value="manager">Manager</SelectItem>
+                                                <SelectItem value="agent">Agent</SelectItem>
+                                                <SelectItem value="collections">Collections</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        </div>
+    </Protected>
   );
 }

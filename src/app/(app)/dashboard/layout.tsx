@@ -23,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import Header from "@/components/layout/header";
 import BannerMessage from "@/components/banner-message";
+import Protected from "@/components/protected";
 
 const navLinks = [
     { href: "/dashboard", label: "Dashboard", icon: Home },
@@ -33,19 +34,19 @@ const navLinks = [
 ];
 
 const settingsLinks = [
-    { href: '/dashboard/settings/team', label: 'Team', icon: Users },
-    { href: '/dashboard/settings/rules', label: 'Rules & Branding', icon: ShieldQuestion },
-    { href: '/dashboard/settings/billing', label: 'Billing', icon: Settings },
+    { href: '/dashboard/team', label: 'Team', icon: Users, roles: ['owner', 'manager'] },
+    { href: '/dashboard/settings/rules', label: 'Rules & Branding', icon: ShieldQuestion, roles: ['owner', 'manager'] },
+    { href: '/dashboard/billing', label: 'Billing & Add-Ons', icon: Settings, roles: ['owner', 'manager'] },
 ]
 
 const adminNavLinks = [
-    { href: '/admin/dashboard/orgs', label: 'Super Admin', icon: SlidersHorizontal },
-    { href: '/dashboard/audit', label: 'Audit Logs', icon: ListChecks },
-    { href: '/admin/upload', label: 'Upload Renters', icon: FileUp },
-    { href: '/admin/invites', label: 'Invites', icon: Mail },
-    { href: '/admin/alerts', label: 'Global Alert', icon: Megaphone },
-    { href: '/admin/seed', label: 'Seed Data', icon: Hammer },
-    { href: '/admin/readiness', label: 'Readiness', icon: CheckCircle },
+    { href: '/admin/control-center', label: 'Super Admin', icon: SlidersHorizontal, roles: ['super_admin'] },
+    { href: '/dashboard/audit', label: 'Audit Logs', icon: ListChecks, roles: ['owner', 'manager'] },
+    { href: '/admin/upload', label: 'Upload Renters', icon: FileUp, roles: ['owner', 'manager'] },
+    { href: '/admin/invites', label: 'Invites', icon: Mail, roles: ['owner', 'manager'] },
+    { href: '/admin/alerts', label: 'Global Alert', icon: Megaphone, roles: ['owner'] },
+    { href: '/admin/seed', label: 'Seed Data', icon: Hammer, roles: ['super_admin'] },
+    { href: '/admin/readiness', label: 'Readiness', icon: CheckCircle, roles: ['super_admin', 'owner'] },
 ]
 
 export default function DashboardLayout({
@@ -78,25 +79,27 @@ export default function DashboardLayout({
                             ))}
                             <p className="px-3 py-2 mt-4 text-xs font-semibold text-muted-foreground">SETTINGS</p>
                             {settingsLinks.map(link => (
-                                <Link
-                                    key={link.href}
-                                    href={link.href}
-                                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-                                >
-                                    <link.icon className="h-4 w-4" />
-                                    {link.label}
-                                </Link>
+                                <Protected key={link.href} roles={link.roles}>
+                                    <Link
+                                        href={link.href}
+                                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                                    >
+                                        <link.icon className="h-4 w-4" />
+                                        {link.label}
+                                    </Link>
+                                </Protected>
                             ))}
                             <p className="px-3 py-2 mt-4 text-xs font-semibold text-muted-foreground">ADMIN</p>
                              {adminNavLinks.map(link => (
-                                <Link
-                                    key={link.href}
-                                    href={link.href}
-                                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-                                >
-                                    <link.icon className="h-4 w-4" />
-                                    {link.label}
-                                </Link>
+                                 <Protected key={link.href} roles={link.roles}>
+                                    <Link
+                                        href={link.href}
+                                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                                    >
+                                        <link.icon className="h-4 w-4" />
+                                        {link.label}
+                                    </Link>
+                                </Protected>
                             ))}
                         </nav>
                     </div>

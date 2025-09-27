@@ -13,6 +13,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
+import Protected from '@/components/protected';
 
 export default function BillingPage() {
   const [loading, setLoading] = useState(false);
@@ -53,27 +54,29 @@ export default function BillingPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold font-headline">Billing</h1>
-      <Card>
-        <CardHeader>
-          <CardTitle>Subscription Plan</CardTitle>
-          <CardDescription>Manage your subscription and payment methods via our secure payment partner, Stripe.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-            {loadingData ? <p>Loading plan...</p> : (
-                <div className="flex items-center gap-4 p-4 bg-secondary rounded-md">
-                    <p>Your current plan: <span className="font-bold capitalize">{company?.plan || '...'}</span></p>
-                    <Badge>{company?.status || '...'}</Badge>
-                </div>
-            )}
-            
-          <Button onClick={handleRedirect} disabled={loading}>
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Open Customer Portal
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
+    <Protected roles={['owner', 'manager']}>
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold font-headline">Billing</h1>
+        <Card>
+          <CardHeader>
+            <CardTitle>Subscription Plan</CardTitle>
+            <CardDescription>Manage your subscription and payment methods via our secure payment partner, Stripe.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+              {loadingData ? <p>Loading plan...</p> : (
+                  <div className="flex items-center gap-4 p-4 bg-secondary rounded-md">
+                      <p>Your current plan: <span className="font-bold capitalize">{company?.plan || '...'}</span></p>
+                      <Badge>{company?.status || '...'}</Badge>
+                  </div>
+              )}
+              
+            <Button onClick={handleRedirect} disabled={loading}>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Open Customer Portal
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </Protected>
   );
 }
