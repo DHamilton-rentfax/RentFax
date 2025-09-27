@@ -93,20 +93,18 @@ export default function Header() {
             </nav>
         )}
 
-        <div className="flex flex-1 items-center justify-end">
-          <div className="hidden md:flex items-center gap-2">
-            {!user ? (
-              <>
+        <div className="flex flex-1 items-center justify-end gap-2">
+           {!user ? (
+              <div className="hidden md:flex items-center gap-2">
                 <Button variant="ghost" asChild>
                   <Link href="/login">Log In</Link>
                 </Button>
                 <Button asChild>
                   <Link href="/signup">Sign Up</Link>
                 </Button>
-              </>
-            ) : (
-                isAppRoute ? (
-                  <div className='flex items-center gap-4'>
+              </div>
+            ) : isAppRoute ? (
+                 <div className='flex items-center gap-4'>
                     {user && <NotificationBell uid={user.uid} />}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -137,13 +135,11 @@ export default function Header() {
                         </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                ) : (
-                    <Button asChild>
-                        <Link href="/dashboard">Dashboard</Link>
-                    </Button>
-                )
+            ) : (
+                <Button asChild>
+                    <Link href="/dashboard">Dashboard</Link>
+                </Button>
             )}
-          </div>
 
           <div className="md:hidden">
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>

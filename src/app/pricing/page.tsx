@@ -25,14 +25,14 @@ const plans = [
     ],
   },
   {
-    id: "plan_standard_monthly",
+    id: "price_pro_monthly",
     title: "PRO (50 Reports)",
     price: 149,
     subtitle: "per month",
     features: [
-      "50 reports per month",
+      "50 reports / mo",
       "AI risk scoring",
-      "Dispute tools included",
+      "Dispute tools",
       "Basic audit logs",
     ],
     highlight: true,
@@ -144,6 +144,14 @@ const addons = [
     annual: 290,
     description: "FCRA workflows & policy templates.",
     category: "📑 Compliance & Legal",
+  },
+  {
+    id: "addon_client_reports_monthly",
+    title: "Client Monthly Reports",
+    price: 49,
+    annual: 490,
+    description: "Generates monthly PDF & CSV reports with usage, spend, and tenant risk insights. Free for Enterprise.",
+    category: "📑 Compliance / Insights",
   },
   {
     id: "addon_collections",
@@ -273,13 +281,13 @@ export default function PricingPage() {
         {plans.map((plan) => (
           <div
             key={plan.id}
-            className={`flex flex-col justify-between rounded-xl border p-6 shadow-sm min-h-[480px] ${
-              selectedPlan === plan.id ? "border-blue-600 shadow-md" : "border-gray-200"
+            className={`flex flex-col justify-between rounded-xl p-6 shadow-sm min-h-[480px] transition transform hover:scale-105 ${
+              plan.highlight ? "border-2 border-indigo-600 ring-2 ring-indigo-200" : "border-gray-200"
             }`}
           >
             {plan.highlight && (
-              <span className="bg-blue-600 text-white px-2 py-1 text-xs rounded-full mb-2 self-start">
-                Most Popular
+              <span className="absolute top-2 left-2 text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded">
+                ⭐ Recommended
               </span>
             )}
             <div>
