@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -18,6 +17,9 @@ import { Button } from "@/components/ui/button";
 import { plans, addons, Plan, Addon } from "@/lib/pricing-data";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { auth } from '@/lib/firebase';
+import { Loader2 } from "lucide-react";
+
 
 export default function PricingPage() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">(
@@ -27,6 +29,7 @@ export default function PricingPage() {
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [showPaygModal, setShowPaygModal] = useState(false);
   const [showSalesModal, setShowSalesModal] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const toggleAddon = (id: string) => {
     setSelectedAddons((prev) =>
@@ -50,6 +53,72 @@ export default function PricingPage() {
 
     return planPrice + addonsTotal;
   };
+  
+  const handleCheckout = async () => {
+    if (!selectedPlan && selectedAddons.length === 0) {
+      alert("Please select a plan or add-on before checkout.");
+      return;
+    }
+    setIsCheckingOut(true);
+    try {
+        const token = await auth.currentUser?.getIdToken();
+        if (!token) {
+            alert("Please log in to complete your purchase.");
+            setIsCheckingOut(false);
+            return;
+        }
+
+        const res = await fetch("/api/checkout", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify({
+                planId: selectedPlan,
+                addons: selectedAddons,
+                billingCycle,
+            }),
+        });
+
+        const data = await res.json();
+        if (data.url) {
+            window.location.href = data.url;
+        } else {
+            alert("Checkout error: " + data.error);
+        }
+    } catch(e: any) {
+        alert("An unexpected error occurred: " + e.message);
+    } finally {
+        setIsCheckingOut(false);
+    }
+    
+  };
+
+  const handlePayAsYouGoCheckout = async () => {
+    setIsCheckingOut(true);
+    try {
+        const token = await auth.currentUser?.getIdToken();
+        if (!token) {
+            alert("Please log in to complete your purchase.");
+            setIsCheckingOut(false);
+            return;
+        }
+        const res = await fetch("/api/checkout", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ isPayg: true }),
+        });
+        const data = await res.json();
+        if (data.url) {
+            window.location.href = data.url;
+        } else {
+            alert("Checkout error: " + data.error);
+        }
+    } catch(e: any) {
+        alert("An unexpected error occurred: " + e.message);
+    } finally {
+        setIsCheckingOut(false);
+    }
+  }
+
 
   const handlePlanSelect = (planId: string) => {
     if (planId === 'plan_enterprise') {
@@ -252,13 +321,13 @@ export default function PricingPage() {
       </section>
 
       {/* Sticky Cart */}
-       {(selectedPlan && selectedPlan !== 'plan_payg' && selectedPlan !== 'plan_enterprise') && (
+       {(selectedPlan && selectedPlan !== 'plan_payg' && selectedPlan !== 'plan_enterprise' || selectedAddons.length > 0) && (
         <div className="fixed bottom-0 inset-x-0 bg-card/95 backdrop-blur-sm border-t shadow-lg p-4 z-50">
             <div className="max-w-6xl mx-auto flex justify-between items-center">
             <div className="flex-grow">
                 <h4 className="font-semibold flex items-center gap-2"><ShoppingCart /> Your Cart</h4>
                 <ul className="text-sm text-muted-foreground list-disc pl-5 mt-1">
-                 {selectedPlan && (
+                 {selectedPlan && selectedPlan !== 'plan_payg' && selectedPlan !== 'plan_enterprise' && (
                     <li>
                         {plans.find(p => p.id === selectedPlan)?.name} Plan
                     </li>
@@ -274,7 +343,8 @@ export default function PricingPage() {
                     <p className="font-bold text-lg">Total: ${total().toFixed(2)}</p>
                     <p className="text-sm text-muted-foreground">per {billingCycle === 'monthly' ? 'month' : 'year'}</p>
                 </div>
-                <Button size="lg">
+                <Button size="lg" onClick={handleCheckout} disabled={isCheckingOut}>
+                    {isCheckingOut && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Checkout
                 </Button>
             </div>
@@ -296,9 +366,10 @@ export default function PricingPage() {
             </button>
             <h2 className="text-xl font-bold mb-4">Buy 1 Report</h2>
             <p className="mb-4 text-gray-600">Pay-as-you-go reports cost <strong>$20 each</strong>. No subscription required.</p>
-            <button className="w-full py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+            <Button onClick={handlePayAsYouGoCheckout} className="w-full" disabled={isCheckingOut}>
+              {isCheckingOut && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Checkout – $20
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -323,9 +394,9 @@ export default function PricingPage() {
               <input type="text" placeholder="Your Name" required className="w-full border rounded p-2" />
               <input type="email" placeholder="Your Email" required className="w-full border rounded p-2" />
               <textarea placeholder="Message" required className="w-full border rounded p-2" rows={4}></textarea>
-              <button className="w-full py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+              <Button type="submit" className="w-full" disabled={isCheckingOut}>
                 Send Request
-              </button>
+              </Button>
             </form>
           </div>
         </div>
