@@ -50,7 +50,7 @@ export const stripeWebhook = onRequest({ maxInstances: 1, secrets: ["STRIPE_API_
         if (metadata.type === 'payg_report') {
             const userId = metadata.uid;
             const companyId = metadata.companyId;
-            const email = session.customer_details?.email;
+            const email = session.customer_email;
 
             if (userId && companyId) {
                 const companyRef = db.doc(`companies/${companyId}`);
