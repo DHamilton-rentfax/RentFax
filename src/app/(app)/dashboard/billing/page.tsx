@@ -13,12 +13,15 @@ import { functions } from "@/lib/firebase";
 
 
 export default function BillingDashboard() {
+  const [addons, setAddons] = useState<Addon[]>([]);
   const [activeAddons, setActiveAddons] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<string|null>(null);
+  const [reactivatingId, setReactivatingId] = useState<string|null>(null);
   const { toast } = useToast();
 
   const fetchData = async () => {
+      setLoading(true);
       const token = await auth.currentUser?.getIdToken();
       const res = await fetch("/api/billing/addons", {
         headers: { Authorization: `Bearer ${token}` },
@@ -29,6 +32,7 @@ export default function BillingDashboard() {
         setLoading(false);
         return;
       }
+      setAddons(data.catalog);
       setActiveAddons(data.active);
       setLoading(false);
   }
@@ -63,6 +67,32 @@ export default function BillingDashboard() {
     }
   }
 
+  async function reactivateAddon(addonId: string) {
+    setReactivatingId(addonId);
+    try {
+        const token = await auth.currentUser?.getIdToken();
+        const res = await fetch("/api/billing/reactivate-addon", {
+            method: "POST",
+            headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ addonId }),
+        });
+        const data = await res.json();
+        if (data.url) {
+            window.location.href = data.url; // Redirect to Stripe
+        } else {
+            throw new Error(data.error || "Failed to reactivate add-on.");
+        }
+    } catch(e: any) {
+        toast({ title: 'Error reactivating add-on', description: e.message, variant: 'destructive' });
+    } finally {
+        setReactivatingId(null);
+    }
+  }
+
+
   const handlePortalRedirect = async () => {
     setLoading(true);
     try {
@@ -79,7 +109,9 @@ export default function BillingDashboard() {
     }
   };
 
-  const currentAddons = ADDON_CATALOG.filter((a) => activeAddons.some(active => a.id.startsWith(active)));
+  if (loading) {
+    return <p className="p-6">Loading billing info...</p>
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -87,17 +119,20 @@ export default function BillingDashboard() {
 
         <Card>
             <CardHeader>
-                <CardTitle>Active Add-Ons</CardTitle>
-                 <CardDescription>Manage the add-ons for your current subscription.</CardDescription>
+                <CardTitle>Manage Add-Ons</CardTitle>
+                 <CardDescription>Activate, deactivate, or manage add-ons for your subscription.</CardDescription>
             </CardHeader>
             <CardContent>
-                {loading ? (
-                    <p>Loading billing info...</p>
-                ) : currentAddons.length === 0 ? (
-                    <p className="text-muted-foreground">No active add-ons. Visit the pricing page to add features.</p>
+                {addons.length === 0 ? (
+                    <p className="text-muted-foreground">No add-ons available for purchase.</p>
                 ) : (
                     <div className="grid md:grid-cols-2 gap-6">
-                    {currentAddons.map((addon) => (
+                    {addons.map((addon) => {
+                        const isActive = activeAddons.some(active => addon.id.startsWith(active));
+                        const isCancelling = cancellingId === addon.id;
+                        const isReactivating = reactivatingId === addon.id;
+
+                        return (
                         <Card key={addon.id} className="flex flex-col">
                             <CardHeader>
                                 <CardTitle className="text-lg">{addon.name}</CardTitle>
@@ -109,18 +144,30 @@ export default function BillingDashboard() {
                                 </p>
                             </CardContent>
                             <CardFooter>
-                                <Button
-                                    onClick={() => cancelAddon(addon.id)}
-                                    variant="destructive"
-                                    size="sm"
-                                    disabled={cancellingId === addon.id}
-                                >
-                                    {cancellingId === addon.id && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Cancel Add-on
-                                </Button>
+                                {isActive ? (
+                                    <Button
+                                        onClick={() => cancelAddon(addon.id)}
+                                        variant="destructive"
+                                        size="sm"
+                                        disabled={isCancelling}
+                                    >
+                                        {isCancelling && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        Cancel Add-on
+                                    </Button>
+                                ) : (
+                                     <Button
+                                        onClick={() => reactivateAddon(addon.id)}
+                                        variant="default"
+                                        size="sm"
+                                        disabled={isReactivating}
+                                    >
+                                        {isReactivating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        Re-Activate
+                                    </Button>
+                                )}
                             </CardFooter>
                         </Card>
-                    ))}
+                    )})}
                     </div>
                 )}
             </CardContent>

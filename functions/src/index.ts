@@ -90,9 +90,9 @@ export const stripeWebhook = onRequest({ maxInstances: 1, secrets: ["STRIPE_API_
         }
 
         // ==============================
-        // SUBSCRIPTION FLOW
+        // SUBSCRIPTION FLOW (New or Reactivated Add-on)
         // ==============================
-        if (metadata.type === "subscription") {
+        if (metadata.type === "subscription" || metadata.type === "addon_reactivate") {
           const companyId = metadata.companyId;
           const uid = metadata.uid;
 
@@ -109,10 +109,10 @@ export const stripeWebhook = onRequest({ maxInstances: 1, secrets: ["STRIPE_API_
             await db
               .collection("companies")
               .doc(companyId)
-              .set({ addons: addonKeys }, { merge: true });
+              .set({ addons: admin.firestore.FieldValue.arrayUnion(...addonKeys) }, { merge: true });
 
             await db.collection("auditLogs").add({
-              type: "ADDON_PURCHASE",
+              type: metadata.type === "addon_reactivate" ? "ADDON_REACTIVATED" : "ADDON_PURCHASE",
               actorUid: uid,
               companyId,
               addons: addonKeys,
@@ -125,21 +125,30 @@ export const stripeWebhook = onRequest({ maxInstances: 1, secrets: ["STRIPE_API_
                   .replace("addon_", "")
                   .replace(/_/g, " ")
                   .replace(/\b\w/g, (c) => c.toUpperCase());
+                
+                const subject = metadata.type === "addon_reactivate" 
+                    ? `Your ${addonName} Add-On Has Been Reactivated`
+                    : `Your ${addonName} Add-On is Now Active`;
+                const title = metadata.type === "addon_reactivate" 
+                    ? `✨ ${addonName} Reactivated`
+                    : `✨ ${addonName} Activated`;
+                 const body = metadata.type === "addon_reactivate"
+                    ? `<p>Your add-on <strong>${addonName}</strong> has been reactivated and is now available again in your RentFAX dashboard.</p>`
+                    : `<p>Your add-on <strong>${addonName}</strong> is now active in RentFAX.</p><p>You can start using it in your dashboard immediately.</p>`
 
                 await sgMail.send({
                   to: email,
                   from: { email: "receipts@rentfax.ai", name: "RentFAX" },
-                  subject: `Your ${addonName} Add-On is Now Active`,
+                  subject: subject,
                   html: `
-                    <h2>✨ ${addonName} Activated</h2>
-                    <p>Your add-on <strong>${addonName}</strong> is now active in RentFAX.</p>
-                    <p>You can start using it in your dashboard immediately.</p>
+                    <h2>${title}</h2>
+                    ${body}
                     <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard">Go to Dashboard</a>
                   `,
                 });
               }
             }
-            console.log(`✅ Subscription: Activated add-ons ${addonKeys.join(", ")} for company ${companyId}`);
+            console.log(`✅ Subscription: Activated/Reactivated add-ons ${addonKeys.join(", ")} for company ${companyId}`);
           }
         }
         break;
