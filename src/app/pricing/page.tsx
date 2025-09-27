@@ -25,6 +25,8 @@ export default function PricingPage() {
   );
   const [selectedPlan, setSelectedPlan] = useState<string | null>("plan_pro");
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+  const [showPaygModal, setShowPaygModal] = useState(false);
+  const [showSalesModal, setShowSalesModal] = useState(false);
 
   const toggleAddon = (id: string) => {
     setSelectedAddons((prev) =>
@@ -32,13 +34,14 @@ export default function PricingPage() {
     );
   };
 
-  const calculateTotal = () => {
-    const plan = plans.find((p) => p.id === selectedPlan);
+  const total = () => {
     let planPrice = 0;
-    if (plan && typeof plan.priceMonthlyNum === 'number') {
+    if (selectedPlan && selectedPlan !== "plan_payg" && selectedPlan !== "plan_enterprise") {
+      const plan = plans.find((p) => p.id === selectedPlan);
+      if (plan) {
         planPrice = billingCycle === 'monthly' ? plan.priceMonthlyNum : plan.priceAnnualNum;
+      }
     }
-
     const addonsTotal = selectedAddons.reduce((sum, addonId) => {
       const addon = addons.find((a) => a.id === addonId);
       if (!addon) return sum;
@@ -47,6 +50,18 @@ export default function PricingPage() {
 
     return planPrice + addonsTotal;
   };
+
+  const handlePlanSelect = (planId: string) => {
+    if (planId === 'plan_enterprise') {
+        setShowSalesModal(true);
+        return;
+    }
+    if (planId === 'plan_payg') {
+        setShowPaygModal(true);
+        return;
+    }
+    setSelectedPlan(current => current === planId ? null : planId);
+  }
 
   const groupedAddons = addons.reduce(
     (acc: Record<string, Addon[]>, addon) => {
@@ -57,13 +72,6 @@ export default function PricingPage() {
     {}
   );
   
-  const handlePlanSelect = (planId: string) => {
-    if (planId === 'plan_enterprise' || planId === 'plan_payg') {
-        // Handle special cases later
-        return;
-    }
-    setSelectedPlan(current => current === planId ? null : planId);
-  }
 
   return (
     <div className="bg-background text-foreground pb-40">
@@ -142,7 +150,7 @@ export default function PricingPage() {
               className="w-full"
               size="lg"
             >
-              {selectedPlan === plan.id ? "Selected" : "Select Plan"}
+              {plan.id === 'plan_enterprise' ? 'Contact Sales' : (selectedPlan === plan.id ? "Selected" : "Select Plan")}
             </Button>
           </div>
         ))}
@@ -244,7 +252,7 @@ export default function PricingPage() {
       </section>
 
       {/* Sticky Cart */}
-       {selectedPlan && (
+       {(selectedPlan && selectedPlan !== 'plan_payg' && selectedPlan !== 'plan_enterprise') && (
         <div className="fixed bottom-0 inset-x-0 bg-card/95 backdrop-blur-sm border-t shadow-lg p-4 z-50">
             <div className="max-w-6xl mx-auto flex justify-between items-center">
             <div className="flex-grow">
@@ -263,11 +271,11 @@ export default function PricingPage() {
             </div>
             <div className="flex items-center gap-4">
                 <div className="text-right">
-                    <p className="font-bold text-lg">Total: ${calculateTotal().toFixed(2)}</p>
+                    <p className="font-bold text-lg">Total: ${total().toFixed(2)}</p>
                     <p className="text-sm text-muted-foreground">per {billingCycle === 'monthly' ? 'month' : 'year'}</p>
                 </div>
                 <Button size="lg">
-                Checkout
+                    Checkout
                 </Button>
             </div>
             </div>
@@ -278,6 +286,50 @@ export default function PricingPage() {
       <button className="fixed bottom-24 right-6 bg-primary text-primary-foreground p-4 rounded-full shadow-lg hover:bg-primary/90 z-50">
         <MessageCircle className="w-6 h-6" />
       </button>
+
+        {/* Pay-As-You-Go Modal */}
+      {showPaygModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
+            <button onClick={() => setShowPaygModal(false)} className="absolute top-2 right-2 text-gray-500">
+              ✖
+            </button>
+            <h2 className="text-xl font-bold mb-4">Buy 1 Report</h2>
+            <p className="mb-4 text-gray-600">Pay-as-you-go reports cost <strong>$20 each</strong>. No subscription required.</p>
+            <button className="w-full py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+              Checkout – $20
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Enterprise Contact Modal */}
+      {showSalesModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
+            <button onClick={() => setShowSalesModal(false)} className="absolute top-2 right-2 text-gray-500">
+              ✖
+            </button>
+            <h2 className="text-xl font-bold mb-4">Contact Sales</h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                // TODO: call API to save to Firestore + SendGrid email
+                alert("✅ Request sent to Sales");
+                setShowSalesModal(false);
+              }}
+              className="space-y-4"
+            >
+              <input type="text" placeholder="Your Name" required className="w-full border rounded p-2" />
+              <input type="email" placeholder="Your Email" required className="w-full border rounded p-2" />
+              <textarea placeholder="Message" required className="w-full border rounded p-2" rows={4}></textarea>
+              <button className="w-full py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+                Send Request
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
