@@ -46,13 +46,14 @@ export const stripeWebhook = onRequest({ maxInstances: 1, secrets: ["STRIPE_API_
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
         const metadata = session.metadata || {};
+        const email = session.customer_email;
 
+        // PAYG FLOW
         if (metadata.type === 'payg_report') {
-            const userId = metadata.uid;
+            const uid = metadata.uid;
             const companyId = metadata.companyId;
-            const email = session.customer_email;
 
-            if (userId && companyId) {
+            if (uid && companyId) {
                 const companyRef = db.doc(`companies/${companyId}`);
                 await companyRef.set({
                     reportCredits: admin.firestore.FieldValue.increment(1)
@@ -60,43 +61,82 @@ export const stripeWebhook = onRequest({ maxInstances: 1, secrets: ["STRIPE_API_
                 
                 console.log(`✅ PAYG: Added 1 report credit to company ${companyId}`);
 
-                 // Audit log
-                await db.collection("auditLogs").add({
-                    action: "PAYG_PURCHASE",
-                    actorUid: userId,
-                    companyId: companyId,
-                    after: { creditsAdded: 1 },
-                    at: admin.firestore.FieldValue.serverTimestamp(),
+                 await db.collection("auditLogs").add({
+                    type: "PAYG_PURCHASE",
+                    actorUid: uid,
+                    companyId,
+                    creditsAdded: 1,
+                    timestamp: Date.now(),
                 });
 
-                // SendGrid Email Receipt
                 if (email) {
-                    const msg = {
-                    to: email,
-                    from: {
-                        email: "receipts@rentfax.ai",
-                        name: "RentFAX",
-                    },
-                    subject: "Your RentFAX Report Credit",
-                    html: `
-                        <div style="font-family: Arial, sans-serif; line-height: 1.5;">
-                        <h2>✅ Thank you for your purchase</h2>
-                        <p>Hello,</p>
-                        <p>You have successfully purchased <strong>1 Report Credit</strong> for RentFAX.</p>
-                        <p><strong>Amount Paid:</strong> $20</p>
-                        <p>Your new credit balance is now available in your dashboard.</p>
-                        <p>👉 <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard" style="color: #4f46e5; font-weight: bold;">View My Dashboard</a></p>
-                        <br/>
-                        <p style="font-size: 12px; color: gray;">
-                            RentFAX © ${new Date().getFullYear()} | This is an automated receipt for your records.
-                        </p>
-                        </div>
-                    `,
-                    };
-                    await sgMail.send(msg);
-                    console.log(`📧 Receipt sent to ${email}`);
+                    await sgMail.send({
+                        to: email,
+                        from: { email: "receipts@rentfax.ai", name: "RentFAX" },
+                        subject: "Your RentFAX Report Credit",
+                        html: `
+                            <h2>✅ Thank you for your purchase</h2>
+                            <p>You have successfully purchased <strong>1 Report Credit</strong>.</p>
+                            <p><strong>Amount Paid:</strong> $20</p>
+                            <p>Your credit is now available in your dashboard.</p>
+                            <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard">View My Dashboard</a>
+                        `,
+                    });
+                     console.log(`📧 Receipt sent to ${email}`);
                 }
             }
+        }
+
+        // SUBSCRIPTION FLOW
+        if (metadata.type === "subscription") {
+          const companyId = metadata.companyId;
+          const uid = metadata.uid;
+
+          const lineItems = await stripe.checkout.sessions.listLineItems(
+            session.id,
+            { limit: 20 }
+          );
+
+          const addonKeys = lineItems.data
+            .map((item) => item.price?.lookup_key)
+            .filter((key) => key && key.startsWith("addon_")) as string[];
+
+          if (addonKeys.length > 0) {
+            await db
+              .collection("companies")
+              .doc(companyId)
+              .set({ addons: addonKeys }, { merge: true });
+
+            await db.collection("auditLogs").add({
+              type: "ADDON_PURCHASE",
+              actorUid: uid,
+              companyId,
+              addons: addonKeys,
+              timestamp: Date.now(),
+            });
+
+            if (email) {
+              for (const key of addonKeys) {
+                const addonName = key
+                  .replace("addon_", "")
+                  .replace(/_/g, " ")
+                  .replace(/\b\w/g, (c) => c.toUpperCase());
+
+                await sgMail.send({
+                  to: email,
+                  from: { email: "receipts@rentfax.ai", name: "RentFAX" },
+                  subject: `Your ${addonName} Add-On is Now Active`,
+                  html: `
+                    <h2>✨ ${addonName} Activated</h2>
+                    <p>Your add-on <strong>${addonName}</strong> is now active in RentFAX.</p>
+                    <p>You can start using it in your dashboard immediately.</p>
+                    <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard">Go to Dashboard</a>
+                  `,
+                });
+              }
+            }
+            console.log(`✅ Subscription: Activated add-ons ${addonKeys.join(", ")} for company ${companyId}`);
+          }
         }
         break;
       }
