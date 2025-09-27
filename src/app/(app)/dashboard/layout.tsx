@@ -15,7 +15,8 @@ import {
     ListChecks,
     Megaphone,
     Mail,
-    Briefcase
+    Briefcase,
+    Shield
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,7 @@ const adminNavLinks = [
     { href: '/admin/upload', label: 'Upload Renters', icon: FileUp },
     { href: '/admin/invites', label: 'Invites', icon: Mail },
     { href: '/admin/alerts', label: 'Global Alert', icon: Megaphone },
+    { href: '/admin/roles', label: 'Role Manager', icon: Shield },
     { href: '/admin/seed', label: 'Seed Data', icon: Hammer },
     { href: '/admin/readiness', label: 'Readiness', icon: CheckCircle },
 ]
