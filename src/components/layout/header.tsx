@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -67,44 +66,14 @@ export default function Header() {
   };
 
   const isAppRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/admin') || pathname.startsWith('/settings') || pathname.startsWith('/setup');
-  
-  const isSuperAdmin = claims?.role === 'superadmin';
-  const isAdmin = isSuperAdmin || ['owner', 'manager'].includes(claims?.role);
 
-  // In the app, we use the sidebar for nav, so header nav is hidden on desktop
-  const showNavLinks = !isAppRoute;
+  const renderDesktopRight = () => {
+    if (loading) return null;
 
-  return (
-    <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-2">
-          <Building2 className="h-6 w-6 text-primary" />
-          <span className="font-headline text-xl font-bold">RentFAX</span>
-        </Link>
-        
-        {showNavLinks && (
-            <nav className="hidden md:flex gap-6">
-                {marketingNavLinks.map(link => (
-                    <Link key={link.href} href={link.href} className={cn(
-                        'text-sm font-medium transition-colors hover:text-primary',
-                        pathname === link.href ? 'text-primary' : 'text-muted-foreground'
-                      )}>{link.label}</Link>
-                ))}
-            </nav>
-        )}
-
-        <div className="flex flex-1 items-center justify-end gap-2">
-           {!user ? (
-              <div className="hidden md:flex items-center gap-2">
-                <Button variant="ghost" asChild>
-                  <Link href="/login">Log In</Link>
-                </Button>
-                <Button asChild>
-                  <Link href="/signup">Sign Up</Link>
-                </Button>
-              </div>
-            ) : isAppRoute ? (
-                 <div className='flex items-center gap-4'>
+    if (user) {
+        if (isAppRoute) {
+            return (
+                <div className='flex items-center gap-4'>
                     {user && <NotificationBell uid={user.uid} />}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -134,85 +103,121 @@ export default function Header() {
                         </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-                  </div>
-            ) : (
-                <Button asChild>
-                    <Link href="/dashboard">Dashboard</Link>
-                </Button>
-            )}
+                </div>
+            );
+        }
+        return (
+            <Button asChild>
+                <Link href="/dashboard">Dashboard</Link>
+            </Button>
+        );
+    }
+    // Unauthenticated user
+    return (
+        <div className="hidden md:flex items-center gap-2">
+            <Button variant="ghost" asChild>
+            <Link href="/login">Log In</Link>
+            </Button>
+            <Button asChild>
+            <Link href="/signup">Sign Up</Link>
+            </Button>
+        </div>
+    );
+  }
 
-          <div className="md:hidden">
-            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Menu className="h-6 w-6" />
-                  <span className="sr-only">Open menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-full max-w-xs bg-card p-0">
-                <SheetHeader className="p-4 border-b">
-                   <SheetTitle className="sr-only">Main Menu</SheetTitle>
-                   <div className="flex justify-between items-center">
-                    <Link
-                        href="/"
-                        className="flex items-center gap-2"
+  return (
+    <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+        <Link href="/" className="flex items-center gap-2">
+          <Building2 className="h-6 w-6 text-primary" />
+          <span className="font-headline text-xl font-bold">RentFAX</span>
+        </Link>
+        
+        {!isAppRoute && (
+            <nav className="hidden md:flex gap-6">
+                {marketingNavLinks.map(link => (
+                    <Link key={link.href} href={link.href} className={cn(
+                        'text-sm font-medium transition-colors hover:text-primary',
+                        pathname === link.href ? 'text-primary' : 'text-muted-foreground'
+                      )}>{link.label}</Link>
+                ))}
+            </nav>
+        )}
+
+        <div className="flex flex-1 items-center justify-end gap-2">
+            {renderDesktopRight()}
+            <div className="md:hidden">
+                <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+                <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                    <Menu className="h-6 w-6" />
+                    <span className="sr-only">Open menu</span>
+                    </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-full max-w-xs bg-card p-0">
+                    <SheetHeader className="p-4 border-b">
+                    <SheetTitle className="sr-only">Main Menu</SheetTitle>
+                    <div className="flex justify-between items-center">
+                        <Link
+                            href="/"
+                            className="flex items-center gap-2"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            <Building2 className="h-6 w-6 text-primary" />
+                            <span className="font-headline text-xl font-bold">RentFAX</span>
+                        </Link>
+                        </div>
+                    </SheetHeader>
+                    <nav className="flex flex-col space-y-4 p-4">
+                    {(isAppRoute ? appNavLinks : marketingNavLinks).map((link) => (
+                        <Link
+                        key={link.href}
+                        href={link.href}
                         onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                        <Building2 className="h-6 w-6 text-primary" />
-                        <span className="font-headline text-xl font-bold">RentFAX</span>
-                    </Link>
+                        className={cn(
+                            'text-lg font-medium transition-colors hover:text-primary',
+                            pathname === link.href ? 'text-primary' : 'text-foreground'
+                        )}
+                        >
+                        {link.label}
+                        </Link>
+                    ))}
+                    <div className="border-t pt-4 space-y-2">
+                        { !user ? (
+                            <>
+                                <Button asChild className="w-full" variant="outline">
+                                    <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>Login</Link>
+                                </Button>
+                                <Button asChild className="w-full">
+                                    <Link href="/signup" onClick={() => setIsMobileMenuOpen(false)}>Sign Up</Link>
+                                </Button>
+                            </>
+                        ) : (
+                            <>
+                            {!isAppRoute && (
+                                <Button asChild className="w-full">
+                                <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
+                                    Dashboard
+                                </Link>
+                                </Button>
+                            )}
+                            <Button
+                                onClick={() => {
+                                handleLogout();
+                                setIsMobileMenuOpen(false);
+                                }}
+                                className="w-full"
+                                variant="outline"
+                            >
+                                Log Out
+                            </Button>
+                            </>
+                        )}
                     </div>
-                </SheetHeader>
-                 <nav className="flex flex-col space-y-4 p-4">
-                  {(isAppRoute ? appNavLinks : marketingNavLinks).map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className={cn(
-                        'text-lg font-medium transition-colors hover:text-primary',
-                        pathname === link.href ? 'text-primary' : 'text-foreground'
-                      )}
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                  <div className="border-t pt-4 space-y-2">
-                    { !user ? (
-                         <>
-                            <Button asChild className="w-full" variant="outline">
-                                <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>Login</Link>
-                            </Button>
-                            <Button asChild className="w-full">
-                                <Link href="/signup" onClick={() => setIsMobileMenuOpen(false)}>Sign Up</Link>
-                            </Button>
-                        </>
-                    ) : (
-                         <>
-                           {!isAppRoute && (
-                             <Button asChild className="w-full">
-                               <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
-                                 Dashboard
-                               </Link>
-                             </Button>
-                           )}
-                           <Button
-                             onClick={() => {
-                               handleLogout();
-                               setIsMobileMenuOpen(false);
-                             }}
-                             className="w-full"
-                             variant="outline"
-                           >
-                             Log Out
-                           </Button>
-                         </>
-                    )}
-                  </div>
-                 </nav>
-              </SheetContent>
-            </Sheet>
-          </div>
+                    </nav>
+                </SheetContent>
+                </Sheet>
+            </div>
         </div>
       </div>
     </header>
