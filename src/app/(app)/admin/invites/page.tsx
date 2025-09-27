@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -18,7 +19,7 @@ import { createInvite as createInviteAction } from "@/app/auth/actions";
 import { formatDistanceToNow } from "date-fns";
 import { useAuth } from "@/hooks/use-auth";
 
-type Role = 'editor' | 'admin';
+type Role = 'editor' | 'admin' | 'manager' | 'agent' | 'collections';
 
 export default function InvitesPage() {
   const { toast } = useToast();
@@ -70,7 +71,7 @@ export default function InvitesPage() {
   }
 
   return (
-    <Protected roles={['owner', 'manager']}>
+    <Protected roles={['owner', 'manager', 'admin']}>
       <div className="space-y-6">
         <h1 className="text-2xl font-bold font-headline">Team Invites</h1>
 
@@ -93,6 +94,9 @@ export default function InvitesPage() {
                     <SelectContent>
                         <SelectItem value="editor">Editor</SelectItem>
                         <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="manager">Manager</SelectItem>
+                        <SelectItem value="agent">Agent</SelectItem>
+                        <SelectItem value="collections">Collections</SelectItem>
                     </SelectContent>
                 </Select>
                 <Button onClick={createInvite} disabled={loading}>

@@ -25,7 +25,7 @@ export default function Protected({
     }
 
     const userRole = claims?.role;
-    if (roles && roles.length > 0 && !roles.includes(userRole)) {
+    if (roles && roles.length > 0 && (!userRole || !roles.includes(userRole))) {
       router.replace('/unauthorized');
     } else {
       setIsAllowed(true);
