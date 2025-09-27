@@ -1,40 +1,69 @@
-'use client';
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
-import { httpsCallable } from 'firebase/functions';
-import { functions } from '@/lib/firebase';
-import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { useEffect } from 'react';
-import { Badge } from '@/components/ui/badge';
+"use client";
 
-export default function BillingPage() {
-  const [loading, setLoading] = useState(false);
-  const [loadingData, setLoadingData] = useState(true);
-  const [company, setCompany] = useState<any>(null);
+import { useEffect, useState } from "react";
+import { auth } from "@/lib/firebase";
+import { ADDON_CATALOG, Addon } from "@/lib/addons";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { httpsCallable } from "firebase/functions";
+import { functions } from "@/lib/firebase";
+
+
+export default function BillingDashboard() {
+  const [activeAddons, setActiveAddons] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [cancellingId, setCancellingId] = useState<string|null>(null);
   const { toast } = useToast();
-  const { claims } = useAuth();
+
+  const fetchData = async () => {
+      const token = await auth.currentUser?.getIdToken();
+      const res = await fetch("/api/billing/addons", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.error) {
+        toast({ title: 'Error', description: data.error, variant: 'destructive'});
+        setLoading(false);
+        return;
+      }
+      setActiveAddons(data.active);
+      setLoading(false);
+  }
 
   useEffect(() => {
-    if (!claims?.companyId) return;
-    const fetchCompany = async () => {
-        setLoadingData(true);
-        const companyRef = doc(db, 'companies', claims.companyId);
-        const companySnap = await getDoc(companyRef);
-        if (companySnap.exists()) {
-            setCompany(companySnap.data());
-        }
-        setLoadingData(false);
-    }
-    fetchCompany();
-  }, [claims?.companyId])
+    fetchData();
+  }, []);
 
-  const handleRedirect = async () => {
+  async function cancelAddon(addonId: string) {
+    setCancellingId(addonId);
+    try {
+        const token = await auth.currentUser?.getIdToken();
+        const res = await fetch("/api/billing/cancel-addon", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ addonId }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            toast({ title: "Add-on Canceled", description: `${addonId} has been removed from your subscription.` });
+            await fetchData(); // Refresh data
+        } else {
+            throw new Error(data.error || "Failed to cancel add-on");
+        }
+    } catch(e: any) {
+        toast({ title: 'Error', description: e.message, variant: 'destructive' });
+    } finally {
+        setCancellingId(null);
+    }
+  }
+
+  const handlePortalRedirect = async () => {
     setLoading(true);
     try {
       const createPortalSession = httpsCallable(functions, 'createBillingPortalSession');
@@ -46,33 +75,71 @@ export default function BillingPage() {
       }
     } catch (err: any) {
        toast({ title: 'Error', description: err.message, variant: 'destructive'});
-    } finally {
-        setLoading(false);
+       setLoading(false);
     }
   };
 
+  const currentAddons = ADDON_CATALOG.filter((a) => activeAddons.some(active => a.id.startsWith(active)));
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold font-headline">Billing</h1>
-      <Card>
-        <CardHeader>
-          <CardTitle>Subscription Plan</CardTitle>
-          <CardDescription>Manage your subscription and payment methods via our secure payment partner, Stripe.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-            {loadingData ? <p>Loading plan...</p> : (
-                <div className="flex items-center gap-4 p-4 bg-secondary rounded-md">
-                    <p>Your current plan: <span className="font-bold capitalize">{company?.plan || '...'}</span></p>
-                    <Badge>{company?.status || '...'}</Badge>
-                </div>
-            )}
-            
-          <Button onClick={handleRedirect} disabled={loading}>
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Open Customer Portal
-          </Button>
-        </CardContent>
-      </Card>
+    <div className="max-w-4xl mx-auto space-y-6">
+      <h1 className="text-2xl font-bold font-headline">Billing & Add-Ons</h1>
+
+        <Card>
+            <CardHeader>
+                <CardTitle>Active Add-Ons</CardTitle>
+                 <CardDescription>Manage the add-ons for your current subscription.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                {loading ? (
+                    <p>Loading billing info...</p>
+                ) : currentAddons.length === 0 ? (
+                    <p className="text-muted-foreground">No active add-ons. Visit the pricing page to add features.</p>
+                ) : (
+                    <div className="grid md:grid-cols-2 gap-6">
+                    {currentAddons.map((addon) => (
+                        <Card key={addon.id} className="flex flex-col">
+                            <CardHeader>
+                                <CardTitle className="text-lg">{addon.name}</CardTitle>
+                                <CardDescription>{addon.description}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex-grow">
+                                <p className="font-bold">
+                                ${addon.monthly}/mo or ${addon.annual}/yr
+                                </p>
+                            </CardContent>
+                            <CardFooter>
+                                <Button
+                                    onClick={() => cancelAddon(addon.id)}
+                                    variant="destructive"
+                                    size="sm"
+                                    disabled={cancellingId === addon.id}
+                                >
+                                    {cancellingId === addon.id && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Cancel Add-on
+                                </Button>
+                            </CardFooter>
+                        </Card>
+                    ))}
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+        
+        <Card>
+            <CardHeader>
+                <CardTitle>Manage Subscription</CardTitle>
+                <CardDescription>
+                    Update your payment method, view invoices, or cancel your subscription via the secure Stripe customer portal.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                 <Button onClick={handlePortalRedirect} disabled={loading}>
+                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Open Customer Portal
+                </Button>
+            </CardContent>
+        </Card>
     </div>
   );
 }

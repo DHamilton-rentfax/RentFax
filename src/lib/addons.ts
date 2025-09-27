@@ -137,7 +137,7 @@ export const ADDON_CATALOG: Addon[] = [
   },
   // Communication & Outreach
   {
-    id: "addon_notifications",
+    id: "addon_tenant_notifications",
     name: "Tenant Notifications (SMS/Email)",
     description: "Automated alerts for tenants.",
     details: "Sends reminders for rent due, disputes, and approvals via SMS/email. Reduces disputes and enforces accountability.",
