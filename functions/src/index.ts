@@ -289,3 +289,5 @@ export const notifyNewApplication = functions.firestore
 
 export * from './send-invite-email';
 export * from './consume-credit';
+export * from './highRiskAlert';
+export * from './notifyRenterOfIncident';
