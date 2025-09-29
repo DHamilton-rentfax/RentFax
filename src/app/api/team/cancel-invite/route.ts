@@ -16,18 +16,27 @@ export async function POST(req: Request) {
     }
 
     const invite = inviteDoc.data();
-    if (Date.now() > invite.expiresAt && invite.status === "pending") {
-      await inviteDoc.ref.update({ status: "expired" });
+    if (invite?.status !== "pending" && invite?.status !== "expired") {
+      return NextResponse.json({ error: "Invite already used or canceled" }, { status: 400 });
+    }
 
-      await adminDB.collection("auditLogs").add({
-        type: "INVITE_EXPIRED",
-        actorUid: "system",
+    await inviteRef.update({
+      status: "canceled",
+      canceledBy: decoded.uid,
+      canceledAt: Date.now(),
+    });
+
+    await adminDB.collection("auditLogs").add({
+        type: "INVITE_CANCELED",
+        actorUid: decoded.uid,
         targetEmail: invite.email,
         orgId,
         role: invite.role,
         timestamp: Date.now(),
-      });
-    }
+    });
+
+    // (Optional) Notify recipient
+    // await sgMail.send({ ... });
 
     return NextResponse.json({ success: true });
   } catch (err: any) {

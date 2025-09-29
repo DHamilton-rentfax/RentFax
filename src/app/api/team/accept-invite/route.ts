@@ -20,6 +20,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invite already accepted or expired" }, { status: 400 });
     }
 
+    if (Date.now() > invite.expiresAt) {
+      await inviteRef.update({ status: "expired" });
+      // Log expiration event
+      await adminDB.collection("auditLogs").add({
+        type: "INVITE_EXPIRED",
+        actorUid: "system",
+        targetEmail: invite.email,
+        orgId,
+        role: invite.role,
+        timestamp: Date.now(),
+      });
+      return NextResponse.json({ error: "Invite expired" }, { status: 400 });
+    }
+
     // Add member to org
     await adminDB.collection("orgs").doc(orgId).collection("members").doc(decoded.uid).set({
       role: invite.role,
@@ -34,6 +48,8 @@ export async function POST(req: Request) {
     await adminDB.collection("auditLogs").add({
       type: "INVITE_ACCEPTED",
       actorUid: decoded.uid,
+      targetEmail: invite.email,
+      targetUid: decoded.uid,
       orgId,
       role: invite.role,
       timestamp: Date.now(),

@@ -1,52 +1,26 @@
-
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Org data readable by members, writable by owners/managers
-    match /companies/{companyId} {
-      allow read: if request.auth.uid != null && request.auth.token.companyId == companyId;
-      allow write: if request.auth.uid != null 
-                   && request.auth.token.companyId == companyId 
-                   && request.auth.token.role in ['owner', 'manager'];
-    }
 
-    // Renter data readable/writable by org members
+    // Renters collection
     match /renters/{renterId} {
-       allow read, write: if request.auth.uid != null 
-                         && get(/databases/$(database)/documents/renters/$(renterId)).data.companyId == request.auth.token.companyId;
-    }
-    
-    // Incidents readable/writable by org members
-     match /incidents/{incidentId} {
-       allow read, write: if request.auth.uid != null 
-                         && get(/databases/$(database)/documents/incidents/$(incidentId)).data.companyId == request.auth.token.companyId;
+      allow read, write: if request.auth != null;
     }
 
-    // Disputes readable/writable by org members
-     match /disputes/{disputeId} {
-       allow read, write: if request.auth.uid != null 
-                         && get(/databases/$(database)/documents/disputes/$(disputeId)).data.companyId == request.auth.token.companyId;
+    // Incidents
+    match /incidents/{incidentId} {
+      allow read, write: if request.auth != null;
     }
 
-    // Audit logs are tamper-proof (read-only for members, only creation allowed)
+    // Disputes
+    match /disputes/{disputeId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Audit Logs (admin only)
     match /auditLogs/{logId} {
-      allow read: if request.auth.uid != null && request.auth.token.companyId == resource.data.companyId;
-      allow create: if request.auth.uid != null;
-      allow update, delete: if false;
-    }
-
-    // Invites can be created by owners/managers
-    match /invites/{inviteId} {
-        allow read: if request.auth.uid != null && request.auth.token.companyId == resource.data.companyId;
-        allow create: if request.auth.uid != null && request.auth.token.role in ['owner', 'manager'];
-        allow update: if request.auth.uid != null; // for accepting
-    }
-    
-    // Superadmins can seed data
-    match /companies/{companyId} {
-        allow write: if request.auth.token.role == 'superadmin';
+      allow read: if request.auth != null;
+      allow write: if request.auth.token.role == 'ADMIN';
     }
   }
 }
