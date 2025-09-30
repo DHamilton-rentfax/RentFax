@@ -1,6 +1,9 @@
+// src/app/(app)/admin/dashboard/page.tsx
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function AdminDashboard() {
+export default function AdminDashboardPage() {
   return (
     <div>
       <h1 className="text-3xl font-bold mb-4">Admin Dashboard</h1>
