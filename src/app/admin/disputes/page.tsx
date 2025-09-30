@@ -1,60 +1,99 @@
+'use client';
 
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { getAllDisputes } from '@/app/actions/get-all-disputes';
+import { exportDisputesToCsv } from '@/app/actions/export-disputes-to-csv';
+import { Dispute } from '@/types/dispute';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import Link from 'next/link';
 
-export default async function AdminDisputesPage() {
-  const { disputes, error } = await getAllDisputes();
+export default function AdminDisputesDashboard() {
+  const [disputes, setDisputes] = useState<Dispute[]>([]);
+  const [filteredDisputes, setFilteredDisputes] = useState<Dispute[]>([]);
+  const [statusFilter, setStatusFilter] = useState('ALL');
 
-  if (error || !disputes) {
-    return <div className="p-4">Error: {error || 'Could not fetch disputes.'}</div>;
-  }
+  useEffect(() => {
+    getAllDisputes().then(data => {
+      setDisputes(data);
+      setFilteredDisputes(data);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (statusFilter === 'ALL') {
+      setFilteredDisputes(disputes);
+    } else {
+      setFilteredDisputes(disputes.filter(d => d.status === statusFilter));
+    }
+  }, [statusFilter, disputes]);
+
+  const handleExport = async () => {
+    const csvData = await exportDisputesToCsv();
+    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'disputes.csv');
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Dispute Review Dashboard</h1>
-      <Card>
-        <CardHeader>
-          <CardTitle>All Disputes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Dispute ID</TableHead>
-                <TableHead>Incident ID</TableHead>
-                <TableHead>Submitted By</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {disputes.map((d) => (
-                <TableRow key={d.id}>
-                  <TableCell>{d.id}</TableCell>
-                  <TableCell>{d.incidentId}</TableCell>
-                  <TableCell>{d.renter?.email || 'Unknown'}</TableCell>
-                  <TableCell>
-                    <Badge variant={d.status === 'resolved' ? 'default' : 'secondary'}>
-                      {d.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Link href={`/admin/disputes/${d.id}`}>
-                      <Button size="sm" variant="outline">
-                        View Detail
-                      </Button>
-                    </Link>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Disputes Dashboard</h1>
+        <div className="flex items-center gap-4">
+          <div>
+            <label className="mr-2">Filter by Status:</label>
+            <select
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+              className="p-2 border rounded"
+            >
+              <option value="ALL">All</option>
+              <option value="PENDING">Pending</option>
+              <option value="UNDER_REVIEW">Under Review</option>
+              <option value="RESOLVED">Resolved</option>
+              <option value="REJECTED">Rejected</option>
+            </select>
+          </div>
+          <Button onClick={handleExport}>Export to CSV</Button>
+        </div>
+      </div>
+
+      <div className="bg-white shadow rounded-lg">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Renter</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Incident Amount</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {filteredDisputes.map(dispute => (
+              <tr key={dispute.id}>
+                <td className="px-6 py-4 whitespace-nowrap">{dispute.renter.name}</td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <Badge variant={dispute.status === 'PENDING' ? 'default' : 'outline'}>{dispute.status}</Badge>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">${dispute.incident.amount}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-right">
+                  <Link href={`/admin/disputes/${dispute.id}`}>
+                    <a className="text-blue-600 hover:underline">View</a>
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
