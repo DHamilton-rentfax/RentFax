@@ -5,6 +5,6 @@ export interface Incident {
   description: string;
   amount: number;
   evidence: string[];
-  status: string;
+  status: 'reported' | 'resolved' | 'disputed';
   createdAt: Date;
 }
