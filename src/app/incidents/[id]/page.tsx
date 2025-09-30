@@ -4,12 +4,12 @@ import DisputePanel from '@/components/dispute-panel';
 
 interface IncidentPageProps {
   params: {
-    incidentId: string;
+    id: string;
   };
 }
 
 export default async function IncidentPage({ params }: IncidentPageProps) {
-  const { incident, error } = await getIncidentById(params.incidentId);
+  const { incident, error } = await getIncidentById(params.id);
 
   if (error || !incident) {
     return <div>Error: {error || 'Incident not found'}</div>;

@@ -17,7 +17,7 @@ interface Incident {
   createdAt: any;
 }
 
-export default function IncidentDetailPage({ params }: { params: { incidentId: string } }) {
+export default function IncidentDetailPage({ params }: { params: { id: string } }) {
   const { user } = useAuth();
   const [incident, setIncident] = useState<Incident | null>(null);
   const [loading, setLoading] = useState(true);
@@ -26,10 +26,10 @@ export default function IncidentDetailPage({ params }: { params: { incidentId: s
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!user?.uid || !params.incidentId) return;
+    if (!user?.uid || !params.id) return;
 
     const fetchIncident = async () => {
-      const incidentRef = doc(clientDB, `renters/${user.uid}/incidents`, params.incidentId);
+      const incidentRef = doc(clientDB, `renters/${user.uid}/incidents`, params.id);
       const incidentSnap = await getDoc(incidentRef);
 
       if (incidentSnap.exists()) {
@@ -41,7 +41,7 @@ export default function IncidentDetailPage({ params }: { params: { incidentId: s
     };
 
     fetchIncident();
-  }, [user?.uid, params.incidentId]);
+  }, [user?.uid, params.id]);
 
   const handleDisputeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -7,12 +7,12 @@ import AuditHistory from './AuditHistory'; // Import the new component
 
 interface AdminDisputeReviewPageProps {
   params: {
-    disputeId: string;
+    id: string;
   };
 }
 
 export default async function AdminDisputeReviewPage({ params }: AdminDisputeReviewPageProps) {
-  const { dispute, error } = await getDisputeById(params.disputeId);
+  const { dispute, error } = await getDisputeById(params.id);
 
   if (error || !dispute) {
     return <div className="p-4">Error: {error || 'Could not load dispute.'}</div>;
@@ -98,7 +98,7 @@ export default async function AdminDisputeReviewPage({ params }: AdminDisputeRev
           </Card>
           
           {/* Dispute History / Audit Log */}
-          <AuditHistory disputeId={params.disputeId} />
+          <AuditHistory disputeId={params.id} />
 
         </div>
       </div>

@@ -5,7 +5,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import {logAudit} from './audit';
-import {safeNotify} from '@/lib/notifications';
+import {sendNotification} from '@/lib/notifications';
 import {FlowAuth} from 'genkit/flow';
 import { admin, dbAdmin as db, authAdmin } from '@/lib/firebase-admin';
 
@@ -119,12 +119,15 @@ const startDisputeFlow = ai.defineFlow(
       console.warn('scheduleReminder failed in dev', e);
     }
 
-    await safeNotify({
-      type: 'dispute.opened',
-      companyId: companyId,
-      disputeId: ref.id,
-      renterId: payload.renterId,
-      incidentId: payload.incidentId,
+    await sendNotification({
+      templateId: 'dispute.opened',
+      recipientId: payload.renterId, // Assuming the handler will also notify the company
+      data: {
+        companyId: companyId,
+        disputeId: ref.id,
+        renterId: payload.renterId,
+        incidentId: payload.incidentId,
+      },
     });
 
     return {id: ref.id, created: true};
@@ -234,11 +237,14 @@ const updateDisputeStatusFlow = ai.defineFlow(
       after: {status: payload.status},
     });
 
-    await safeNotify({
-      type: 'dispute.statusChanged',
-      renterId: d.renterId,
-      disputeId: payload.disputeId,
-      status: payload.status,
+    await sendNotification({
+      templateId: 'dispute.statusChanged',
+      recipientId: d.renterId,
+      data: {
+        renterId: d.renterId,
+        disputeId: payload.disputeId,
+        status: payload.status,
+      },
     });
 
     return {ok: true};

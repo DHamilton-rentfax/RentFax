@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 type Incident = { id: string; type: string; notes: string; createdAt: number };
 
@@ -12,9 +13,19 @@ export default function RenterHistoryPage({ searchParams }: { searchParams: { to
     fetch(`/api/renter/history?token=${token}`).then(r => r.json()).then(setIncidents);
   }, [token]);
 
+  const handleExport = (format: 'csv' | 'pdf') => {
+    window.open(`/api/renter/disputes/export?format=${format}`);
+  };
+
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">My History</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">My History</h1>
+        <div className="space-x-2">
+          <Button onClick={() => handleExport('csv')}>Export as CSV</Button>
+          <Button onClick={() => handleExport('pdf')}>Export as PDF</Button>
+        </div>
+      </div>
       <div className="space-y-2">
         {incidents.map(i => (
           <div key={i.id} className="border p-3 rounded bg-white">
