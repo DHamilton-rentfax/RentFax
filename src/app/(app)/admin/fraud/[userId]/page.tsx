@@ -1,15 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getFraudSignals } from '@/app/actions/fraud-signals';
+import { detectFraudSignals } from '@/app/auth/actions';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/firebase/client';
+import { FraudSignal } from '@/ai/flows/fraud-detector';
 
-type Signal = {
-  type: string;
-  confidence: number;
-  explanation: string;
-  related?: string[];
+type Signal = FraudSignal & {
+  confidence?: number;
+  explanation?: string;
 };
 
 export default function FraudReportPage({ params }: { params: { userId: string } }) {
@@ -29,23 +28,20 @@ export default function FraudReportPage({ params }: { params: { userId: string }
       try {
         setLoading(true);
 
-        // Fetch user data
-        const userDoc = await getDoc(doc(db, 'users', params.userId));
+        // Fetch user data from 'renters' collection
+        const userDoc = await getDoc(doc(db, 'renters', params.userId));
         if (userDoc.exists()) {
           setUser({ id: userDoc.id, ...userDoc.data() });
         } else {
-          setError('User not found.');
+          setError('Renter not found.');
           setLoading(false);
           return;
         }
 
         // Fetch fraud signals
-        const report = await getFraudSignals(params.userId);
-        if (report.signals) {
-          setSignals(report.signals);
-        } else if (report.error) {
-          setError(report.error);
-        }
+        const report = await detectFraudSignals({renterId: params.userId});
+        setSignals(report.signals as Signal[]);
+
       } catch (e: any) {
         setError(e.message || 'An unknown error occurred.');
       } finally {
@@ -56,13 +52,13 @@ export default function FraudReportPage({ params }: { params: { userId: string }
     fetchReport();
   }, [params.userId]);
 
-  const getConfidenceColor = (confidence: number) => {
+  const getConfidenceColor = (confidence: number = 0) => {
     if (confidence >= 0.9) return 'text-red-500';
     if (confidence >= 0.75) return 'text-yellow-500';
     return 'text-gray-500';
   };
   
-  const getConfidencePill = (confidence: number) => {
+  const getConfidencePill = (confidence: number = 0) => {
     let colorClass = 'bg-gray-200 text-gray-800';
     if (confidence >= 0.9) {
         colorClass = 'bg-red-100 text-red-800';
@@ -101,11 +97,11 @@ export default function FraudReportPage({ params }: { params: { userId: string }
               <div key={index} className="border rounded-lg p-4 bg-white shadow-sm">
                 <div className="flex justify-between items-start">
                     <div>
-                        <h3 className="font-bold text-md capitalize">{signal.type.replace(/_/g, ' ')}</h3>
-                        <p className="text-sm text-gray-600 mt-1">{signal.explanation}</p>
-                        {signal.related && (
+                        <h3 className="font-bold text-md capitalize">{signal.code.replace(/([A-Z])/g, ' $1').trim()}</h3>
+                        <p className="text-sm text-gray-600 mt-1">{signal.details || signal.explanation}</p>
+                        {signal.matches && (
                             <p className="text-xs text-gray-500 mt-2">
-                                Related Users: {signal.related.join(', ')}
+                                Related Users: {signal.matches.map(m => m.id).join(', ')}
                             </p>
                         )}
                     </div>

@@ -102,6 +102,13 @@ const detectFraudSignalsFlow = ai.defineFlow(
         });
     }
     
+    // Store the results in a separate collection for the dashboard to query.
+    await db.doc(`fraud_signals/${renterId}`).set({
+        renterId,
+        signals,
+        evaluatedAt: new Date(),
+    }, { merge: true });
+
     return { signals };
   }
 );

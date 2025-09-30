@@ -6,6 +6,7 @@ import { db } from '@/firebase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import Link from 'next/link';
 
 type Signal = {
   type: string;
@@ -39,16 +40,17 @@ export default function FraudDashboard() {
 
             // Enrich signals with renter info
             for (const report of reports) {
-                const userDoc = await getDoc(doc(db, 'users', report.renterId));
-                const userData = userDoc.exists() ? userDoc.data() : null;
+                if (!report.signals) continue; // Skip if there are no signals
+                const renterDoc = await getDoc(doc(db, 'renters', report.renterId));
+                const renterData = renterDoc.exists() ? renterDoc.data() : null;
 
                 report.signals.forEach((signal: Signal) => {
                     signals.push({
                         ...signal,
                         renterId: report.renterId,
                         evaluatedAt: report.evaluatedAt,
-                        renterName: userData?.name,
-                        renterEmail: userData?.email,
+                        renterName: renterData?.name,
+                        renterEmail: renterData?.email,
                     });
                 });
             }
@@ -88,7 +90,9 @@ export default function FraudDashboard() {
                         <CardContent className="p-4">
                         <div className="flex justify-between items-start">
                             <div>
-                                <h2 className="font-semibold text-md">{s.renterName || 'Unknown Renter'}</h2>
+                                <Link href={`/admin/fraud/${s.renterId}`} className="hover:underline">
+                                    <h2 className="font-semibold text-md">{s.renterName || 'Unknown Renter'}</h2>
+                                </Link>
                                 <p className="text-sm text-gray-500">{s.renterEmail}</p>
                                 <Badge variant="secondary" className="mt-2">{s.type.replace(/_/g, ' ')}</Badge>
                             </div>

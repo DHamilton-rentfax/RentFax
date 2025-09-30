@@ -1,4 +1,4 @@
-// src/app/(app)/admin/incidents/page.tsx
+
 "use client";
 
 import Link from "next/link";
@@ -30,7 +30,7 @@ export default function AdminIncidentsPage() {
                 <td className="p-2">{incident.description}</td>
                 <td className="p-2">{incident.priority}</td>
                 <td className="p-2">
-                  <Link href={`/admin/incidents/${incident.id}`} className="text-blue-500 hover:underline">
+                  <Link href={`/incidents/${incident.id}`} className="text-blue-500 hover:underline">
                     View
                   </Link>
                 </td>

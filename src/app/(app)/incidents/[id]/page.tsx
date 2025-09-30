@@ -1,3 +1,4 @@
+
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -110,7 +111,7 @@ export default function IncidentDetailPage() {
         {/* Right Column - AI Assist */}
         <div className="md:col-span-2">
             <FeatureGate name="ai_assistant">
-                <IncidentAssistPanel id={id} />
+                <IncidentAssistPanel incidentId={id} />
             </FeatureGate>
         </div>
       </div>
