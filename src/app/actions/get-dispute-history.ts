@@ -36,7 +36,11 @@ export async function getDisputeHistory(disputeId: string) {
 
     return { history };
   } catch (error) {
-    console.error(`Error fetching history for dispute ${disputeId}:`, error);
+    if (error instanceof Error) {
+      console.error(`Error fetching history for dispute ${disputeId}:`, error.message);
+    } else {
+      console.error('Unknown error fetching history for dispute', disputeId)
+    }
     return { error: 'Failed to fetch audit history.' };
   }
 }

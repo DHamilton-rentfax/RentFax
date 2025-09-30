@@ -2,14 +2,13 @@
 import { Incident } from './incident';
 import { User } from './user';
 
-export interface Dispute {
+export type Dispute = {
   id: string;
   renterId: string;
-  incidentId: string;
+  incidentId?: string;
   message: string;
-  files: string[];
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
   status: 'open' | 'under_review' | 'resolved' | 'rejected';
   adminNote?: string;
   evidence?: {
@@ -18,4 +17,4 @@ export interface Dispute {
   }[];
   renter?: User;
   incident?: Incident;
-}
+};

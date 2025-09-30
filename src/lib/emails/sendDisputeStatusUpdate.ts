@@ -74,6 +74,10 @@ export async function sendDisputeStatusUpdateEmail({
     await sgMail.send(msg);
     console.log(`Dispute status update email sent to ${email} for status ${newStatus}.`);
   } catch (error) {
-    console.error('Failed to send dispute status update email:', error);
+    if (error instanceof Error) {
+        console.error('Failed to send dispute status update email:', error.message);
+    } else {
+        console.error('An unknown error occurred while sending dispute status update email');
+    }
   }
 }

@@ -46,14 +46,18 @@ export async function getDisputeById(disputeId: string) {
     const dispute: Dispute = {
       id: disputeDoc.id,
       ...disputeData,
-      createdAt: new Date(disputeData.createdAt),
+      createdAt: new Date(disputeData.createdAt).toISOString(),
+      updatedAt: new Date(disputeData.updatedAt).toISOString(),
       renter,
       incident,
     };
 
     return { dispute };
   } catch (error) {
-    console.error(`Error fetching dispute ${disputeId}:`, error);
-    return { error: 'Failed to fetch dispute details.' };
+    if (error instanceof Error) {
+        console.error(`Error fetching dispute ${disputeId}:`, error.message);
+        return { error: 'Failed to fetch dispute details.' };
+    }
+    return { error: 'An unknown error occurred while fetching dispute details.' };
   }
 }

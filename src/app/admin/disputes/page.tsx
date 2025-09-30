@@ -1,3 +1,4 @@
+
 import { getAllDisputes } from '@/app/actions/get-all-disputes';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -35,9 +36,9 @@ export default async function AdminDisputesPage() {
                 <TableRow key={d.id}>
                   <TableCell>{d.id}</TableCell>
                   <TableCell>{d.incidentId}</TableCell>
-                  <TableCell>{d.submittedByEmail || d.submittedBy}</TableCell>
+                  <TableCell>{d.renter?.email || 'Unknown'}</TableCell>
                   <TableCell>
-                    <Badge variant={d.status === 'RESOLVED' ? 'default' : 'secondary'}>
+                    <Badge variant={d.status === 'resolved' ? 'default' : 'secondary'}>
                       {d.status}
                     </Badge>
                   </TableCell>
