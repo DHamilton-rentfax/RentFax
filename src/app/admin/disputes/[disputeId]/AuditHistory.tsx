@@ -1,1 +1,39 @@
-\nimport { getDisputeHistory, AuditLog } from \'@/app/actions/get-dispute-history\';\nimport { Card, CardContent, CardHeader, CardTitle } from \'@/components/ui/card\';\n\ninterface AuditHistoryProps {\n  disputeId: string;\n}\n\nexport default async function AuditHistory({ disputeId }: AuditHistoryProps) {\n  const { history, error } = await getDisputeHistory(disputeId);\n\n  if (error) {\n    return <p className=\"text-sm text-red-500\">Could not load audit history.</p>;\n  }\n\n  return (\n    <Card>\n      <CardHeader>\n        <CardTitle>Dispute History</CardTitle>\n      </CardHeader>\n      <CardContent>\n        {history && history.length > 0 ? (\n          <ul className=\"space-y-4\">\n            {history.map((log) => (\n              <li key={log.id} className=\"text-sm\">\n                <p className=\"font-semibold\">{log.action.replace(\/_\/g, \' \').toUpperCase()}</p>\n                <p className=\"text-xs text-gray-500\">On {log.timestamp.toLocaleString()}</p>\n                <p><strong>Admin:</strong> {log.adminUserId.substring(0,8)}...</p>\n                <p><strong>Notes:</strong> {log.notes}</p>\n              </li>\n            ))}\n          </ul>\n        ) : (\n          <p className=\"text-sm text-gray-500\">No history found for this dispute.</p>\n        )}\n      </CardContent>\n    </Card>\n  );\n}\n
+
+import { getDisputeHistory, AuditLog } from '@/app/actions/get-dispute-history';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+interface AuditHistoryProps {
+  disputeId: string;
+}
+
+export default async function AuditHistory({ disputeId }: AuditHistoryProps) {
+  const { history, error } = await getDisputeHistory(disputeId);
+
+  if (error) {
+    return <p className="text-sm text-red-500">Could not load audit history.</p>;
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Dispute History</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {history && history.length > 0 ? (
+          <ul className="space-y-4">
+            {history.map((log) => (
+              <li key={log.id} className="text-sm">
+                <p className="font-semibold">{log.action.replace(/_/g, ' ').toUpperCase()}</p>
+                <p className="text-xs text-gray-500">On {log.timestamp.toLocaleString()}</p>
+                <p><strong>Admin:</strong> {log.adminUserId.substring(0,8)}...</p>
+                <p><strong>Notes:</strong> {log.notes}</p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-gray-500">No history found for this dispute.</p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

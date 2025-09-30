@@ -1,5 +1,5 @@
 import * as functions from "firebase-functions";
-import { adminDB } from "../firebaseAdmin";
+import { adminDB } from "../../src/lib/firebase-admin";
 import { getStorage } from "firebase-admin/storage";
 import sgMail from "@sendgrid/mail";
 import { jsPDF } from "jspdf";
@@ -37,8 +37,8 @@ export const generateClientReports = functions.pubsub
 
       const usageStats = {
         reportsRun: usageSnap.size,
-        riskFlags: usageSnap.docs.filter((d) => d.data().type === "RISK_FLAG").length,
-        disputes: usageSnap.docs.filter((d) => d.data().type === "DISPUTE").length,
+        riskFlags: usageSnap.docs.filter((d: any) => d.data().type === "RISK_FLAG").length,
+        disputes: usageSnap.docs.filter((d: any) => d.data().type === "DISPUTE").length,
       };
 
       // PDF generation

@@ -9,10 +9,10 @@ interface IncidentPageProps {
 }
 
 export default async function IncidentPage({ params }: IncidentPageProps) {
-  const { incident, error } = await getIncidentById(params.id);
+  const incident = await getIncidentById(params.id);
 
-  if (error || !incident) {
-    return <div>Error: {error || 'Incident not found'}</div>;
+  if (!incident) {
+    return <div>Error: {'Incident not found'}</div>;
   }
 
   return (

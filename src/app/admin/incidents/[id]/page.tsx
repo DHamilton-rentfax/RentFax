@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import { clientDB } from '@/firebase/client';
+import { db } from '@/firebase/client';
 import { Button } from '@/components/ui/button';
 
 interface Incident {
@@ -24,7 +24,7 @@ interface Dispute {
     createdAt: any;
 }
 
-export default function AdminIncidentDetailPage({ params }: { params: { incidentId: string } }) {
+export default function AdminIncidentDetailPage({ params }: { params: { id: string } }) {
     const searchParams = useSearchParams();
     const renterId = searchParams.get('renterId');
     const [incident, setIncident] = useState<Incident | null>(null);
@@ -34,11 +34,11 @@ export default function AdminIncidentDetailPage({ params }: { params: { incident
     const [isUpdating, setIsUpdating] = useState(false);
 
     useEffect(() => {
-        if (!renterId || !params.incidentId) return;
+        if (!renterId || !params.id) return;
 
         const fetchIncidentAndDispute = async () => {
             // Fetch the incident
-            const incidentRef = doc(clientDB, `renters/${renterId}/incidents`, params.incidentId);
+            const incidentRef = doc(db, `renters/${renterId}/incidents`, params.id);
             const incidentSnap = await getDoc(incidentRef);
             if (incidentSnap.exists()) {
                 const incidentData = { id: incidentSnap.id, ...incidentSnap.data() } as Incident;
@@ -47,8 +47,8 @@ export default function AdminIncidentDetailPage({ params }: { params: { incident
 
                 // If incident is disputed, fetch the dispute
                 if (incidentData.status === 'under_review' || incidentData.status === 'resolved' || incidentData.status === 'dismissed') {
-                    const disputesRef = collection(clientDB, `renters/${renterId}/disputes`);
-                    const q = query(disputesRef, where("incidentId", "==", params.incidentId));
+                    const disputesRef = collection(db, `renters/${renterId}/disputes`);
+                    const q = query(disputesRef, where("incidentId", "==", params.id));
                     const disputeSnaps = await getDocs(q);
                     if (!disputeSnaps.empty) {
                         const disputeData = disputeSnaps.docs[0].data() as Omit<Dispute, 'id'>;
@@ -62,13 +62,13 @@ export default function AdminIncidentDetailPage({ params }: { params: { incident
         };
 
         fetchIncidentAndDispute();
-    }, [renterId, params.incidentId]);
+    }, [renterId, params.id]);
 
     const handleStatusUpdate = async () => {
         if (!renterId || !incident || !newStatus) return;
         setIsUpdating(true);
         try {
-            const incidentRef = doc(clientDB, `renters/${renterId}/incidents`, incident.id);
+            const incidentRef = doc(db, `renters/${renterId}/incidents`, incident.id);
             await updateDoc(incidentRef, { status: newStatus });
             setIncident(prev => prev ? { ...prev, status: newStatus } : null);
             alert('Status updated successfully!');

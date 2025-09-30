@@ -1,5 +1,5 @@
 import * as functions from "firebase-functions";
-import { adminDB } from "../firebaseAdmin";
+import { adminDB } from "../../src/lib/firebase-admin";
 import { getStorage } from "firebase-admin/storage";
 import sgMail from "@sendgrid/mail";
 import { jsPDF } from "jspdf";
@@ -25,7 +25,7 @@ export const sendMonthlyReport = functions.pubsub
       .get();
 
     let totalRevenue = 0;
-    billingSnap.forEach((doc) => {
+    billingSnap.forEach((doc: any) => {
       totalRevenue += doc.data().amount || 0;
     });
 
@@ -39,7 +39,7 @@ export const sendMonthlyReport = functions.pubsub
     pdf.text(`Total Revenue: $${totalRevenue.toFixed(2)}`, 14, 45);
     pdf.text(`Events Logged: ${eventsSnap.size}`, 14, 55);
 
-    eventsSnap.docs.slice(0, 15).forEach((doc, i) => {
+    eventsSnap.docs.slice(0, 15).forEach((doc: any, i: any) => {
       const e = doc.data();
       pdf.text(`${i + 1}. ${e.event} (${new Date(e.ts).toLocaleDateString()})`, 14, 70 + i * 8);
     });

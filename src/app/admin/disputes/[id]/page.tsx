@@ -3,7 +3,6 @@ import { getDisputeById } from '@/app/actions/get-dispute-by-id';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import DisputeStatusUpdater from './DisputeStatusUpdater';
-import AuditHistory from './AuditHistory'; // Import the new component
 
 interface AdminDisputeReviewPageProps {
   params: {
@@ -19,89 +18,39 @@ export default async function AdminDisputeReviewPage({ params }: AdminDisputeRev
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Review Dispute</h1>
-      
-      <div className="grid md:grid-cols-3 gap-6">
-        {/* Main Dispute Details */}
-        <div className="md:col-span-2">
-          <Card>
+    <div className="p-6 max-w-3xl mx-auto">
+        <h1 className="text-2xl font-bold mb-4">Dispute Detail</h1>
+        <Card>
             <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle>Dispute #{dispute.id.substring(0,8)}...</CardTitle>
-                  <CardDescription>Submitted on {dispute.createdAt.toLocaleDateString()}</CardDescription>
-                </div>
-                <Badge>{dispute.status}</Badge>
-              </div>
+                <CardTitle>Dispute ID: {dispute.id}</CardTitle>
+                <CardDescription>
+                    Incident ID: {dispute.incident.id}
+                </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <h3 className="font-semibold text-lg mb-2">Renter's Reason</h3>
-                <p className="bg-gray-50 p-4 rounded-md border">{dispute.reason}</p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-2">Evidence Provided</h3>
-                {dispute.evidence && dispute.evidence.length > 0 ? (
-                  <ul className="list-disc list-inside space-y-2">
-                    {dispute.evidence.map((file, index) => (
-                      <li key={index}>
-                        <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                          {file.name}
+            <CardContent className="space-y-4">
+                <p><strong>Submitted by:</strong> {dispute.renter.email}</p>
+                <p><strong>Message:</strong> {dispute.message}</p>
+                <div className="flex items-center gap-2">
+                    <strong>Evidence:</strong>
+                    {dispute.evidence?.map((url: string, idx: number) => (
+                        <a
+                        key={idx}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-500 underline"
+                        >
+                        View Evidence #{idx + 1}
                         </a>
-                      </li>
                     ))}
-                  </ul>
-                ) : (
-                  <p>No evidence was provided.</p>
-                )}
-              </div>
-
-              {/* Add the status updater for pending disputes */}
-              {dispute.status === 'pending' && <DisputeStatusUpdater disputeId={dispute.id} />}
-              
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Contextual Info */}
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Renter Details</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {dispute.renter ? (
-                <div className="text-sm">
-                  <p><strong>Name:</strong> {dispute.renter.name}</p>
-                  <p><strong>Email:</strong> {dispute.renter.email}</p>
+                    {!dispute.evidence?.length && <p>No evidence provided.</p>}
                 </div>
-              ) : (
-                <p>No renter data found.</p>
-              )}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Original Incident</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {dispute.incident ? (
-                <div className="text-sm space-y-1">
-                  <p><strong>Type:</strong> {dispute.incident.type}</p>
-                  <p><strong>Description:</strong> {dispute.incident.description}</p>
+                <div className="pt-4">
+                    <p><strong>Status:</strong> <Badge>{dispute.status}</Badge></p>
                 </div>
-              ) : (
-                <p>No incident data found.</p>
-              )}
+                <DisputeStatusUpdater dispute={dispute} />
             </CardContent>
-          </Card>
-          
-          {/* Dispute History / Audit Log */}
-          <AuditHistory disputeId={params.id} />
-
-        </div>
-      </div>
+        </Card>
     </div>
   );
 }

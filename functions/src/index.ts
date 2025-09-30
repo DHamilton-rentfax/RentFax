@@ -1,38 +1,63 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
+import sgMail from "@sendgrid/mail";
 
-admin.initializeApp();
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
 
-// TODO: Configure your email transport (e.g., using Nodemailer with an SMTP service)
+// Configure SendGrid
+// Set in your Firebase environment config:
+// firebase functions:config:set sendgrid.key="YOUR_API_KEY" admin.email="your-admin@email.com"
+if (functions.config().sendgrid && functions.config().sendgrid.key) {
+  sgMail.setApiKey(functions.config().sendgrid.key);
+} else {
+  console.warn("SendGrid API key not configured. Email notifications will be disabled.");
+}
 
 export const onDisputeCreated = functions.firestore
-  .document("disputes/{disputeId}")
+  .document("renters/{renterId}/disputes/{disputeId}")
   .onCreate(async (snap, context) => {
     const dispute = snap.data();
+    if (!dispute) {
+      console.log("No dispute data to process.");
+      return;
+    }
 
-    // TODO: Replace with your admin email address
-    const adminEmail = "admin@example.com";
+    const { renterId, disputeId } = context.params;
+
+    const adminEmail = functions.config().admin?.email;
+
+    if (!adminEmail) {
+      console.error("Admin email is not configured. Cannot send notification. Set config: admin.email");
+      return;
+    }
 
     const mailOptions = {
-      from: "disputes@your-app.com",
+      from: "disputes@your-app.com", // Must be a verified sender in SendGrid
       to: adminEmail,
-      subject: `New Dispute Submitted: ${dispute.id}`,
+      subject: `New Dispute Submitted: ${disputeId}`,
       html: `
         <h1>A new dispute has been submitted.</h1>
-        <p><strong>Dispute ID:</strong> ${dispute.id}</p>
-        <p><strong>Renter ID:</strong> ${dispute.renterUid}</p>
-        <p><strong>Description:</strong></p>
-        <p>${dispute.description}</p>
+        <p><strong>Dispute ID:</strong> ${disputeId}</p>
+        <p><strong>Renter ID:</strong> ${renterId}</p>
+        <p><strong>Message:</strong></p>
+        <p>${dispute.message}</p>
         <p>Please log in to the admin dashboard to review the details.</p>
       `,
     };
 
-    try {
-      // TODO: Send the email using your configured transport
-      console.log("Email sent to:", adminEmail);
-      return null;
-    } catch (error) {
-      console.error("There was an error sending the email:", error);
-      return null;
+    if (functions.config().sendgrid && functions.config().sendgrid.key) {
+      try {
+        await sgMail.send(mailOptions);
+        console.log(`Dispute notification email sent to ${adminEmail}`);
+      } catch (error) {
+        console.error("Error sending dispute notification email:", error);
+        if (error.response) {
+          console.error(error.response.body);
+        }
+      }
+    } else {
+      console.log("Email not sent because SendGrid is not configured.");
     }
   });

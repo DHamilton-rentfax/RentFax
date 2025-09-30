@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, FormEvent } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { doc, getDoc, collection, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { clientDB } from '@/firebase/client';
+import { db } from '@/firebase/client';
 import { uploadEvidenceFiles } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 
@@ -29,7 +29,7 @@ export default function IncidentDetailPage({ params }: { params: { id: string } 
     if (!user?.uid || !params.id) return;
 
     const fetchIncident = async () => {
-      const incidentRef = doc(clientDB, `renters/${user.uid}/incidents`, params.id);
+      const incidentRef = doc(db, `renters/${user.uid}/incidents`, params.id);
       const incidentSnap = await getDoc(incidentRef);
 
       if (incidentSnap.exists()) {
@@ -43,14 +43,14 @@ export default function IncidentDetailPage({ params }: { params: { id: string } 
     fetchIncident();
   }, [user?.uid, params.id]);
 
-  const handleDisputeSubmit = async (e: React.FormEvent) => {
+  const handleDisputeSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!user?.uid || !incident) return;
 
     setSubmitting(true);
     try {
       const evidenceUrls = await uploadEvidenceFiles(user.uid, disputeFiles);
-      await addDoc(collection(clientDB, `renters/${user.uid}/disputes`), {
+      await addDoc(collection(db, `renters/${user.uid}/disputes`), {
         incidentId: incident.id,
         message: disputeMessage,
         evidence: evidenceUrls,
@@ -59,7 +59,7 @@ export default function IncidentDetailPage({ params }: { params: { id: string } 
         createdAt: serverTimestamp(),
       });
 
-      const incidentRef = doc(clientDB, `renters/${user.uid}/incidents`, incident.id);
+      const incidentRef = doc(db, `renters/${user.uid}/incidents`, incident.id);
       await updateDoc(incidentRef, { status: 'under_review' });
 
       setIncident(prev => prev ? { ...prev, status: 'under_review' } : null);
