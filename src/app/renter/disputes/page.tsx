@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useToast } from '@/components/ui/Toast';
 import { db } from '@/firebase/client';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
@@ -35,10 +36,10 @@ export default function RenterDisputesPage({ searchParams }: { searchParams: { t
     notify('Dispute filed successfully');
   }
 
-  async function uploadEvidence(disputeId: string, file: File) {
+  async function uploadEvidence(id: string, file: File) {
     const res = await fetch('/api/renter/disputes/evidence', {
       method: 'POST',
-      body: JSON.stringify({ token, disputeId, fileName: file.name }),
+      body: JSON.stringify({ token, id, fileName: file.name }),
     });
     const { uploadUrl } = await res.json();
     await fetch(uploadUrl, { method: 'PUT', body: file });
@@ -71,8 +72,15 @@ export default function RenterDisputesPage({ searchParams }: { searchParams: { t
       <div className="space-y-4">
         {disputes.map(d => (
           <div key={d.id} className="border p-3 rounded bg-white">
-            <p><b>{d.subject}</b> — {d.status}</p>
-            <p className="text-sm text-gray-500">Filed {new Date(d.createdAt).toLocaleDateString()}</p>
+            <div className="flex justify-between items-center">
+                <div>
+                    <p><b>{d.subject}</b> — {d.status}</p>
+                    <p className="text-sm text-gray-500">Filed {new Date(d.createdAt).toLocaleDateString()}</p>
+                </div>
+                <Link href={`/renter/disputes/${d.id}`} className="text-blue-600 hover:underline">
+                    View
+                </Link>
+            </div>
             <input
               type="file"
               onChange={e => e.target.files && uploadEvidence(d.id, e.target.files[0])}

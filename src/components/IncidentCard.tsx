@@ -1,10 +1,13 @@
 export const IncidentCard = ({ incident }: { incident: any }) => {
+  if (!incident) return null;
   return (
-    <div className="border p-4 rounded-lg">
-      <h3 className="font-bold">Incident Details</h3>
-      <p>Amount: ${incident.amount}</p>
-      <p>Description: {incident.description}</p>
-      <p>Date: {incident.date}</p>
+    <div className="border p-4 rounded-lg bg-secondary mt-2">
+      <h3 className="font-bold text-lg">{incident.type || 'Incident'} Details</h3>
+      <p><strong>Amount:</strong> ${incident.amount || 0}</p>
+      <p><strong>Description:</strong> {incident.description || 'No description.'}</p>
+      <p className="text-xs text-muted-foreground mt-2">
+        ID: {incident.id}
+      </p>
     </div>
   );
 };

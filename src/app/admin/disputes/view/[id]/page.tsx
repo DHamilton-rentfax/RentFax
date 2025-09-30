@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { getDisputeById } from '@/app/actions/get-dispute-by-id';
 import { updateDisputeStatus } from '@/app/actions/update-dispute-status';
@@ -19,16 +19,18 @@ export default function AdminDisputePage() {
   useEffect(() => {
     if (id) {
       getDisputeById(id as string).then((data) => {
-        setDispute(data);
-        setStatus(data?.status || '');
-        setNote(data?.adminNote || '');
+        if (data) {
+            setDispute(data);
+            setStatus(data?.status || '');
+            setNote(data?.adminNote || '');
+        }
       });
     }
   }, [id]);
 
   const handleUpdate = async () => {
     if (!dispute) return;
-    await updateDisputeStatus(dispute.id, status, note, 'admin');
+    await updateDisputeStatus(dispute.id, status, note, 'admin'); // Assuming 'admin' as actorId for now
     alert('Dispute updated.');
   };
 
@@ -54,7 +56,7 @@ export default function AdminDisputePage() {
           <ul className="list-disc ml-6 mt-2 space-y-1">
             {dispute.evidence.map((url, i) => (
               <li key={i}>
-                <a href={url} target="_blank" className="text-blue-600 underline">
+                <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
                   View Evidence {i + 1}
                 </a>
               </li>

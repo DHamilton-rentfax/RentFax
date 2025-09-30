@@ -5,13 +5,13 @@ import { db } from '@/firebase/server';
 
 export async function POST(req: NextRequest) {
   try {
-    const { incidentId } = await req.json();
+    const { id } = await req.json();
 
-    if (!incidentId) {
-      return new NextResponse('Missing incidentId', { status: 400 });
+    if (!id) {
+      return new NextResponse('Missing id', { status: 400 });
     }
 
-    const incidentDoc = await db.collection('incidents').doc(incidentId).get();
+    const incidentDoc = await db.collection('incidents').doc(id).get();
     if (!incidentDoc.exists) {
       return new NextResponse('Incident not found', { status: 404 });
     }
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
         return new NextResponse('Renter not found', { status: 404 });
     }
 
-    const incidentUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/incidents/${incidentId}`;
+    const incidentUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/incidents/${id}`;
 
     await sendEmail({
       to: renter.email,

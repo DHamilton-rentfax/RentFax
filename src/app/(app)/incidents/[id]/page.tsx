@@ -110,7 +110,7 @@ export default function IncidentDetailPage() {
         {/* Right Column - AI Assist */}
         <div className="md:col-span-2">
             <FeatureGate name="ai_assistant">
-                <IncidentAssistPanel incidentId={id} />
+                <IncidentAssistPanel id={id} />
             </FeatureGate>
         </div>
       </div>

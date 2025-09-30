@@ -5,13 +5,13 @@ import { addDoc, collection, updateDoc, doc } from "firebase/firestore";
 import { db } from "@/firebase/client";
 
 export default function DisputesPage() {
-  const [incidentId, setIncidentId] = useState("");
+  const [id, setIncidentId] = useState("");
   const [details, setDetails] = useState("");
   const [status, setStatus] = useState("DRAFT");
 
   async function createDispute() {
     await addDoc(collection(db, "disputes"), {
-      incidentId,
+      id,
       details,
       status,
       createdAt: new Date(),
@@ -19,8 +19,8 @@ export default function DisputesPage() {
     setIncidentId(""); setDetails("");
   }
 
-  async function updateDisputeStatus(disputeId: string, newStatus: string) {
-    await updateDoc(doc(db, "disputes", disputeId), { status: newStatus });
+  async function updateDisputeStatus(id: string, newStatus: string) {
+    await updateDoc(doc(db, "disputes", id), { status: newStatus });
   }
 
   return (
@@ -28,7 +28,7 @@ export default function DisputesPage() {
       <h1 className="text-xl font-bold">Disputes</h1>
       <input
         placeholder="Incident ID"
-        value={incidentId}
+        value={id}
         onChange={(e) => setIncidentId(e.target.value)}
         className="border p-2 block"
       />

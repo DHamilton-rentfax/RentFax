@@ -10,7 +10,7 @@ if (process.env.SENDGRID_API_KEY) {
 interface DisputeStatusUpdateEmailProps {
   email: string;
   renterName: string;
-  disputeId: string;
+  id: string;
   newStatus: 'approved' | 'rejected' | 'pending';
   adminNotes?: string;
 }
@@ -18,7 +18,7 @@ interface DisputeStatusUpdateEmailProps {
 export async function sendDisputeStatusUpdateEmail({
   email,
   renterName,
-  disputeId,
+  id,
   newStatus,
   adminNotes = 'No additional notes provided.',
 }: DisputeStatusUpdateEmailProps) {
@@ -36,9 +36,9 @@ export async function sendDisputeStatusUpdateEmail({
   };
 
   const messageBody = {
-    approved: `Your dispute (ID: ${disputeId.substring(0,8)}...) has been reviewed and **approved**. The original incident report has been updated accordingly.`,
-    rejected: `Your dispute (ID: ${disputeId.substring(0,8)}...) has been reviewed and **rejected**. The original incident report will be upheld.`,
-    pending: `Your dispute (ID: ${disputeId.substring(0,8)}...) is now under review by our team. We will notify you once a decision has been made.`,
+    approved: `Your dispute (ID: ${id.substring(0,8)}...) has been reviewed and **approved**. The original incident report has been updated accordingly.`,
+    rejected: `Your dispute (ID: ${id.substring(0,8)}...) has been reviewed and **rejected**. The original incident report will be upheld.`,
+    pending: `Your dispute (ID: ${id.substring(0,8)}...) is now under review by our team. We will notify you once a decision has been made.`,
   }
 
   const msg = {

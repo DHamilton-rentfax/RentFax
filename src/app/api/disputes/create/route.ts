@@ -23,12 +23,12 @@ async function handleFileUploads(files: File[]): Promise<string[]> {
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
-    const incidentId = formData.get('incidentId') as string;
+    const id = formData.get('id') as string;
     const message = formData.get('message') as string;
     const evidenceFiles = formData.getAll('evidence') as File[];
 
-    if (!incidentId || !message) {
-      return new NextResponse(JSON.stringify({ success: false, error: "Missing incidentId or message" }), { status: 400 });
+    if (!id || !message) {
+      return new NextResponse(JSON.stringify({ success: false, error: "Missing id or message" }), { status: 400 });
     }
 
     // 1. Handle file uploads
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
     // 2. Create a new dispute document in Firestore
     const disputeRef = await db.collection('disputes').add({
-      incidentId,
+      id,
       message,
       evidence: evidenceUrls,
       createdAt: FieldValue.serverTimestamp(),
@@ -44,10 +44,10 @@ export async function POST(req: NextRequest) {
     });
 
     // 3. Update the related incident to mark it as disputed
-    const incidentRef = db.collection('incidents').doc(incidentId);
+    const incidentRef = db.collection('incidents').doc(id);
     await incidentRef.update({ status: 'disputed' });
 
-    return new NextResponse(JSON.stringify({ success: true, disputeId: disputeRef.id }), { status: 201 });
+    return new NextResponse(JSON.stringify({ success: true, id: disputeRef.id }), { status: 201 });
 
   } catch (error) {
     console.error('Error creating dispute:', error);

@@ -4,14 +4,14 @@ import { db } from '@/firebase/server';
 
 export async function POST(req: NextRequest) {
   try {
-    const { incidentId, message, files } = await req.json();
+    const { id, message, files } = await req.json();
 
-    if (!incidentId || !message) {
-      return new NextResponse('Missing incidentId or message', { status: 400 });
+    if (!id || !message) {
+      return new NextResponse('Missing id or message', { status: 400 });
     }
 
     const dispute = {
-      incidentId,
+      id,
       message,
       files,
       createdAt: new Date(),
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     await db.collection('disputes').add(dispute);
 
     // Also update the incident status to 'disputed'
-    await db.collection('incidents').doc(incidentId).update({ status: 'disputed' });
+    await db.collection('incidents').doc(id).update({ status: 'disputed' });
 
     return new NextResponse('Dispute submitted successfully', { status: 200 });
   } catch (error) {

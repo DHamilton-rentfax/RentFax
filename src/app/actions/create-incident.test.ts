@@ -59,7 +59,7 @@ describe('createIncident Server Action', () => {
         expect(mockIncidentDocRef.set).toHaveBeenCalled();
         expect(mockedSendEmail).toHaveBeenCalledWith(expect.objectContaining({
             email: 'test@example.com',
-            incidentId: 'incident-456',
+            id: 'incident-456',
         }));
     });
 

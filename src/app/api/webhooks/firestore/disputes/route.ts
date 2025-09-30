@@ -15,7 +15,7 @@ async function sendNotification(userId: string, title: string, body: string, lin
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { orgId, renterId, type, disputeId, message } = body;
+  const { orgId, renterId, type, id, message } = body;
 
   const orgDoc = await adminDB.doc(`orgs/${orgId}`).get();
   const renterDoc = await adminDB.doc(`orgs/${orgId}/renters/${renterId}`).get();
@@ -38,11 +38,11 @@ export async function POST(req: NextRequest) {
                 from: "noreply@rentfax.ai",
                 subject: "🚨 New Dispute Filed",
                 html: `<p>A new dispute has been filed by ${renterData?.name}.</p>
-                        <p><a href='''${process.env.NEXT_PUBLIC_APP_URL}/dashboard/disputes/${disputeId}'''>View Dispute</a></p>`
+                        <p><a href='''${process.env.NEXT_PUBLIC_APP_URL}/dashboard/disputes/${id}'''>View Dispute</a></p>`
             });
         }
         if (prefs?.disputes?.inApp) {
-            await sendNotification(orgAdminUserId, "New Dispute Filed", `A new dispute has been filed by ${renterData?.name}.`, `/dashboard/disputes/${disputeId}`);
+            await sendNotification(orgAdminUserId, "New Dispute Filed", `A new dispute has been filed by ${renterData?.name}.`, `/dashboard/disputes/${id}`);
         }
     }
   }
@@ -59,12 +59,12 @@ export async function POST(req: NextRequest) {
                     from: "noreply@rentfax.ai",
                     subject: "💬 New Message in Dispute",
                     html: `<p>You have a new message from your landlord.</p><blockquote>${message.text}</blockquote>
-                            <p><a href='''${process.env.NEXT_PUBLIC_APP_URL}/renter/disputes/${disputeId}'''>Open Dispute</a></p>`
+                            <p><a href='''${process.env.NEXT_PUBLIC_APP_URL}/renter/disputes/${id}'''>Open Dispute</a></p>`
                 });
             }
 
             if (prefs?.messages?.inApp) {
-                await sendNotification(renterUserId, "New Message", "You have a new message from your landlord.", `/renter/disputes/${disputeId}`);
+                await sendNotification(renterUserId, "New Message", "You have a new message from your landlord.", `/renter/disputes/${id}`);
             }
         }
     } else {
@@ -78,11 +78,11 @@ export async function POST(req: NextRequest) {
                     from: "noreply@rentfax.ai",
                     subject: "💬 New Message in Dispute",
                     html: `<p>${renterData?.name} wrote:</p><blockquote>${message.text}</blockquote>
-                            <p><a href='''${process.env.NEXT_PUBLIC_APP_URL}/dashboard/disputes/${disputeId}'''>Open Dispute</a></p>`
+                            <p><a href='''${process.env.NEXT_PUBLIC_APP_URL}/dashboard/disputes/${id}'''>Open Dispute</a></p>`
                 });
             }
             if (prefs?.messages?.inApp) {
-                await sendNotification(orgAdminUserId, "New Message", `You have a new message from ${renterData?.name}.`, `/dashboard/disputes/${disputeId}`);
+                await sendNotification(orgAdminUserId, "New Message", `You have a new message from ${renterData?.name}.`, `/dashboard/disputes/${id}`);
             }
         }
     }

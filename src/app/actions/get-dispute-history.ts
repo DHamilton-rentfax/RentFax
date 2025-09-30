@@ -13,14 +13,14 @@ export interface AuditLog {
 
 /**
  * Fetches the historical audit trail for a specific dispute.
- * @param disputeId The ID of the dispute.
+ * @param id The ID of the dispute.
  * @returns An object containing an array of audit logs, or an error.
  */
-export async function getDisputeHistory(disputeId: string) {
+export async function getDisputeHistory(id: string) {
   try {
     const historySnapshot = await adminDB
       .collection('disputes')
-      .doc(disputeId)
+      .doc(id)
       .collection('history')
       .orderBy('timestamp', 'desc')
       .get();
@@ -37,9 +37,9 @@ export async function getDisputeHistory(disputeId: string) {
     return { history };
   } catch (error) {
     if (error instanceof Error) {
-      console.error(`Error fetching history for dispute ${disputeId}:`, error.message);
+      console.error(`Error fetching history for dispute ${id}:`, error.message);
     } else {
-      console.error('Unknown error fetching history for dispute', disputeId)
+      console.error('Unknown error fetching history for dispute', id)
     }
     return { error: 'Failed to fetch audit history.' };
   }

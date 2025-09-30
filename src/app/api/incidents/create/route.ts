@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ incidentId: incidentRef.id }),
+        body: JSON.stringify({ id: incidentRef.id }),
     });
 
     return new NextResponse(JSON.stringify({ id: incidentRef.id }), { 

@@ -8,7 +8,7 @@ import Link from 'next/link';
 
 type Dispute = {
   id: string;
-  incidentId: string;
+  id: string;
   description: string;
   evidenceUrls: string[];
   status: string;
@@ -52,7 +52,7 @@ export default function DisputeHistoryPage() {
                   <p className="text-sm text-gray-500">
                     Incident:{' '}
                     <Link
-                      href={`/renter/incidents/${d.incidentId}`}
+                      href={`/renter/incidents/${d.id}`}
                       className="underline text-blue-600"
                     >
                       View Incident

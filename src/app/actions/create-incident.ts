@@ -56,7 +56,7 @@ export const createIncident = async (input: {
             await sendIncidentAlertEmail({
                 email: renterEmail,
                 renterId,
-                incidentId: newIncidentRef.id,
+                id: newIncidentRef.id,
                 type,
                 description,
             });

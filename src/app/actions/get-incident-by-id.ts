@@ -14,9 +14,9 @@ export interface Incident {
     evidence?: string[];
 }
 
-export const getIncidentById = async (incidentId: string): Promise<Incident | null> => {
+export const getIncidentById = async (id: string): Promise<Incident | null> => {
     try {
-        const incidentDoc = await adminDB.collectionGroup('incidents').where('id', '==', incidentId).get();
+        const incidentDoc = await adminDB.collectionGroup('incidents').where('id', '==', id).get();
 
         if (incidentDoc.empty) {
             return null;

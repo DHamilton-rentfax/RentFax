@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
 
   await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/firestore/disputes`, {
     method: "POST",
-    body: JSON.stringify({ orgId, renterId, type: "dispute_created", disputeId: ref.id }),
+    body: JSON.stringify({ orgId, renterId, type: "dispute_created", id: ref.id }),
   });
 
   return NextResponse.json({ id: ref.id });

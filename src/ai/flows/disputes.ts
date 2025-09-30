@@ -24,14 +24,14 @@ async function getTasksClient() {
 }
 
 
-async function scheduleReminder(disputeId: string, hoursFromNow: number) {
+async function scheduleReminder(id: string, hoursFromNow: number) {
   if (!REMINDER_URL) {
     console.warn('DISPUTE_REMINDER_URL not set, skipping task scheduling.');
     return;
   }
   const client = await getTasksClient();
   const parent = client.queuePath(PROJECT_ID, LOCATION, QUEUE_ID);
-  const body = Buffer.from(JSON.stringify({disputeId})).toString('base64');
+  const body = Buffer.from(JSON.stringify({id})).toString('base64');
   const scheduleTime = {seconds: Math.floor(Date.now() / 1000) + hoursFromNow * 3600};
 
   await client.createTask({
@@ -124,7 +124,7 @@ const startDisputeFlow = ai.defineFlow(
       recipientId: payload.renterId, // Assuming the handler will also notify the company
       data: {
         companyId: companyId,
-        disputeId: ref.id,
+        id: ref.id,
         renterId: payload.renterId,
         incidentId: payload.incidentId,
       },
@@ -135,7 +135,7 @@ const startDisputeFlow = ai.defineFlow(
 );
 
 const PostDisputeMessageSchema = z.object({
-  disputeId: z.string(),
+  id: z.string(),
   text: z.string(),
 });
 export type PostDisputeMessageInput = z.infer<typeof PostDisputeMessageSchema>;
@@ -161,7 +161,7 @@ const postDisputeMessageFlow = ai.defineFlow(
     const {uid} = auth;
     const {companyId, role} = ((await authAdmin.getUser(uid)).customClaims as any) || {};
 
-    const ref = db.doc(`disputes/${payload.disputeId}`);
+    const ref = db.doc(`disputes/${payload.id}`);
     const snap = await ref.get();
     if (!snap.exists) throw new Error('Dispute not found');
 
@@ -179,7 +179,7 @@ const postDisputeMessageFlow = ai.defineFlow(
       actorUid: uid,
       actorRole: role,
       companyId: companyId,
-      targetPath: `disputes/${payload.disputeId}`,
+      targetPath: `disputes/${payload.id}`,
       action: 'postDisputeMessage',
       after: {text: payload.text},
     });
@@ -189,7 +189,7 @@ const postDisputeMessageFlow = ai.defineFlow(
 );
 
 const UpdateDisputeStatusSchema = z.object({
-  disputeId: z.string(),
+  id: z.string(),
   status: z.enum(['open', 'needs_info', 'resolved', 'rejected']),
 });
 export type UpdateDisputeStatusInput = z.infer<typeof UpdateDisputeStatusSchema>;
@@ -219,7 +219,7 @@ const updateDisputeStatusFlow = ai.defineFlow(
     const {uid} = auth;
     const {companyId, role} = ((await authAdmin.getUser(uid)).customClaims as any) || {};
 
-    const ref = db.doc(`disputes/${payload.disputeId}`);
+    const ref = db.doc(`disputes/${payload.id}`);
     const snap = await ref.get();
     if (!snap.exists) throw new Error('Dispute not found');
 
@@ -232,7 +232,7 @@ const updateDisputeStatusFlow = ai.defineFlow(
       actorUid: uid,
       actorRole: role,
       companyId: companyId,
-      targetPath: `disputes/${payload.disputeId}`,
+      targetPath: `disputes/${payload.id}`,
       action: 'updateDisputeStatus',
       after: {status: payload.status},
     });
@@ -242,7 +242,7 @@ const updateDisputeStatusFlow = ai.defineFlow(
       recipientId: d.renterId,
       data: {
         renterId: d.renterId,
-        disputeId: payload.disputeId,
+        id: payload.id,
         status: payload.status,
       },
     });

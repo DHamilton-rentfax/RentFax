@@ -14,7 +14,7 @@ export async function getAllIncidents() {
     // Map over the documents and extract the data, including the renterId from the path
     const incidents = incidentsSnap.docs.map(doc => {
       const data = doc.data();
-      const renterId = doc.ref.parent.parent?.id; // The path is /renters/{renterId}/incidents/{incidentId}
+      const renterId = doc.ref.parent.parent?.id; // The path is /renters/{renterId}/incidents/{id}
       
       return {
         id: doc.id,

@@ -160,7 +160,7 @@ const incidentAssistFlow = ai.defineFlow({
     if (!auth) throw new Error('Auth is missing.');
     const { companyId } = auth.claims as any;
 
-    const incidentRef = db.doc(`incidents/${incidentId}`);
+    const incidentRef = db.doc(`incidents/${id}`);
     const incidentSnap = await incidentRef.get();
 
     if (!incidentSnap.exists) throw new Error('Incident not found.');

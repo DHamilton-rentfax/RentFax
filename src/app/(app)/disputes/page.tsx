@@ -88,7 +88,7 @@ export default function DisputesPage() {
                           href={`/disputes/${dispute.id}`}
                           className="hover:underline text-primary"
                         >
-                          {dispute.incidentId}
+                          {dispute.id}
                         </Link>
                       </TableCell>
                       <TableCell>{dispute.renterId}</TableCell>

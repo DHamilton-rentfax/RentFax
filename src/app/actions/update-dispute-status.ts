@@ -1,24 +1,25 @@
 'use server';
 
 import { adminDB } from '@/firebase/server';
-import { getDisputeById } from './get-dispute-by-id';
+import { FieldValue } from 'firebase-admin/firestore';
 import { logAudit } from './audit-log';
+import { getDisputeById } from './get-dispute-by-id';
 
 export async function updateDisputeStatus(
-  disputeId: string,
+  id: string,
   status: string,
   adminNote: string,
   actorId: string
 ) {
-  const before = await getDisputeById(disputeId);
+  const before = await getDisputeById(id);
 
-  await adminDB.doc(`disputes/${disputeId}`).update({
+  await adminDB.doc(`disputes/${id}`).update({
     status,
     adminNote,
-    updatedAt: Date.now(),
+    updatedAt: FieldValue.serverTimestamp(),
   });
 
-  const after = await getDisputeById(disputeId);
+  const after = await getDisputeById(id);
 
   await logAudit('updateDisputeStatus', actorId, { before, after });
 }

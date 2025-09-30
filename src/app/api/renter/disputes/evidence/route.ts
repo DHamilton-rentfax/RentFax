@@ -3,11 +3,11 @@ import { adminDB } from "@/firebase/server";
 import { getStorage } from "firebase-admin/storage";
 
 export async function POST(req: NextRequest) {
-  const { token, disputeId, fileName } = await req.json();
+  const { token, id, fileName } = await req.json();
   const [orgId, renterId] = Buffer.from(token, "base64").toString().split(":");
 
   const bucket = getStorage().bucket();
-  const filePath = `orgs/${orgId}/disputes/${disputeId}/evidence/${fileName}`;
+  const filePath = `orgs/${orgId}/disputes/${id}/evidence/${fileName}`;
   const file = bucket.file(filePath);
 
   const [url] = await file.getSignedUrl({
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   });
 
   // Save placeholder record
-  await adminDB.collection(`orgs/${orgId}/disputes/${disputeId}/evidence`).add({
+  await adminDB.collection(`orgs/${orgId}/disputes/${id}/evidence`).add({
     fileName,
     uploadedBy: renterId,
     uploadedAt: Date.now(),

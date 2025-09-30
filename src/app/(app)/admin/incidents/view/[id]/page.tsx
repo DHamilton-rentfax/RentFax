@@ -48,7 +48,7 @@ export default function AdminIncidentDetailPage({ params }: { params: { id: stri
                 // If incident is disputed, fetch the dispute
                 if (incidentData.status === 'under_review' || incidentData.status === 'resolved' || incidentData.status === 'dismissed') {
                     const disputesRef = collection(db, `renters/${renterId}/disputes`);
-                    const q = query(disputesRef, where("incidentId", "==", params.id));
+                    const q = query(disputesRef, where("id", "==", params.id));
                     const disputeSnaps = await getDocs(q);
                     if (!disputeSnaps.empty) {
                         const disputeData = disputeSnaps.docs[0].data() as Omit<Dispute, 'id'>;

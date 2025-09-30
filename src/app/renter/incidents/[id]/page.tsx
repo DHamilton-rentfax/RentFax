@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { doc, getDoc, collection, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from '@/firebase/client';
@@ -19,6 +20,7 @@ interface Incident {
 
 export default function IncidentDetailPage({ params }: { params: { id: string } }) {
   const { user } = useAuth();
+  const router = useRouter();
   const [incident, setIncident] = useState<Incident | null>(null);
   const [loading, setLoading] = useState(true);
   const [disputeMessage, setDisputeMessage] = useState('');
@@ -50,8 +52,8 @@ export default function IncidentDetailPage({ params }: { params: { id: string } 
     setSubmitting(true);
     try {
       const evidenceUrls = await uploadEvidenceFiles(user.uid, disputeFiles);
-      await addDoc(collection(db, `renters/${user.uid}/disputes`), {
-        incidentId: incident.id,
+      const newDisputeRef = await addDoc(collection(db, `renters/${user.uid}/disputes`), {
+        id: incident.id,
         message: disputeMessage,
         evidence: evidenceUrls,
         submittedBy: user.uid,
@@ -63,7 +65,8 @@ export default function IncidentDetailPage({ params }: { params: { id: string } 
       await updateDoc(incidentRef, { status: 'under_review' });
 
       setIncident(prev => prev ? { ...prev, status: 'under_review' } : null);
-      alert('Dispute submitted successfully!');
+      
+      router.push(`/renter/disputes/${newDisputeRef.id}`);
 
     } catch (error) {
       console.error("Error submitting dispute:", error);

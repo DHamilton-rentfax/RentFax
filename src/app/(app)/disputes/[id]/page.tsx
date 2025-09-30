@@ -61,7 +61,7 @@ export default function DisputeDetailPage() {
     if (!newMessage.trim()) return;
     setIsSubmitting(true);
     try {
-      await postDisputeMessage({ disputeId: id, text: newMessage.trim() });
+      await postDisputeMessage({ id: id, text: newMessage.trim() });
       setNewMessage('');
     } catch (error: any) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
@@ -73,7 +73,7 @@ export default function DisputeDetailPage() {
   const handleStatusChange = async (status: DisputeStatus) => {
     setIsSubmitting(true);
     try {
-      await updateDisputeStatus({ disputeId: id, status });
+      await updateDisputeStatus({ id: id, status });
       toast({ title: 'Success', description: 'Dispute status updated.' });
     } catch (error: any) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
@@ -120,7 +120,7 @@ export default function DisputeDetailPage() {
               </div>
               <div>
                 <p className="text-sm font-medium">Incident ID</p>
-                <p className="text-muted-foreground">{dispute.incidentId}</p>
+                <p className="text-muted-foreground">{dispute.id}</p>
               </div>
               <div>
                 <p className="text-sm font-medium">Renter ID</p>

@@ -15,7 +15,8 @@
     "e2e:headed": "playwright test --headed",
     "e2e:report": "playwright show-report",
     "test:e2e": "npm run e2e",
-    "test": "jest"
+    "test": "jest",
+    "normalize-slugs": "ts-node scripts/normalize-slugs.ts"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.14.1",
