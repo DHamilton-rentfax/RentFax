@@ -1,38 +1,17 @@
-'use server';
-// Helper for Firebase SendGrid Email Extension (writes to /mail)
-import { admin, dbAdmin as db } from '@/lib/firebase-admin';
 
-type MailPayload = {
-  to: string | string[];
+// A mock email service for development
+
+interface EmailOptions {
+  to: string;
   subject: string;
-  text?: string;
-  html?: string;
-  template?: {
-    name: string;
-    data: Record<string, any>;
-  };
-};
+  html: string;
+}
 
-export async function sendMail(params: MailPayload) {
-  try {
-    const mailData: any = {
-      to: Array.isArray(params.to) ? params.to : [params.to],
-      message: { 
-        subject: params.subject,
-      },
-      createdAt: admin.firestore.FieldValue.serverTimestamp()
-    };
-    if (params.template) {
-        mailData.template = params.template;
-    } else {
-        mailData.message.text = params.text;
-        mailData.message.html = params.html;
-    }
-
-    await db.collection('mail').add(mailData);
-
-  } catch (error) {
-    console.error("Error sending email:", error);
-    // In a real app, you might have more robust error handling, e.g., a retry queue.
-  }
+export async function sendEmail(options: EmailOptions) {
+  console.log('Sending email:');
+  console.log(`  To: ${options.to}`);
+  console.log(`  Subject: ${options.subject}`);
+  console.log(`  Body: ${options.html}`);
+  // In a real application, this would use a service like SendGrid or Postmark
+  return Promise.resolve();
 }

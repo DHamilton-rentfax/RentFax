@@ -1,65 +1,114 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { Button } from '@/components/ui/button';
-import { Download, Filter } from 'lucide-react';
-import { exportToCSV } from '@/lib/utils/exportToCSV';
+import { useEffect, useState } from 'react';
+import { collection, query, getDocs, orderBy, doc, getDoc } from 'firebase/firestore';
+import { db } from '@/firebase/client';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
-type FraudSignal = {
-  renterId: string;
-  signalType: string;
-  detail: string;
-  severity: number;
-  timestamp: string;
+type Signal = {
+  type: string;
+  confidence: number;
+  explanation: string;
+  related?: string[];
 };
 
-const FraudDashboard = ({ signals }: { signals: FraudSignal[] }) => {
-  const [sortBy, setSortBy] = useState<'timestamp' | 'severity' | 'signalType'>('timestamp');
+type EnrichedSignal = Signal & { 
+    renterId: string; 
+    evaluatedAt: any;
+    renterName?: string;
+    renterEmail?: string;
+};
 
-  const sortedSignals = useMemo(() => {
-    return [...signals].sort((a, b) => {
-      if (sortBy === 'timestamp') return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-      if (sortBy === 'severity') return b.severity - a.severity;
-      if (sortBy === 'signalType') return a.signalType.localeCompare(b.signalType);
-      return 0;
-    });
-  }, [signals, sortBy]);
+export default function FraudDashboard() {
+  const [allSignals, setAllSignals] = useState<EnrichedSignal[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<string>('ALL');
+
+  useEffect(() => {
+    const fetchSignals = async () => {
+        setLoading(true);
+        try {
+            // Fetch all fraud reports from the central collection
+            const reportsQuery = query(collection(db, 'fraud_signals'), orderBy('evaluatedAt', 'desc'));
+            const reportsSnapshot = await getDocs(reportsQuery);
+            const reports = reportsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            let signals: EnrichedSignal[] = [];
+
+            // Enrich signals with renter info
+            for (const report of reports) {
+                const userDoc = await getDoc(doc(db, 'users', report.renterId));
+                const userData = userDoc.exists() ? userDoc.data() : null;
+
+                report.signals.forEach((signal: Signal) => {
+                    signals.push({
+                        ...signal,
+                        renterId: report.renterId,
+                        evaluatedAt: report.evaluatedAt,
+                        renterName: userData?.name,
+                        renterEmail: userData?.email,
+                    });
+                });
+            }
+            setAllSignals(signals);
+        } catch (error) {
+            console.error("Failed to fetch fraud signals:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    fetchSignals();
+  }, []);
+
+  const filtered = filter === 'ALL' ? allSignals : allSignals.filter((s) => s.type === filter);
+  const signalTypes = ['ALL', ...Array.from(new Set(allSignals.map(s => s.type)))];
 
   return (
-    <div className="p-4">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex gap-2 items-center">
-          <Filter className="w-4 h-4" />
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className="border px-2 py-1 rounded text-sm"
-          >
-            <option value="timestamp">Newest</option>
-            <option value="severity">Severity</option>
-            <option value="signalType">Signal Type</option>
-          </select>
-        </div>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Fraud Detection Dashboard</h1>
+      <Tabs value={filter} onValueChange={setFilter} className="w-full">
+        <TabsList>
+            {signalTypes.map(type => (
+                <TabsTrigger key={type} value={type}>
+                    {type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                </TabsTrigger>
+            ))}
+        </TabsList>
 
-        <Button onClick={() => exportToCSV(sortedSignals, 'fraud_signals.csv')} variant="outline">
-          <Download className="w-4 h-4 mr-2" />
-          Export CSV
-        </Button>
-      </div>
+        {loading && <div className="text-center p-8">Loading signals...</div>}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {sortedSignals.map((s, i) => (
-          <div key={i} className="border p-4 rounded shadow-sm">
-            <p><strong>Renter:</strong> {s.renterId}</p>
-            <p><strong>Signal:</strong> {s.signalType}</p>
-            <p><strong>Detail:</strong> {s.detail}</p>
-            <p><strong>Severity:</strong> {s.severity}</p>
-            <p className="text-xs text-gray-500">{new Date(s.timestamp).toLocaleString()}</p>
-          </div>
+        {!loading && signalTypes.map(type => (
+            <TabsContent key={type} value={type}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                    {filtered.filter(s => filter === 'ALL' || s.type === type).map((s, i) => (
+                    <Card key={i} className="border-l-4 border-red-500">
+                        <CardContent className="p-4">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <h2 className="font-semibold text-md">{s.renterName || 'Unknown Renter'}</h2>
+                                <p className="text-sm text-gray-500">{s.renterEmail}</p>
+                                <Badge variant="secondary" className="mt-2">{s.type.replace(/_/g, ' ')}</Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground whitespace-nowrap">
+                                {s.evaluatedAt?.toDate().toLocaleDateString()}
+                            </p>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-3">
+                            {s.explanation}
+                        </p>
+                        </CardContent>
+                    </Card>
+                    ))}
+                </div>
+                {filtered.filter(s => filter === 'ALL' || s.type === type).length === 0 && (
+                    <div className="text-center p-8 text-gray-500">No signals of this type found.</div>
+                )}
+            </TabsContent>
         ))}
-      </div>
+      </Tabs>
     </div>
   );
-};
-
-export default FraudDashboard;
+}

@@ -16,5 +16,35 @@ service cloud.firestore {
         allow read: if exists(/databases/$(database)/documents/orgs/$(orgId)/members/$(request.auth.uid));
         allow write: if get(/databases/$(database)/documents/orgs/$(orgId)/members/$(request.auth.uid)).data.role in ['OWNER', 'ADMIN'];
     }
+
+    // Rules for renter incidents and disputes
+    match /renters/{renterId} {
+      // Allow renter to access their own data
+      allow read: if request.auth != null && request.auth.uid == renterId;
+
+      // Incident Rules
+      match /incidents/{incidentId} {
+        // Renter can read their own incidents
+        allow read: if request.auth != null && request.auth.uid == renterId;
+
+        // Renter can create an incident (should be done by admin, but for dispute linking)
+        allow create: if request.auth != null && request.auth.uid == renterId;
+
+        // Renter can update an incident's status to 'Disputed'
+        allow update: if request.auth != null && request.auth.uid == renterId
+                      && request.resource.data.status == 'Disputed'
+                      && resource.data.status == 'Open';
+      }
+
+      // Dispute Rules
+      match /disputes/{disputeId} {
+        // Renter can read their own disputes
+        allow read: if request.auth != null && request.auth.uid == renterId;
+
+        // Renter can create a dispute for their own incident
+        allow create: if request.auth != null && request.auth.uid == renterId
+                      && request.resource.data.submittedBy == renterId;
+      }
+    }
   }
 }
