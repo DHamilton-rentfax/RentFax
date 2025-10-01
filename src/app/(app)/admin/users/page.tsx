@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 
 const ROLES = ["super_admin", "admin", "editor", "reviewer", "user", "banned"];
@@ -91,7 +90,7 @@ export default function AdminUsersPage() {
                       {user.lastSignIn ? formatDistanceToNow(new Date(user.lastSignIn), { addSuffix: true }) : 'Never'}
                   </TableCell>
                   <TableCell>
-                    <Select defaultValue={user.role} onValueChange={(value) => handleRoleChange(user.uid, value)}>
+                    <Select defaultValue={user.role} onValueChange={(value) => handleRoleChange(user.uid, value)} disabled={user.uid === auth.currentUser?.uid}>
                         <SelectTrigger className="w-[140px]">
                             <SelectValue placeholder="Set role" />
                         </SelectTrigger>
