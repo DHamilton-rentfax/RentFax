@@ -1,7 +1,13 @@
+
 "use client";
 
 import { useState } from "react";
-import { Tooltip } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { auth } from "@/firebase/client";
 
 const plans = [
@@ -196,7 +202,9 @@ const addons = [
 ];
 
 export default function PricingPage() {
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">(
+    "monthly"
+  );
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
 
@@ -209,13 +217,20 @@ export default function PricingPage() {
   async function checkout() {
     const token = await auth.currentUser?.getIdToken();
     const body = {
-      plan: selectedPlan ? (billingCycle === "monthly" ? selectedPlan.lookupMonthly : selectedPlan.lookupAnnual) : null,
+      plan: selectedPlan
+        ? billingCycle === "monthly"
+          ? selectedPlan.lookupMonthly
+          : selectedPlan.lookupAnnual
+        : null,
       addons: selectedAddons,
       billingCycle,
     };
     const res = await fetch("/api/checkout", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify(body),
     });
     const { url } = await res.json();
@@ -223,88 +238,115 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="relative">
-      <div className="max-w-7xl mx-auto p-8 pb-32"> {/* Added pb-32 to create space for the cart */}
-        <h1 className="text-4xl font-bold text-center mb-10">Pricing</h1>
-
-        {/* Plans */}
-        <div className="grid md:grid-cols-4 gap-6 mb-16">
-          {plans.map((plan) => (
-            <div
-              key={plan.id}
-              className={`p-6 rounded-xl border-2 cursor-pointer transition ${
-                selectedPlan?.id === plan.id
-                  ? "border-indigo-600 shadow-lg"
-                  : plan.highlight
-                  ? "border-indigo-400 shadow"
-                  : "border-gray-200"
-              }`}
-              onClick={() => {
-                if (plan.id === "payg") {
-                  alert("⚡ Pay-As-You-Go: $20 per report. (Custom flow coming soon)");
-                  return;
-                }
-                if (plan.id === "enterprise") {
-                  alert("📞 Contact Sales: A representative will reach out.");
-                  return;
-                }
-                setSelectedPlan(plan);
-              }}
-            >
-              <h2 className="text-xl font-bold mb-2">{plan.name}</h2>
-              <p className="text-gray-500 mb-4">{plan.description}</p>
-              {plan.id !== "payg" && plan.id !== "enterprise" ? (
-                <p className="text-2xl font-semibold">
-                  {billingCycle === "monthly" ? `$${plan.priceMonthly}/mo` : `$${plan.priceAnnual}/yr`}
-                </p>
-              ) : (
-                <p className="text-2xl font-semibold">{plan.price}</p>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Add-Ons */}
-        <h2 className="text-2xl font-bold mb-6 text-center">Add-Ons</h2>
-        <div className="space-y-12 mb-24">
-          {addons.map((group) => (
-            <div key={group.category}>
-              <h3 className="text-xl font-semibold mb-4">{group.category}</h3>
-              <div className="grid md:grid-cols-3 gap-6">
-                {group.items.map((item) => {
-                  const key = billingCycle === "monthly" ? item.keyMonthly : item.keyAnnual;
-                  const price = billingCycle === "monthly" ? item.monthly : item.annual;
-                  const selected = selectedAddons.includes(key);
-                  return (
-                    <div
-                      key={key}
-                      className={`p-4 border rounded-lg cursor-pointer transition flex flex-col justify-between ${
-                        selected ? "border-indigo-600 bg-indigo-50" : "border-gray-200"
-                      }`}
-                      onClick={() => toggleAddon(key)}
-                    >
-                      <div>
-                        <div className="flex justify-between items-center">
-                          <h4 className="font-semibold">{item.name}</h4>
-                          <Tooltip content={item.description}>
-                            <span className="text-gray-400 cursor-help">ℹ️</span>
-                          </Tooltip>
-                        </div>
-                        <p className="mt-2 text-gray-600">${price}/{billingCycle === "monthly" ? "mo" : "yr"}</p>
-                      </div>
-                      {selected && <p className="mt-2 text-indigo-600 text-sm">✓ Selected</p>}
-                    </div>
-                  );
-                })}
+    <TooltipProvider>
+      <div className="relative">
+        <div className="max-w-7xl mx-auto p-8 pb-32">
+          {" "}
+          {/* Added pb-32 to create space for the cart */}
+          <h1 className="text-4xl font-bold text-center mb-10">Pricing</h1>
+          {/* Plans */}
+          <div className="grid md:grid-cols-4 gap-6 mb-16">
+            {plans.map((plan) => (
+              <div
+                key={plan.id}
+                className={`p-6 rounded-xl border-2 cursor-pointer transition ${
+                  selectedPlan?.id === plan.id
+                    ? "border-indigo-600 shadow-lg"
+                    : plan.highlight
+                    ? "border-indigo-400 shadow"
+                    : "border-gray-200"
+                }`}
+                onClick={() => {
+                  if (plan.id === "payg") {
+                    alert(
+                      "⚡ Pay-As-You-Go: $20 per report. (Custom flow coming soon)"
+                    );
+                    return;
+                  }
+                  if (plan.id === "enterprise") {
+                    alert("📞 Contact Sales: A representative will reach out.");
+                    return;
+                  }
+                  setSelectedPlan(plan);
+                }}
+              >
+                <h2 className="text-xl font-bold mb-2">{plan.name}</h2>
+                <p className="text-gray-500 mb-4">{plan.description}</p>
+                {plan.id !== "payg" && plan.id !== "enterprise" ? (
+                  <p className="text-2xl font-semibold">
+                    {billingCycle === "monthly"
+                      ? `$${plan.priceMonthly}/mo`
+                      : `$${plan.priceAnnual}/yr`}
+                  </p>
+                ) : (
+                  <p className="text-2xl font-semibold">{plan.price}</p>
+                )}
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+          {/* Add-Ons */}
+          <h2 className="text-2xl font-bold mb-6 text-center">Add-Ons</h2>
+          <div className="space-y-12 mb-24">
+            {addons.map((group) => (
+              <div key={group.category}>
+                <h3 className="text-xl font-semibold mb-4">{group.category}</h3>
+                <div className="grid md:grid-cols-3 gap-6">
+                  {group.items.map((item) => {
+                    const key =
+                      billingCycle === "monthly"
+                        ? item.keyMonthly
+                        : item.keyAnnual;
+                    const price =
+                      billingCycle === "monthly"
+                        ? item.monthly
+                        : item.annual;
+                    const selected = selectedAddons.includes(key);
+                    return (
+                      <div
+                        key={key}
+                        className={`p-4 border rounded-lg cursor-pointer transition flex flex-col justify-between ${
+                          selected
+                            ? "border-indigo-600 bg-indigo-50"
+                            : "border-gray-200"
+                        }`}
+                        onClick={() => toggleAddon(key)}
+                      >
+                        <div>
+                          <div className="flex justify-between items-center">
+                            <h4 className="font-semibold">{item.name}</h4>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="text-gray-400 cursor-help">
+                                  ℹ️
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{item.description}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                          <p className="mt-2 text-gray-600">
+                            ${price}/
+                            {billingCycle === "monthly" ? "mo" : "yr"}
+                          </p>
+                        </div>
+                        {selected && (
+                          <p className="mt-2 text-indigo-600 text-sm">
+                            ✓ Selected
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Sticky Cart */}
-      <div className="absolute bottom-0 left-0 right-0 bg-white shadow-lg border-t p-4 flex justify-between items-center">
-        <div className="max-w-7xl mx-auto w-full flex justify-between items-center">
+        {/* Sticky Cart */}
+        <div className="absolute bottom-0 left-0 right-0 bg-white shadow-lg border-t p-4 flex justify-between items-center">
+          <div className="max-w-7xl mx-auto w-full flex justify-between items-center">
             <div>
               <p className="font-bold">Selected Plan:</p>
               <p>{selectedPlan ? selectedPlan.name : "None"}</p>
@@ -324,8 +366,9 @@ export default function PricingPage() {
             >
               Checkout
             </button>
+          </div>
         </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }
