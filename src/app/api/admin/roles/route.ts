@@ -1,7 +1,7 @@
 
 import { NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
-import { admin, dbAdmin } from "@/lib/firebase-admin";
+import { admin, dbAdmin, authAdmin } from "@/lib/firebase-admin";
 import { logAudit } from "@/ai/flows/audit";
 
 export async function POST(req: Request) {
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     if (!authHeader) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const token = authHeader.split(" ")[1];
-    const decoded = await getAuth().verifyIdToken(token);
+    const decoded = await authAdmin.verifyIdToken(token);
     if (decoded.role !== "super_admin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -24,8 +24,13 @@ export async function POST(req: Request) {
     const userToUpdate = await getAuth().getUser(uid);
     const oldRole = userToUpdate.customClaims?.role || 'user';
     
+    // Safety check: a super admin cannot demote themselves
+    if (uid === decoded.uid && role !== 'super_admin') {
+        return NextResponse.json({ error: "Cannot demote yourself." }, { status: 403 });
+    }
+
     // Set custom claim
-    await getAuth().setCustomUserClaims(uid, { role });
+    await getAuth().setCustomUserClaims(uid, { ...userToUpdate.customClaims, role });
 
     // Optional: store in Firestore for querying
     await dbAdmin.collection("users").doc(uid).set({ role }, { merge: true });

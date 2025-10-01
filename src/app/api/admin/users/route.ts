@@ -1,6 +1,7 @@
 
 import { NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
+import { authAdmin } from "@/lib/firebase-admin";
 
 export async function GET(req: Request) {
   try {
@@ -8,7 +9,7 @@ export async function GET(req: Request) {
     if (!authHeader) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const token = authHeader.split(" ")[1];
-    const decoded = await getAuth().verifyIdToken(token);
+    const decoded = await authAdmin.verifyIdToken(token);
     if (decoded.role !== "super_admin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -19,6 +20,8 @@ export async function GET(req: Request) {
       uid: u.uid,
       email: u.email,
       role: (u.customClaims?.role as string) || "user",
+      companyId: (u.customClaims?.companyId as string) || null,
+      lastSignIn: u.metadata.lastSignInTime,
     }));
 
     return NextResponse.json({ users });
