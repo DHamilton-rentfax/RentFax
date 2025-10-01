@@ -21,18 +21,18 @@ function LoadingSpinner() {
 
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, claims } = useAuth();
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
-    (async () => {
-      const userRole = await getUserRole(user.uid);
-      setRole(userRole);
+    if (claims?.role) {
+      setRole(claims.role);
       setLoading(false);
-    })();
-  }, [user]);
+    } else if (claims) { // claims loaded, but no role
+        setLoading(false);
+    }
+  }, [claims]);
 
   if (loading || !user) return <LoadingSpinner />;
 
@@ -50,6 +50,6 @@ export default function DashboardPage() {
     case 'content_manager':
         return <DashboardContentManager />;
     default:
-      return <div className="text-red-500">Access Denied: No role assigned.</div>;
+      return <div className="text-red-500">Access Denied: No role assigned. Contact support if you believe this is an error.</div>;
   }
 }

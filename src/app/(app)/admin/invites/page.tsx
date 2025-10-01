@@ -19,13 +19,13 @@ import { createInvite as createInviteAction } from "@/app/auth/actions";
 import { formatDistanceToNow } from "date-fns";
 import { useAuth } from "@/hooks/use-auth";
 
-type Role = 'ADMIN' | 'EDITOR' | 'REVIEWER' | 'USER' | 'CONTENT_MANAGER';
+type Role = 'admin' | 'editor' | 'reviewer' | 'user' | 'content_manager';
 
 export default function InvitesPage() {
   const { toast } = useToast();
   const { claims } = useAuth();
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<Role>("EDITOR");
+  const [role, setRole] = useState<Role>("editor");
   const [invites, setInvites] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingInvites, setLoadingInvites] = useState(true);
@@ -71,7 +71,7 @@ export default function InvitesPage() {
   }
 
   return (
-    <Protected roles={['SUPER_ADMIN', 'ADMIN']}>
+    <Protected roles={['super_admin', 'admin']}>
       <div className="space-y-6">
         <h1 className="text-2xl font-bold font-headline">Team Invites</h1>
 
@@ -92,11 +92,11 @@ export default function InvitesPage() {
                         <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="EDITOR">Editor</SelectItem>
-                        <SelectItem value="ADMIN">Admin</SelectItem>
-                        <SelectItem value="REVIEWER">Reviewer</SelectItem>
-                        <SelectItem value="USER">User</SelectItem>
-                        <SelectItem value="CONTENT_MANAGER">Content Manager</SelectItem>
+                        <SelectItem value="editor">Editor</SelectItem>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="reviewer">Reviewer</SelectItem>
+                        <SelectItem value="user">User</SelectItem>
+                        <SelectItem value="content_manager">Content Manager</SelectItem>
                     </SelectContent>
                 </Select>
                 <Button onClick={createInvite} disabled={loading}>

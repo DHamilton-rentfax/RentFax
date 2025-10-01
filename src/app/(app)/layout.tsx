@@ -6,7 +6,7 @@ export default function AppLayout({
   children: React.ReactNode;
 }) {
   return (
-    <Protected roles={['SUPER_ADMIN', 'ADMIN', 'EDITOR', 'REVIEWER', 'USER']}>
+    <Protected roles={['super_admin', 'admin', 'editor', 'reviewer', 'user', 'content_manager', 'rental_client']}>
       {children}
     </Protected>
   );

@@ -9,7 +9,7 @@ import admin from 'firebase-admin';
  * To run this script:
  * 1. Make sure your Firebase Admin SDK credentials are set up in your environment.
  *    (e.g., by setting the GOOGLE_APPLICATION_CREDENTIALS environment variable)
- * 2. Run from the root of your project: `npx ts-node scripts/create-test-users.ts`
+ * 2. Run from the root of your project: `npx ts-node src/scripts/create-test-users.ts`
  */
 
 // Initialize Firebase Admin SDK
@@ -37,7 +37,7 @@ const createTestUsers = async () => {
     const user = await auth.getUserByEmail(adminEmail);
     console.log(`Admin user ${adminEmail} already exists.`);
     // Ensure custom claims are set correctly
-    await auth.setCustomUserClaims(user.uid, { role: "SUPER_ADMIN", companyId: 'SYSTEM' });
+    await auth.setCustomUserClaims(user.uid, { role: "super_admin", companyId: 'SYSTEM' });
     console.log(`Updated custom claims for ${adminEmail}.`);
   } catch (error: any) {
     if (error.code === 'auth/user-not-found') {
@@ -47,7 +47,7 @@ const createTestUsers = async () => {
         emailVerified: true,
         displayName: 'Super Admin',
       });
-      await auth.setCustomUserClaims(user.uid, { role: "SUPER_ADMIN", companyId: 'SYSTEM' });
+      await auth.setCustomUserClaims(user.uid, { role: "super_admin", companyId: 'SYSTEM' });
       console.log(`✅ Successfully created admin user: ${adminEmail}`);
     } else {
       console.error('Error processing admin user:', error);
