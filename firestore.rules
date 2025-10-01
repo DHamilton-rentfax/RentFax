@@ -1,79 +1,30 @@
 
 rules_version = '2';
-
-// Helper functions to check user roles from their auth token claims
-function isSuperAdmin(request) {
-  return request.auth.token.role == 'super_admin';
-}
-
-function isAdmin(request) {
-  return request.auth.token.role == 'admin' || isSuperAdmin(request);
-}
-
-function isEditor(request) {
-    return request.auth.token.role == 'editor' || isAdmin(request);
-}
-
-function isReviewer(request) {
-    return request.auth.token.role == 'reviewer' || isEditor(request);
-}
-
-function isUser(request) {
-    return request.auth.token.role == 'user' || isReviewer(request);
-}
-
 service cloud.firestore {
   match /databases/{database}/documents {
-  
-    // Org-level data
-    match /companies/{companyId} {
-      allow read: if request.auth.token.companyId == companyId;
-      allow write: if isSuperAdmin(request) || (isAdmin(request) && request.auth.token.companyId == companyId);
+    // Org-level data is private
+    match /orgs/{orgId} {
+      allow read, write: if request.auth.uid != null && request.auth.token.orgId == orgId;
+
+      // Renters are readable by org members
+      match /renters/{renterId} {
+        allow read: if request.auth.uid != null && request.auth.token.orgId == orgId;
+        allow write: if request.auth.uid != null && request.auth.token.orgId == orgId;
+      }
+
+      // Tamper-proof audit logs
+      match /logs/{logId} {
+        allow read: if request.auth.uid != null && request.auth.token.orgId == orgId;
+        allow create: if request.auth.uid != null;
+        allow update, delete: if false; // Immutable
+      }
     }
-    
-    // User roles are public to read, but only admins can write
-    match /users/{userId} {
-      allow read: if request.auth != null;
-      // An admin can only edit users within their own company
-      // A super_admin can edit anyone
-      allow write: if isSuperAdmin(request) || (isAdmin(request) && request.auth.token.companyId == resource.data.companyId);
-    }
-    
-    // Renters can only be accessed by members of the same company
+
+    // Renter-specific data (for portal access)
     match /renters/{renterId} {
-        allow read, write: if request.auth.token.companyId == resource.data.companyId;
-        // Also allow the renter themselves if they have a renterUid claim
-        allow read: if request.auth.uid == resource.data.renterUid;
-    }
-
-    // Incidents can only be accessed by members of the same company
-    match /incidents/{incidentId} {
-        allow read, write: if request.auth.token.companyId == resource.data.companyId;
-    }
-
-    // Disputes can be read by company members, and also by the renter who filed it
-    match /disputes/{disputeId} {
-        allow read: if request.auth.token.companyId == resource.data.companyId || request.auth.uid == resource.data.renterUid;
-        allow create: if request.auth.token.companyId == resource.data.companyId;
-        allow update: if request.auth.token.companyId == resource.data.companyId;
-    }
-
-    // Audit logs are immutable
-    match /auditLogs/{logId} {
-        allow read: if isSuperAdmin(request) || (isAdmin(request) && request.auth.token.companyId == resource.data.companyId);
-        allow create: if request.auth != null;
-        allow update, delete: if false;
-    }
-    
-    // Blog posts can be written by editors/admins, public read if published
-    match /blogs/{slug} {
-      allow read: if resource.data.published == true;
-      allow write: if isEditor(request);
-    }
-    
-    // Invites can only be managed by admins of that company
-    match /invites/{inviteId} {
-        allow read, write: if request.auth.token.companyId == resource.data.companyId && isAdmin(request);
+        allow read: if request.auth.uid == renterId;
+        // Allow renters to update their own dispute info
+        allow update: if request.auth.uid == renterId && request.resource.data.keys().hasOnly(['dispute']);
     }
   }
 }
