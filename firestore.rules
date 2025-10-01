@@ -1,30 +1,81 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Org-level data is private
-    match /orgs/{orgId} {
-      allow read, write: if request.auth.uid != null && request.auth.token.orgId == orgId;
 
-      // Renters are readable by org members
-      match /renters/{renterId} {
-        allow read: if request.auth.uid != null && request.auth.token.orgId == orgId;
-        allow write: if request.auth.uid != null && request.auth.token.orgId == orgId;
-      }
+    // ------------------------------
+    // 1. Users Collection
+    // ------------------------------
+    match /users/{userId} {
+      allow read: if request.auth.uid == userId;
+      allow write: if false; // Should be managed by backend functions
 
-      // Tamper-proof audit logs
-      match /logs/{logId} {
-        allow read: if request.auth.uid != null && request.auth.token.orgId == orgId;
-        allow create: if request.auth.uid != null;
-        allow update, delete: if false; // Immutable
+      // Allow users to manage their own notifications
+      match /notifications/{notificationId} {
+        allow read, write: if request.auth.uid == userId;
       }
     }
 
-    // Renter-specific data (for portal access)
+    // ------------------------------
+    // 2. Blogs Collection
+    // ------------------------------
+    match /blogs/{blogId} {
+      allow read: if true; // Publicly readable
+      allow write, update, delete: if request.auth.token.role in ['super_admin', 'admin', 'content_manager'];
+    }
+
+    // ------------------------------
+    // 3. Companies Collection
+    // ------------------------------
+    match /companies/{companyId} {
+      allow read: if request.auth.token.companyId == companyId;
+      allow write: if request.auth.token.role in ['super_admin', 'admin'];
+    }
+    
+    match /companyRules/{companyId} {
+       allow read: if true; // Publicly readable rules
+       allow write: if request.auth.token.companyId == companyId && request.auth.token.role in ['super_admin', 'admin'];
+    }
+
+    match /invites/{inviteId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth.token.role in ['super_admin', 'admin'];
+      allow write: if request.auth.token.companyId == resource.data.companyId;
+    }
+
+    // ------------------------------
+    // 4. Company Subcollections
+    // ------------------------------
     match /renters/{renterId} {
-        allow read: if request.auth.uid == renterId;
-        // Allow renters to update their own dispute info
-        allow update: if request.auth.uid == renterId && request.resource.data.keys().hasOnly(['dispute']);
+      allow read, write: if request.auth.token.companyId == resource.data.companyId;
+    }
+    
+    match /incidents/{incidentId} {
+       allow read, write: if request.auth.token.companyId == resource.data.companyId;
+    }
+    
+    match /disputes/{disputeId} {
+       allow read, write: if request.auth.token.companyId == resource.data.companyId;
+    }
+
+    match /auditLogs/{logId} {
+      allow read: if request.auth.token.role in ['super_admin', 'admin'] && request.auth.token.companyId == resource.data.companyId;
+      allow create: if request.auth != null;
+      allow update, delete: if false;
+    }
+    
+    match /uploadBatches/{batchId} {
+      allow read, write: if request.auth.token.companyId == resource.data.companyId;
+    }
+    
+     match /fraud_signals/{renterId} {
+      allow read, write: if request.auth.token.companyId == resource.data.companyId;
+    }
+
+    // ------------------------------
+    // 5. Default fallback
+    // ------------------------------
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
