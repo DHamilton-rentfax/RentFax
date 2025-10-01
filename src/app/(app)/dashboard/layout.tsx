@@ -37,6 +37,7 @@ const settingsLinks = [
     { href: '/dashboard/team', label: 'Team', icon: Users, roles: ['admin', 'super_admin'] },
     { href: '/dashboard/settings/rules', label: 'Rules & Branding', icon: ShieldQuestion, roles: ['admin', 'super_admin'] },
     { href: '/dashboard/billing', label: 'Billing & Add-Ons', icon: Settings, roles: ['admin', 'super_admin'] },
+    { href: "/dashboard/notifications", label: "Notifications", icon: Bell, roles: ['user', 'reviewer', 'editor', 'admin', 'super_admin'] },
 ]
 
 const adminNavLinks = [
@@ -75,7 +76,7 @@ export default function DashboardLayout({
                             ))}
                             <p className="px-3 py-2 mt-4 text-xs font-semibold text-muted-foreground">SETTINGS</p>
                             {settingsLinks.map(link => (
-                                <Protected key={link.href} roles={['admin', 'super_admin']}>
+                                <Protected key={link.href} roles={link.roles}>
                                     <Link
                                         href={link.href}
                                         className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
