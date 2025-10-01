@@ -3,103 +3,120 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Eye, EyeOff } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+
 
 export default function AuthPage() {
-  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { toast } = useToast();
+
+  const handleLogin = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      const redirect = searchParams.get('redirect') || '/dashboard';
+      router.push(redirect);
+    } catch (e: any) {
+      setError(e.message);
+      toast({ title: 'Login Failed', description: e.message, variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    setError(null);
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      const redirect = searchParams.get('redirect') || '/dashboard';
+      router.push(redirect);
+    } catch (e: any) {
+       setError(e.message);
+       toast({ title: 'Google Sign-In Failed', description: e.message, variant: 'destructive' });
+    } finally {
+        setLoading(false);
+    }
+  }
+
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
-      <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl">
-        {/* Logo + Heading */}
-        <div className="text-center">
-          <Link
-            href="/"
-            className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-pink-600 bg-clip-text text-transparent"
-          >
-            RentFAX
-          </Link>
-          <h1 className="mt-4 text-2xl font-extrabold text-gray-900">
-            {mode === "login" ? "Welcome back" : "Create your account"}
-          </h1>
-          <p className="mt-2 text-sm text-gray-600">
-            {mode === "login"
-              ? "Sign in to your dashboard"
-              : "Start your free trial today"}
-          </p>
-        </div>
-
-        {/* Form */}
-        <form className="mt-8 space-y-6">
-          {mode === "signup" && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Full Name
-              </label>
-              <input
-                type="text"
-                required
-                className="mt-2 w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-600 focus:ring-indigo-600"
-              />
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Email
-            </label>
-            <input
-              type="email"
-              required
-              className="mt-2 w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-600 focus:ring-indigo-600"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Password
-            </label>
-            <input
-              type="password"
-              required
-              className="mt-2 w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-600 focus:ring-indigo-600"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full py-3 px-6 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700"
-          >
-            {mode === "login" ? "Login" : "Sign Up"}
-          </button>
-        </form>
-
-        {/* Divider */}
-        <div className="my-6 flex items-center gap-4">
-          <div className="flex-1 h-px bg-gray-200"></div>
-          <span className="text-sm text-gray-500">or</span>
-          <div className="flex-1 h-px bg-gray-200"></div>
-        </div>
-
-        {/* Google Button */}
-        <button
-          type="button"
-          className="w-full py-3 px-6 border border-gray-300 rounded-xl font-medium flex items-center justify-center gap-3 hover:bg-gray-50"
-        >
-          <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" className="h-5 w-5" />
-          Continue with Google
-        </button>
-
-        {/* Toggle */}
-        <p className="mt-6 text-center text-sm text-gray-600">
-          {mode === "login" ? "Don't have an account?" : "Already have an account?"}{" "}
-          <button
-            onClick={() => setMode(mode === "login" ? "signup" : "login")}
-            className="text-indigo-600 font-medium hover:underline"
-          >
-            {mode === "login" ? "Sign Up" : "Login"}
-          </button>
-        </p>
-      </div>
+    <div className="flex items-center justify-center min-h-screen bg-muted/40">
+        <Card className="w-full max-w-sm">
+            <CardHeader className="text-center">
+                <CardTitle className="font-headline text-2xl">Welcome Back</CardTitle>
+                <CardDescription>Sign in to access your dashboard</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+                 {error && <div className="text-destructive text-sm font-medium bg-destructive/10 p-3 rounded-md">{error}</div>}
+                 <form onSubmit={handleLogin} className="space-y-4">
+                    <div className="grid gap-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input id="email" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="password">Password</Label>
+                        <div className="relative">
+                            <Input id="password" type={showPassword ? 'text' : 'password'} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+                             <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
+                            >
+                                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                            </button>
+                        </div>
+                         <div className="text-right text-sm">
+                            <Link href="/reset-password" prefetch={false} className="underline">
+                                Forgot password?
+                            </Link>
+                        </div>
+                    </div>
+                     <Button type="submit" disabled={loading} className="w-full">
+                        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Log In
+                    </Button>
+                 </form>
+                <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+                    </div>
+                </div>
+                <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={loading}>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" className="mr-2 h-4 w-4" />
+                    Google
+                </Button>
+            </CardContent>
+            <CardFooter className="flex flex-col gap-4 text-sm">
+                <div>
+                    Don't have an account?{" "}
+                    <Link href="/signup" prefetch={false} className="underline">
+                        Sign up
+                    </Link>
+                </div>
+            </CardFooter>
+        </Card>
     </div>
   );
 }
