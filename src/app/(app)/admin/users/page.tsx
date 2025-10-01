@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNow } from 'date-fns';
 
-const ROLES = ["super_admin", "admin", "editor", "reviewer", "user", "banned"];
+const ROLES = ["super_admin", "admin", "editor", "reviewer", "user", "banned", "content_manager"];
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<any[]>([]);

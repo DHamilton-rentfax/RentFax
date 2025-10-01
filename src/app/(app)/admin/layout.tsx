@@ -23,7 +23,7 @@ const adminNavLinks = [
     { href_disabled: "/admin/seed", label: "Seed Data", icon: Hammer, roles: ["SUPER_ADMIN"] },
     { href_disabled: "/admin/readiness", label: "Readiness", icon: CheckCircle, roles: ["SUPER_ADMIN", "ADMIN"] },
     { href: "/admin/disputes", label: "Disputes", icon: ShieldAlert, roles: ["ADMIN", "EDITOR", "REVIEWER"] },
-    { href: "/admin/blogs", label: "Blogs", icon: ListTree, roles: ["ADMIN", "EDITOR"] },
+    { href: "/admin/blogs", label: "Blogs", icon: ListTree, roles: ["ADMIN", "EDITOR", "CONTENT_MANAGER"] },
 
 ];
 
@@ -34,7 +34,7 @@ export default function AdminLayout({
 }) {
     const pathname = usePathname();
     return (
-        <Protected roles={['SUPER_ADMIN', 'ADMIN', 'EDITOR', 'REVIEWER']}>
+        <Protected roles={['SUPER_ADMIN', 'ADMIN', 'EDITOR', 'REVIEWER', 'CONTENT_MANAGER']}>
             <div className="grid md:grid-cols-[220px_1fr] lg:grid-cols-[250px_1fr] gap-6 min-h-screen">
                 <aside className="hidden md:block bg-muted/40 p-4">
                     <h2 className="text-xl font-headline font-semibold mb-4 px-2 flex items-center gap-2"><SlidersHorizontal className="h-5 w-5" /> Admin Center</h2>

@@ -9,6 +9,7 @@ import DashboardEditor from './_roles/editor';
 import DashboardViewer from './_roles/viewer';
 import DashboardRenter from './_roles/renter';
 import { Loader2 } from 'lucide-react';
+import DashboardContentManager from './_roles/content-manager';
 
 function LoadingSpinner() {
     return (
@@ -46,6 +47,8 @@ export default function DashboardPage() {
       return <DashboardViewer />;
     case 'user':
       return <DashboardRenter />;
+    case 'content_manager':
+        return <DashboardContentManager />;
     default:
       return <div className="text-red-500">Access Denied: No role assigned.</div>;
   }

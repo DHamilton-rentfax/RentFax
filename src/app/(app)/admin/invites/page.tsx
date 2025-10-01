@@ -19,7 +19,7 @@ import { createInvite as createInviteAction } from "@/app/auth/actions";
 import { formatDistanceToNow } from "date-fns";
 import { useAuth } from "@/hooks/use-auth";
 
-type Role = 'ADMIN' | 'EDITOR' | 'REVIEWER' | 'USER';
+type Role = 'ADMIN' | 'EDITOR' | 'REVIEWER' | 'USER' | 'CONTENT_MANAGER';
 
 export default function InvitesPage() {
   const { toast } = useToast();
@@ -96,6 +96,7 @@ export default function InvitesPage() {
                         <SelectItem value="ADMIN">Admin</SelectItem>
                         <SelectItem value="REVIEWER">Reviewer</SelectItem>
                         <SelectItem value="USER">User</SelectItem>
+                        <SelectItem value="CONTENT_MANAGER">Content Manager</SelectItem>
                     </SelectContent>
                 </Select>
                 <Button onClick={createInvite} disabled={loading}>

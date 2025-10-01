@@ -9,14 +9,14 @@ import {FlowAuth} from 'genkit/flow';
 import { admin, dbAdmin as db, authAdmin } from '@/lib/firebase-admin';
 
 // Canonical Role Hierarchy
-type Role = 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR' | 'REVIEWER' | 'USER' | 'RENTAL_CLIENT' | 'BANNED';
-const roles: Role[] = ['SUPER_ADMIN', 'ADMIN', 'EDITOR', 'REVIEWER', 'USER', 'RENTAL_CLIENT', 'BANNED'];
+type Role = 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR' | 'REVIEWER' | 'USER' | 'RENTAL_CLIENT' | 'BANNED' | 'CONTENT_MANAGER';
+const roles: Role[] = ['SUPER_ADMIN', 'ADMIN', 'EDITOR', 'REVIEWER', 'USER', 'RENTAL_CLIENT', 'BANNED', 'CONTENT_MANAGER'];
 
 
 // Flow to create an invitation
 const CreateInviteInputSchema = z.object({
   email: z.string().email('A valid email is required.'),
-  role: z.enum(['ADMIN', 'EDITOR', 'REVIEWER', 'USER']),
+  role: z.enum(['ADMIN', 'EDITOR', 'REVIEWER', 'USER', 'CONTENT_MANAGER']),
 });
 export type CreateInviteInput = z.infer<typeof CreateInviteInputSchema>;
 
