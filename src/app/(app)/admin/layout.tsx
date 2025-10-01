@@ -9,21 +9,21 @@ import { cn } from "@/lib/utils";
 import Protected from "@/components/protected";
 
 const adminNavLinks = [
-    { href: "/admin", label: "Dashboard", icon: LayoutDashboard, roles: ["super_admin"] },
-    { href: "/admin/orgs", label: "Organizations", icon: Building, roles: ["super_admin"] },
-    { href: "/admin/users", label: "Users", icon: Users, roles: ["super_admin"] },
-    { href: "/admin/fraud", label: "Fraud Center", icon: Bot, roles: ["super_admin"] },
-    { href: "/admin/addons", label: "Add-Ons", icon: Puzzle, roles: ["super_admin"] },
-    { href: "/admin/roles", label: "Roles", icon: ShieldCheck, roles: ["super_admin"] },
-    { href: "/admin/logs", label: "Global Logs", icon: ListTree, roles: ["super_admin"] },
-    { href: "/admin/settings", label: "Audit Export", icon: FileKey, roles: ["super_admin"] },
-    { href: "/admin/upload", label: "Upload Renters", icon: FileUp, roles: ["owner", "manager"] },
-    { href: "/admin/invites", label: "Invites", icon: Mail, roles: ["owner", "manager", "admin"] },
-    { href: "/admin/alerts", label: "Global Alert", icon: Megaphone, roles: ["owner"] },
-    { href_disabled: "/admin/seed", label: "Seed Data", icon: Hammer, roles: ["super_admin"] },
-    { href_disabled: "/admin/readiness", label: "Readiness", icon: CheckCircle, roles: ["super_admin", "owner"] },
-    { href: "/admin/disputes", label: "Disputes", icon: ShieldAlert, roles: ["owner", "manager", "admin"] },
-    { href: "/admin/blogs", label: "Blogs", icon: ListTree, roles: ["owner", "manager"] },
+    { href: "/admin", label: "Dashboard", icon: LayoutDashboard, roles: ["SUPER_ADMIN"] },
+    { href: "/admin/orgs", label: "Organizations", icon: Building, roles: ["SUPER_ADMIN"] },
+    { href: "/admin/users", label: "Users", icon: Users, roles: ["SUPER_ADMIN"] },
+    { href: "/admin/fraud", label: "Fraud Center", icon: Bot, roles: ["SUPER_ADMIN"] },
+    { href: "/admin/addons", label: "Add-Ons", icon: Puzzle, roles: ["SUPER_ADMIN"] },
+    { href: "/admin/roles", label: "Roles", icon: ShieldCheck, roles: ["SUPER_ADMIN"] },
+    { href: "/admin/logs", label: "Global Logs", icon: ListTree, roles: ["SUPER_ADMIN"] },
+    { href: "/admin/settings", label: "Audit Export", icon: FileKey, roles: ["SUPER_ADMIN"] },
+    { href: "/admin/upload", label: "Upload Renters", icon: FileUp, roles: ["ADMIN", "EDITOR"] },
+    { href: "/admin/invites", label: "Invites", icon: Mail, roles: ["ADMIN"] },
+    { href: "/admin/alerts", label: "Global Alert", icon: Megaphone, roles: ["ADMIN"] },
+    { href_disabled: "/admin/seed", label: "Seed Data", icon: Hammer, roles: ["SUPER_ADMIN"] },
+    { href_disabled: "/admin/readiness", label: "Readiness", icon: CheckCircle, roles: ["SUPER_ADMIN", "ADMIN"] },
+    { href: "/admin/disputes", label: "Disputes", icon: ShieldAlert, roles: ["ADMIN", "EDITOR", "REVIEWER"] },
+    { href: "/admin/blogs", label: "Blogs", icon: ListTree, roles: ["ADMIN", "EDITOR"] },
 
 ];
 
@@ -34,7 +34,7 @@ export default function AdminLayout({
 }) {
     const pathname = usePathname();
     return (
-        <Protected roles={['super_admin', 'owner', 'manager', 'admin']}>
+        <Protected roles={['SUPER_ADMIN', 'ADMIN', 'EDITOR', 'REVIEWER']}>
             <div className="grid md:grid-cols-[220px_1fr] lg:grid-cols-[250px_1fr] gap-6 min-h-screen">
                 <aside className="hidden md:block bg-muted/40 p-4">
                     <h2 className="text-xl font-headline font-semibold mb-4 px-2 flex items-center gap-2"><SlidersHorizontal className="h-5 w-5" /> Admin Center</h2>

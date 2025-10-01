@@ -37,7 +37,7 @@ const createTestUsers = async () => {
     const user = await auth.getUserByEmail(adminEmail);
     console.log(`Admin user ${adminEmail} already exists.`);
     // Ensure custom claims are set correctly
-    await auth.setCustomUserClaims(user.uid, { role: "super_admin", companyId: 'SYSTEM' });
+    await auth.setCustomUserClaims(user.uid, { role: "SUPER_ADMIN", companyId: 'SYSTEM' });
     console.log(`Updated custom claims for ${adminEmail}.`);
   } catch (error: any) {
     if (error.code === 'auth/user-not-found') {
@@ -47,7 +47,7 @@ const createTestUsers = async () => {
         emailVerified: true,
         displayName: 'Super Admin',
       });
-      await auth.setCustomUserClaims(user.uid, { role: "super_admin", companyId: 'SYSTEM' });
+      await auth.setCustomUserClaims(user.uid, { role: "SUPER_ADMIN", companyId: 'SYSTEM' });
       console.log(`✅ Successfully created admin user: ${adminEmail}`);
     } else {
       console.error('Error processing admin user:', error);

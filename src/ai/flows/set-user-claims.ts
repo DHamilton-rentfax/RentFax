@@ -1,14 +1,14 @@
 'use server';
 /**
  * @fileOverview A Genkit flow to set custom claims for a Firebase user.
- * Restricted to users with 'superadmin' or 'owner' roles.
+ * Restricted to users with 'super_admin' or 'owner' roles.
  */
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import {FlowAuth} from 'genkit/flow';
 import { admin, dbAdmin as db, authAdmin } from '@/lib/firebase-admin';
 
-type Role = 'owner' | 'manager' | 'agent' | 'collections' | 'renter' | 'super_admin';
+type Role = 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR' | 'REVIEWER' | 'USER' | 'RENTAL_CLIENT' | 'BANNED';
 
 const SetUserClaimsInputSchema = z.object({
   uid: z.string().describe('The UID of the user to set claims for.'),
@@ -40,16 +40,16 @@ const setUserClaimsFlow = ai.defineFlow(
       if (!callerRole) {
         throw new Error('Permission denied: Caller has no assigned role.');
       }
-      if (!(callerRole === 'super_admin' || callerRole === 'owner')) {
+      if (!(callerRole === 'SUPER_ADMIN' || callerRole === 'ADMIN')) {
         throw new Error('Permission denied: Insufficient role.');
       }
 
-      if (callerRole === 'owner') {
+      if (callerRole === 'ADMIN') {
         if (!input.companyId || callerClaims.companyId !== input.companyId) {
-          throw new Error('Permission denied: Owners can only set claims for their own company.');
+          throw new Error('Permission denied: Admins can only set claims for their own company.');
         }
-        if (input.role === 'super_admin') {
-          throw new Error('Permission denied: Owners cannot assign the superadmin role.');
+        if (input.role === 'SUPER_ADMIN') {
+          throw new Error('Permission denied: Admins cannot assign the super_admin role.');
         }
       }
     },
@@ -62,7 +62,7 @@ const setUserClaimsFlow = ai.defineFlow(
 
     // Set custom claims
     const finalCompanyId = companyId || callerClaims.companyId;
-    if (!finalCompanyId) throw new Error('Company ID is required when caller is not an owner.');
+    if (!finalCompanyId) throw new Error('Company ID is required when caller is not an admin.');
 
     await authAdmin.setCustomUserClaims(uid, {role, companyId: finalCompanyId});
     // Force token refresh on client

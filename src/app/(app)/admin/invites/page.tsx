@@ -19,13 +19,13 @@ import { createInvite as createInviteAction } from "@/app/auth/actions";
 import { formatDistanceToNow } from "date-fns";
 import { useAuth } from "@/hooks/use-auth";
 
-type Role = 'editor' | 'admin' | 'manager' | 'agent' | 'collections';
+type Role = 'ADMIN' | 'EDITOR' | 'REVIEWER' | 'USER';
 
 export default function InvitesPage() {
   const { toast } = useToast();
   const { claims } = useAuth();
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<Role>("editor");
+  const [role, setRole] = useState<Role>("EDITOR");
   const [invites, setInvites] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingInvites, setLoadingInvites] = useState(true);
@@ -71,7 +71,7 @@ export default function InvitesPage() {
   }
 
   return (
-    <Protected roles={['owner', 'manager', 'admin']}>
+    <Protected roles={['SUPER_ADMIN', 'ADMIN']}>
       <div className="space-y-6">
         <h1 className="text-2xl font-bold font-headline">Team Invites</h1>
 
@@ -92,11 +92,10 @@ export default function InvitesPage() {
                         <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="editor">Editor</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="manager">Manager</SelectItem>
-                        <SelectItem value="agent">Agent</SelectItem>
-                        <SelectItem value="collections">Collections</SelectItem>
+                        <SelectItem value="EDITOR">Editor</SelectItem>
+                        <SelectItem value="ADMIN">Admin</SelectItem>
+                        <SelectItem value="REVIEWER">Reviewer</SelectItem>
+                        <SelectItem value="USER">User</SelectItem>
                     </SelectContent>
                 </Select>
                 <Button onClick={createInvite} disabled={loading}>

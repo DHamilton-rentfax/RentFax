@@ -8,12 +8,15 @@ import {v4 as uuid} from 'uuid';
 import {FlowAuth} from 'genkit/flow';
 import { admin, dbAdmin as db, authAdmin } from '@/lib/firebase-admin';
 
-type Role = 'owner' | 'manager' | 'agent' | 'collections' | 'renter';
+// Canonical Role Hierarchy
+type Role = 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR' | 'REVIEWER' | 'USER' | 'RENTAL_CLIENT' | 'BANNED';
+const roles: Role[] = ['SUPER_ADMIN', 'ADMIN', 'EDITOR', 'REVIEWER', 'USER', 'RENTAL_CLIENT', 'BANNED'];
+
 
 // Flow to create an invitation
 const CreateInviteInputSchema = z.object({
   email: z.string().email('A valid email is required.'),
-  role: z.enum(['manager', 'agent', 'collections', 'editor', 'admin']),
+  role: z.enum(['ADMIN', 'EDITOR', 'REVIEWER', 'USER']),
 });
 export type CreateInviteInput = z.infer<typeof CreateInviteInputSchema>;
 
@@ -37,7 +40,7 @@ const createInviteFlow = ai.defineFlow(
       const caller = await authAdmin.getUser(auth.uid);
       const claims = (caller.customClaims || {}) as any;
       if (!claims.role || !claims.companyId) throw new Error('Caller must belong to a company.');
-      if (!['owner', 'manager', 'admin'].includes(claims.role)) throw new Error('Only owner, manager, or admin can create invites.');
+      if (!['SUPER_ADMIN', 'ADMIN'].includes(claims.role)) throw new Error('Only ADMINs or SUPER_ADMINs can create invites.');
     },
   },
   async ({email, role}, {auth}) => {
