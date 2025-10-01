@@ -56,7 +56,7 @@ const createCompanyFlow = ai.defineFlow(
     });
 
     // Assign owner claims to caller
-    await authAdmin.setCustomUserClaims(auth.uid, {role: 'owner', companyId});
+    await authAdmin.setCustomUserClaims(auth.uid, {role: 'admin', companyId});
     await authAdmin.revokeRefreshTokens(auth.uid);
 
     return {companyId};

@@ -75,7 +75,7 @@ export default function DashboardLayout({
                             ))}
                             <p className="px-3 py-2 mt-4 text-xs font-semibold text-muted-foreground">SETTINGS</p>
                             {settingsLinks.map(link => (
-                                <Protected key={link.href} roles={link.roles}>
+                                <Protected key={link.href} roles={['admin', 'super_admin']}>
                                     <Link
                                         href={link.href}
                                         className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
