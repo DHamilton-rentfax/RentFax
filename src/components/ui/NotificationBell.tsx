@@ -11,15 +11,28 @@ export default function NotificationBell({ uid }: { uid: string }) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    if (!uid) return;
     const q = query(collection(db, `users/${uid}/notifications`), orderBy("createdAt", "desc"));
-    const unsub = onSnapshot(q, snap => {
-      setNotifications(snap.docs.map(d => ({ id: d.id, ...d.data() } as any)));
-    });
+    
+    const unsub = onSnapshot(q, 
+        (snap) => {
+            setNotifications(snap.docs.map(d => ({ id: d.id, ...d.data() } as any)));
+        },
+        (error) => {
+            console.error("Error listening to notifications:", error);
+            // Optional: You could add a toast notification here to inform the user
+        }
+    );
+
     return () => unsub();
   }, [uid]);
 
   async function markAsRead(id: string) {
-    await updateDoc(doc(db, `users/${uid}/notifications/${id}`), { read: true });
+    try {
+        await updateDoc(doc(db, `users/${uid}/notifications/${id}`), { read: true });
+    } catch(error) {
+        console.error("Error marking notification as read:", error);
+    }
   }
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -52,6 +65,9 @@ export default function NotificationBell({ uid }: { uid: string }) {
                 <p className="text-xs text-gray-400">{new Date(n.createdAt).toLocaleString()}</p>
               </li>
             ))}
+             {notifications.length === 0 && (
+                 <li className="p-3 text-center text-gray-500">No notifications yet.</li>
+             )}
           </ul>
         </div>
       )}
