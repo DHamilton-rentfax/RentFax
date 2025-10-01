@@ -8,7 +8,7 @@ import {z} from 'genkit';
 import {FlowAuth} from 'genkit/flow';
 import { admin, dbAdmin as db, authAdmin } from '@/lib/firebase-admin';
 
-type Role = 'owner' | 'manager' | 'agent' | 'collections' | 'renter' | 'superadmin';
+type Role = 'owner' | 'manager' | 'agent' | 'collections' | 'renter' | 'super_admin';
 
 const SetUserClaimsInputSchema = z.object({
   uid: z.string().describe('The UID of the user to set claims for.'),
@@ -40,7 +40,7 @@ const setUserClaimsFlow = ai.defineFlow(
       if (!callerRole) {
         throw new Error('Permission denied: Caller has no assigned role.');
       }
-      if (!(callerRole === 'superadmin' || callerRole === 'owner')) {
+      if (!(callerRole === 'super_admin' || callerRole === 'owner')) {
         throw new Error('Permission denied: Insufficient role.');
       }
 
@@ -48,7 +48,7 @@ const setUserClaimsFlow = ai.defineFlow(
         if (!input.companyId || callerClaims.companyId !== input.companyId) {
           throw new Error('Permission denied: Owners can only set claims for their own company.');
         }
-        if (input.role === 'superadmin') {
+        if (input.role === 'super_admin') {
           throw new Error('Permission denied: Owners cannot assign the superadmin role.');
         }
       }
