@@ -74,13 +74,14 @@ const FormItemContext = React.createContext<FormItemContextValue>(
 
 const FormItem = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => {
+  React.HTMLAttributes<HTMLDivElement> & { asChild?: boolean }
+>(({ className, asChild = false, ...props }, ref) => {
   const id = React.useId()
+  const Comp = asChild ? Slot : "div"
 
   return (
     <FormItemContext.Provider value={{ id }}>
-      <div ref={ref} className={cn("space-y-2", className)} {...props} />
+      <Comp ref={ref} className={cn("space-y-2", className)} {...props} />
     </FormItemContext.Provider>
   )
 })
@@ -116,6 +117,7 @@ const FormControl = React.forwardRef<
       aria-describedby={
         !error
           ? `${formDescriptionId}`
+          // @ts-ignore
           : `${formDescriptionId} ${formMessageId}`
       }
       aria-invalid={!!error}
@@ -127,12 +129,13 @@ FormControl.displayName = "FormControl"
 
 const FormDescription = React.forwardRef<
   HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }, ref) => {
+  React.HTMLAttributes<HTMLParagraphElement> & { asChild?: boolean }
+>(({ className, asChild = false, ...props }, ref) => {
   const { formDescriptionId } = useFormField()
+  const Comp = asChild ? Slot : "p"
 
   return (
-    <p
+    <Comp
       ref={ref}
       id={formDescriptionId}
       className={cn("text-sm text-muted-foreground", className)}
@@ -144,24 +147,25 @@ FormDescription.displayName = "FormDescription"
 
 const FormMessage = React.forwardRef<
   HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
->(({ className, children, ...props }, ref) => {
+  React.HTMLAttributes<HTMLParagraphElement> & { asChild?: boolean }
+>(({ className, children, asChild = false, ...props }, ref) => {
   const { error, formMessageId } = useFormField()
   const body = error ? String(error?.message ?? "") : children
+  const Comp = asChild ? Slot : "p"
 
   if (!body) {
     return null
   }
 
   return (
-    <p
+    <Comp
       ref={ref}
       id={formMessageId}
       className={cn("text-sm font-medium text-destructive", className)}
       {...props}
     >
       {body}
-    </p>
+    </Comp>
   )
 })
 FormMessage.displayName = "FormMessage"

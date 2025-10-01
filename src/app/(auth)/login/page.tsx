@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from "react";
@@ -84,7 +85,7 @@ export default function AuthPage() {
           type="button"
           className="w-full py-3 px-6 border border-gray-300 rounded-xl font-medium flex items-center justify-center gap-3 hover:bg-gray-50"
         >
-          <img src="/google-icon.svg" alt="Google" className="h-5 w-5" />
+          <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" className="h-5 w-5" />
           Continue with Google
         </button>
 
