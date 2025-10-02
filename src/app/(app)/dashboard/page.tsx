@@ -10,6 +10,7 @@ import DashboardViewer from './_roles/viewer';
 import DashboardRenter from './_roles/renter';
 import { Loader2 } from 'lucide-react';
 import DashboardContentManager from './_roles/content-manager';
+import { redirect } from 'next/navigation';
 
 function LoadingSpinner() {
     return (
@@ -46,7 +47,7 @@ export default function DashboardPage() {
     case 'reviewer':
       return <DashboardViewer />;
     case 'user':
-      return <DashboardRenter />;
+      return redirect('/renter');
     case 'content_manager':
         return <DashboardContentManager />;
     default:

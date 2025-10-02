@@ -6,7 +6,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import {FlowAuth} from 'genkit/flow';
-import { authAdmin } from '@/lib/firebase-admin';
+import { authAdmin, dbAdmin } from '@/lib/firebase-admin';
 
 const WhoAmIOutputSchema = z.object({
   uid: z.string().optional(),
@@ -40,10 +40,13 @@ const whoAmIFlow = ai.defineFlow(
     try {
         const uid = auth.uid;
         const user = await authAdmin.getUser(uid);
+        const userDoc = await dbAdmin.collection('users').doc(uid).get();
+        const firestoreRole = userDoc.exists ? { role: userDoc.data()?.role } : {};
+
         return {
             uid,
             email: user.email,
-            claims: user.customClaims || {},
+            claims: { ...user.customClaims, ...firestoreRole },
             anonymous: false,
         };
     } catch (err) {
