@@ -28,7 +28,7 @@ service cloud.firestore {
       allow read, write: if request.auth.uid == userId || isSuperAdmin();
 
       match /notifications/{notificationId} {
-        allow read, write: if request.auth.uid == userId || isSuperAdmin();
+        allow list, read, write: if request.auth.uid == userId || isSuperAdmin();
       }
     }
 
@@ -45,8 +45,11 @@ service cloud.firestore {
     }
 
     // 🧾 DISPUTES & INCIDENTS
-    match /disputes/{disputeId},
-          /incidents/{incidentId} {
+    match /disputes/{disputeId} {
+      allow read, write: if isSuperAdmin() || isAdmin();
+    }
+
+    match /incidents/{incidentId} {
       allow read, write: if isSuperAdmin() || isAdmin();
     }
 
@@ -57,8 +60,12 @@ service cloud.firestore {
     }
 
     // 🏢 COMPANIES (Only own company unless super admin)
-    match /companies/{companyId},
-          /companyRules/{companyId} {
+    match /companies/{companyId} {
+      allow read: if isSuperAdmin() || isOwner(companyId);
+      allow update: if isSuperAdmin() || (isAdmin() && isOwner(companyId));
+    }
+
+    match /companyRules/{companyId} {
       allow read: if isSuperAdmin() || isOwner(companyId);
       allow update: if isSuperAdmin() || (isAdmin() && isOwner(companyId));
     }

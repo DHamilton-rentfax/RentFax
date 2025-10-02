@@ -17,7 +17,7 @@
     "test:e2e": "npm run e2e",
     "test": "jest",
     "normalize-slugs": "ts-node scripts/normalize-slugs.ts",
-    "promote-user": "ts-node src/scripts/promote-user.ts"
+    "promote-user": "ts-node -O '{\"module\": \"commonjs\"}' src/scripts/promote-user.ts"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.14.1",
