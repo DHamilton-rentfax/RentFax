@@ -16,7 +16,8 @@
     "e2e:report": "playwright show-report",
     "test:e2e": "npm run e2e",
     "test": "jest",
-    "normalize-slugs": "ts-node scripts/normalize-slugs.ts"
+    "normalize-slugs": "ts-node scripts/normalize-slugs.ts",
+    "promote-user": "ts-node src/scripts/promote-user.ts"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.14.1",
@@ -60,7 +61,7 @@
     "date-fns": "^3.6.0",
     "dotenv": "^16.5.0",
     "embla-carousel-react": "^8.6.0",
-    "firebase": "^11.9.1",
+    "firebase": "^11.10.0",
     "firebase-admin": "^12.4.0",
     "framer-motion": "^12.23.21",
     "genkit": "^1.14.1",

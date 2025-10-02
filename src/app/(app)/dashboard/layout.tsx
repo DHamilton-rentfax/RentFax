@@ -1,4 +1,6 @@
 
+'use client';
+
 import Link from "next/link";
 import {
     Bell,
@@ -9,41 +11,60 @@ import {
     BarChart2,
     Settings,
     Building2,
-    FileUp,
-    Hammer,
-    CheckCircle,
     ListChecks,
-    Megaphone,
-    Mail,
-    Briefcase,
-    Shield,
     SlidersHorizontal,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import Header from "@/components/layout/header";
 import BannerMessage from "@/components/banner-message";
 import Protected from "@/components/protected";
+import { useAuth } from "@/hooks/use-auth";
+import AdminDashboard from "./_roles/admin";
+import SuperAdminDashboard from "./_roles/super-admin";
+import ContentManagerDashboard from "./_roles/content-manager";
+import EditorDashboard from "./_roles/editor";
+import ViewerDashboard from "./_roles/viewer";
+import RenterDashboard from "./_roles/renter";
 
 const navLinks = [
-    { href: "/dashboard", label: "Dashboard", icon: Home, roles: ['user', 'reviewer', 'editor', 'admin', 'super_admin'] },
-    { href: "/dashboard/renters", label: "Renters", icon: Users, roles: ['user', 'reviewer', 'editor', 'admin', 'super_admin'] },
-    { href: "/dashboard/incidents", label: "Incidents", icon: FileText, roles: ['user', 'reviewer', 'editor', 'admin', 'super_admin'] },
-    { href: "/dashboard/disputes", label: "Disputes", icon: ShieldQuestion, roles: ['user', 'reviewer', 'editor', 'admin', 'super_admin'] },
-    { href: "/dashboard/analytics", label: "Analytics", icon: BarChart2, roles: ['editor', 'admin', 'super_admin'] },
+    { href: "/dashboard", label: "Dashboard", icon: Home, roles: ['USER', 'REVIEWER', 'EDITOR', 'ADMIN', 'SUPER_ADMIN'] },
+    { href: "/dashboard/renters", label: "Renters", icon: Users, roles: ['USER', 'REVIEWER', 'EDITOR', 'ADMIN', 'SUPER_ADMIN'] },
+    { href: "/dashboard/incidents", label: "Incidents", icon: FileText, roles: ['USER', 'REVIEWER', 'EDITOR', 'ADMIN', 'SUPER_ADMIN'] },
+    { href: "/dashboard/disputes", label: "Disputes", icon: ShieldQuestion, roles: ['USER', 'REVIEWER', 'EDITOR', 'ADMIN', 'SUPER_ADMIN'] },
+    { href: "/dashboard/analytics", label: "Analytics", icon: BarChart2, roles: ['EDITOR', 'ADMIN', 'SUPER_ADMIN'] },
 ];
 
 const settingsLinks = [
-    { href: '/dashboard/team', label: 'Team', icon: Users, roles: ['admin', 'super_admin'] },
-    { href: '/dashboard/settings/rules', label: 'Rules & Branding', icon: ShieldQuestion, roles: ['admin', 'super_admin'] },
-    { href: '/dashboard/billing', label: 'Billing & Add-Ons', icon: Settings, roles: ['admin', 'super_admin'] },
-    { href: "/dashboard/notifications", label: "Notifications", icon: Bell, roles: ['user', 'reviewer', 'editor', 'admin', 'super_admin'] },
+    { href: '/dashboard/team', label: 'Team', icon: Users, roles: ['ADMIN', 'SUPER_ADMIN'] },
+    { href: '/dashboard/settings/rules', label: 'Rules & Branding', icon: ShieldQuestion, roles: ['ADMIN', 'SUPER_ADMIN'] },
+    { href: '/dashboard/billing', label: 'Billing & Add-Ons', icon: Settings, roles: ['ADMIN', 'SUPER_ADMIN'] },
+    { href: "/dashboard/notifications", label: "Notifications", icon: Bell, roles: ['USER', 'REVIEWER', 'EDITOR', 'ADMIN', 'SUPER_ADMIN'] },
 ]
 
 const adminNavLinks = [
-    { href: '/admin/dashboard', label: 'Super Admin', icon: SlidersHorizontal, roles: ['super_admin'] },
-    { href: '/dashboard/audit', label: 'Audit Logs', icon: ListChecks, roles: ['admin', 'super_admin'] },
+    { href: '/admin', label: 'Super Admin', icon: SlidersHorizontal, roles: ['SUPER_ADMIN'] },
+    { href: '/dashboard/audit', label: 'Audit Logs', icon: ListChecks, roles: ['ADMIN', 'SUPER_ADMIN'] },
 ]
+
+const DashboardRender = ({ children }: { children: React.ReactNode }) => {
+    const { claims } = useAuth();
+    switch (claims?.role) {
+        case 'SUPER_ADMIN':
+            return <SuperAdminDashboard />;
+        case 'ADMIN':
+            return <AdminDashboard />;
+        case 'CONTENT_MANAGER':
+            return <ContentManagerDashboard />;
+        case 'EDITOR':
+            return <EditorDashboard />;
+        case 'VIEWER':
+            return <ViewerDashboard />;
+        case 'RENTER':
+                return <RenterDashboard />;
+        default:
+            return <>{children}</>;
+    }
+}
 
 export default function DashboardLayout({
     children,
@@ -86,7 +107,7 @@ export default function DashboardLayout({
                                     </Link>
                                 </Protected>
                             ))}
-                            <p className="px-3 py-2 mt-4 text-xs font-semibold text-muted-foreground">ADMIN</p>
+                             <p className="px-3 py-2 mt-4 text-xs font-semibold text-muted-foreground">ADMIN</p>
                              {adminNavLinks.map(link => (
                                  <Protected key={link.href} roles={link.roles}>
                                     <Link
@@ -106,7 +127,7 @@ export default function DashboardLayout({
                 <Header />
                 <BannerMessage />
                 <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background">
-                    {children}
+                    <DashboardRender>{children}</DashboardRender>
                 </main>
             </div>
         </div>

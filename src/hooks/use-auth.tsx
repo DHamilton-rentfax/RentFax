@@ -1,32 +1,34 @@
+
 'use client';
 
 import { useEffect, useState, createContext, useContext, ReactNode } from 'react';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { onIdTokenChanged, User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { fetchClaims } from '@/lib/auth';
 
 interface AuthInfo {
   user: User | null;
   loading: boolean;
-  claims: any;
+  claims: any; // Consider defining a more specific type for claims
+  token: string | null;
 }
 
-const AuthContext = createContext<AuthInfo>({ user: null, loading: true, claims: null });
+const AuthContext = createContext<AuthInfo>({ user: null, loading: true, claims: null, token: null });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [authInfo, setAuthInfo] = useState<AuthInfo>({
-    user: null,
-    loading: true,
-    claims: null,
-  });
+  const [authInfo, setAuthInfo] = useState<AuthInfo>({ user: null, loading: true, claims: null, token: null });
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onIdTokenChanged(auth, async (user) => {
       if (user) {
-        const claims = await fetchClaims();
-        setAuthInfo({ user, claims, loading: false });
+        const tokenResult = await user.getIdTokenResult();
+        setAuthInfo({
+          user,
+          claims: tokenResult.claims,
+          loading: false,
+          token: tokenResult.token,
+        });
       } else {
-        setAuthInfo({ user: null, claims: null, loading: false });
+        setAuthInfo({ user: null, claims: null, loading: false, token: null });
       }
     });
 
@@ -37,5 +39,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 }
 
 export function useAuth(): AuthInfo {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 }

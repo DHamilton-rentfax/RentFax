@@ -1,5 +1,8 @@
 
 import admin from "firebase-admin";
+import dotenv from "dotenv";
+
+dotenv.config({ path: ".env.local" });
 
 // Check if the app is already initialized to prevent errors
 if (!admin.apps.length) {

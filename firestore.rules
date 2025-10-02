@@ -2,91 +2,83 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // 🔐 Role Checks
+    // 🔒 Role Functions
     function isSuperAdmin() {
       return request.auth.token.role == 'SUPER_ADMIN';
     }
 
     function isAdmin() {
-      return request.auth.token.role == 'admin';
+      return request.auth.token.role == 'ADMIN';
     }
 
     function isEditor() {
-      return request.auth.token.role == 'editor';
+      return request.auth.token.role == 'EDITOR';
     }
 
     function isContentManager() {
-      return request.auth.token.role == 'content_manager';
+      return request.auth.token.role == 'CONTENT_MANAGER';
     }
 
-    function isSelf(userId) {
-      return request.auth.uid == userId;
+    function isOwner(docCompanyId) {
+      return request.auth.token.companyId == docCompanyId;
     }
 
-    // 👤 Users
+    // 🔐 USER PROFILE & NOTIFICATIONS
     match /users/{userId} {
-      allow read, write: if isSelf(userId);
+      allow read, write: if request.auth.uid == userId || isSuperAdmin();
 
       match /notifications/{notificationId} {
-        allow read, write: if isSelf(userId);
+        allow read, write: if request.auth.uid == userId || isSuperAdmin();
       }
     }
 
-    // 📖 Blogs
+    // 📖 BLOG SYSTEM
     match /blogs/{blogId} {
       allow read: if true;
-      allow write, update, delete: if isSuperAdmin() || isAdmin() || isContentManager();
+      allow create, update, delete: if isSuperAdmin() || isAdmin() || isContentManager();
     }
 
-    // 📊 Analytics
+    // 📊 ANALYTICS DATA
     match /analytics/{docId} {
       allow read: if isSuperAdmin() || isAdmin() || isContentManager();
-      allow write: if isSuperAdmin() || isAdmin(); // Prevent content_manager from writing
+      allow write: if isSuperAdmin() || isAdmin();
     }
 
-    // 🚨 Disputes
-    match /disputes/{disputeId} {
+    // 🧾 DISPUTES & INCIDENTS
+    match /disputes/{disputeId},
+          /incidents/{incidentId} {
       allow read, write: if isSuperAdmin() || isAdmin();
     }
 
-    // ⚠️ Incidents
-    match /incidents/{incidentId} {
-      allow read, write: if isSuperAdmin() || isAdmin();
-    }
-
-    // 📁 Audit Logs (read-only for admins)
+    // 🧾 AUDIT LOGS
     match /auditLogs/{logId} {
       allow read: if isSuperAdmin() || isAdmin();
-      allow write: if false; // Write blocked even for Super Admin
+      allow write: if false; // Write only via backend
     }
 
-    // 🏢 Companies (editable by org-based admins only)
-    match /companies/{companyId} {
-      allow read, update: if isSuperAdmin() || (isAdmin() && request.auth.token.companyId == companyId);
+    // 🏢 COMPANIES (Only own company unless super admin)
+    match /companies/{companyId},
+          /companyRules/{companyId} {
+      allow read: if isSuperAdmin() || isOwner(companyId);
+      allow update: if isSuperAdmin() || (isAdmin() && isOwner(companyId));
     }
 
-    // 📝 Company Rules
-    match /companyRules/{companyId} {
-      allow read: if true;
-      allow write: if isSuperAdmin() || (isAdmin() && request.auth.token.companyId == companyId);
-    }
-
-    // ✉️ Team Invites
+    // 📩 INVITES
     match /invites/{inviteId} {
       allow read, write: if isSuperAdmin() || isAdmin();
     }
 
-    // 🧍 Renters
+    // 🙋 RENTERS (read/write scoped by role)
     match /renters/{renterId} {
       allow read, write: if isSuperAdmin() || isAdmin() || isEditor();
     }
 
-    // 🔐 Admin Tools Namespace (global config, feature flags, etc.)
+    // 🔐 ADMIN DOCUMENTS (Internal storage)
     match /admin/{document=**} {
       allow read, write: if isSuperAdmin();
     }
 
-    // 🚫 Catch-All Deny
+    // ⛔ Fallback Deny-All
     match /{document=**} {
       allow read, write: if false;
     }

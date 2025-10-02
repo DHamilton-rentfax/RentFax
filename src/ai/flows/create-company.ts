@@ -39,7 +39,8 @@ const createCompanyFlow = ai.defineFlow(
     // Caller becomes owner of this company if not already part of one
     const caller = await authAdmin.getUser(auth.uid);
     const claims = caller.customClaims || {};
-    if (claims.companyId) {
+    // Allow SUPER_ADMIN to create companies without restriction
+    if (claims.role !== 'SUPER_ADMIN' && claims.companyId) {
       throw new Error('User already belongs to a company.');
     }
 
@@ -55,9 +56,11 @@ const createCompanyFlow = ai.defineFlow(
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    // Assign owner claims to caller
-    await authAdmin.setCustomUserClaims(auth.uid, {role: 'admin', companyId});
-    await authAdmin.revokeRefreshTokens(auth.uid);
+    // Assign owner claims to caller unless they are a SUPER_ADMIN
+    if (claims.role !== 'SUPER_ADMIN') {
+      await authAdmin.setCustomUserClaims(auth.uid, {role: 'admin', companyId});
+      await authAdmin.revokeRefreshTokens(auth.uid);
+    }
 
     return {companyId};
   }
