@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/use-auth";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk" });
@@ -23,10 +24,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <body className="min-h-screen flex flex-col bg-background text-foreground antialiased selection:bg-indigo-200/40">
         <AuthProvider>
+          <TooltipProvider>
             <Header />
             <main className="flex-1">{children}</main>
             <Footer />
             <Toaster />
+          </TooltipProvider>
         </AuthProvider>
       </body>
     </html>
