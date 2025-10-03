@@ -1,63 +1,55 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import sgMail from "@sendgrid/mail";
+import fetch from "node-fetch";
 
-if (!admin.apps.length) {
+// This check is to prevent multiple initializations in the same session
+if (admin.apps.length === 0) {
   admin.initializeApp();
 }
 
-// Configure SendGrid
-// Set in your Firebase environment config:
-// firebase functions:config:set sendgrid.key="YOUR_API_KEY" admin.email="your-admin@email.com"
-if (functions.config().sendgrid && functions.config().sendgrid.key) {
-  sgMail.setApiKey(functions.config().sendgrid.key);
-} else {
-  console.warn("SendGrid API key not configured. Email notifications will be disabled.");
-}
+const db = admin.firestore();
 
-export const onDisputeCreated = functions.firestore
-  .document("renters/{renterId}/disputes/{disputeId}")
-  .onCreate(async (snap, context) => {
-    const dispute = snap.data();
-    if (!dispute) {
-      console.log("No dispute data to process.");
-      return;
-    }
+const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL || "";
 
-    const { renterId, disputeId } = context.params;
+// Fire when new notifications are created
+export const notifySlack = functions.firestore
+  .document("notifications/{id}")
+  .onCreate(async (snap) => {
+    const data = snap.data();
+    if (!data) return;
 
-    const adminEmail = functions.config().admin?.email;
+    // Only push high-priority alerts to Slack
+    if (data.priority !== "high") return;
 
-    if (!adminEmail) {
-      console.error("Admin email is not configured. Cannot send notification. Set config: admin.email");
-      return;
-    }
-
-    const mailOptions = {
-      from: "disputes@your-app.com", // Must be a verified sender in SendGrid
-      to: adminEmail,
-      subject: `New Dispute Submitted: ${disputeId}`,
-      html: `
-        <h1>A new dispute has been submitted.</h1>
-        <p><strong>Dispute ID:</strong> ${disputeId}</p>
-        <p><strong>Renter ID:</strong> ${renterId}</p>
-        <p><strong>Message:</strong></p>
-        <p>${dispute.message}</p>
-        <p>Please log in to the admin dashboard to review the details.</p>
-      `,
+    const slackMessage = {
+      text: `🚨 *${data.type.replace("_", " ")}*`,
+      attachments: [
+        {
+          color: "#ff0000",
+          fields: [
+            { title: "Message", value: data.message, short: false },
+            { title: "Link", value: `${process.env.APP_URL}${data.link || ""}`, short: false },
+            { title: "Created At", value: new Date(data.createdAt.toDate()).toLocaleString(), short: true },
+          ],
+        },
+      ],
     };
 
-    if (functions.config().sendgrid && functions.config().sendgrid.key) {
-      try {
-        await sgMail.send(mailOptions);
-        console.log(`Dispute notification email sent to ${adminEmail}`);
-      } catch (error) {
-        console.error("Error sending dispute notification email:", error);
-        if (error.response) {
-          console.error(error.response.body);
-        }
-      }
-    } else {
-      console.log("Email not sent because SendGrid is not configured.");
+    try {
+      await fetch(SLACK_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(slackMessage),
+      });
+      console.log(`✅ Slack notified: ${data.type}`);
+    } catch (err) {
+      console.error("❌ Slack notification failed", err);
     }
   });
+
+export { disputeSlaCheck } from "./jobs/dispute-sla-check";
+export { dailyDigest, weeklyDigest } from "./jobs/digest";
+export { sendSmsAlert } from "./jobs/sms-alert";
+export { checkCriticalAlerts } from "./jobs/check-critical-alerts";
+export { autoResolveDisputeAlerts } from "./triggers/auto-resolve-disputes";
+export { autoResolveFraudAlerts } from "./triggers/auto-resolve-fraud";

@@ -1,70 +1,29 @@
 
-'use server';
+"use server";
 
-import { adminDB } from '@/firebase/server';
-import { FieldValue } from 'firebase-admin/firestore';
-import { z } from 'zod';
-import { sendIncidentAlertEmail } from '@/lib/emails/sendIncidentAlert';
+import { adminDb } from "@/firebase/server";
+import { logAuditEvent } from "./log-audit";
 
-// Zod schema for input validation
-const incidentSchema = z.object({
-  renterId: z.string(),
-  type: z.string(),
-  description: z.string().min(1, 'Description is required'), // Added validation
-  evidence: z.array(z.string()).optional(),
-});
+export async function createIncident(data: any, companyId: string, createdBy: string) {
+  try {
+    const ref = await adminDb.collection("incidents").add({
+      ...data,
+      companyId,
+      createdBy,
+      createdAt: new Date().toISOString(),
+    });
 
-export const createIncident = async (input: {
-    renterId: string;
-    type: string;
-    description: string;
-    evidence?: string[];
-}) => {
-    try {
-        const validation = incidentSchema.safeParse(input);
-        if (!validation.success) {
-            // Map Zod errors to a user-friendly message
-            const errorMessage = validation.error.issues.map(issue => issue.message).join(', ');
-            return { success: false, error: errorMessage || 'Invalid input' };
-        }
+    await logAuditEvent({
+      action: "INCIDENT_CREATED",
+      targetIncident: ref.id,
+      targetCompany: companyId,
+      changedBy: createdBy,
+      metadata: { amount: data.amount, renter: data.renter },
+    });
 
-        const { renterId, type, description, evidence } = validation.data;
-
-        const renterRef = adminDB.collection('renters').doc(renterId);
-        const renterDoc = await renterRef.get();
-
-        if (!renterDoc.exists) {
-            return { success: false, error: 'Renter not found' };
-        }
-
-        const newIncidentRef = renterRef.collection('incidents').doc();
-        
-        const newIncident = {
-            id: newIncidentRef.id,
-            type,
-            description,
-            evidence: evidence || [],
-            status: 'OPEN',
-            createdAt: FieldValue.serverTimestamp(),
-        };
-
-        await newIncidentRef.set(newIncident);
-
-        // Send email notification
-        const renterEmail = renterDoc.data()?.email;
-        if (renterEmail) {
-            await sendIncidentAlertEmail({
-                email: renterEmail,
-                renterId,
-                id: newIncidentRef.id,
-                type,
-                description,
-            });
-        }
-
-        return { success: true, data: { ...newIncident, id: newIncidentRef.id } };
-    } catch (error) {
-        console.error('Error creating incident:', error);
-        return { success: false, error: 'Failed to create incident' };
-    }
-};
+    return { success: true, id: ref.id };
+  } catch (err) {
+    console.error("Error creating incident:", err);
+    return { success: false, error: (err as Error).message };
+  }
+}
