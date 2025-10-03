@@ -2,7 +2,7 @@
 'use server'
 
 import { cookies } from 'next/headers'
-import { adminDb, auth } from '@/firebase/server'
+import { adminDB, adminAuth } from '@/firebase/server'
 import { redirect } from 'next/navigation'
 import { getUserFromSessionCookie } from './getUserFromSessionCookie'
 
@@ -13,7 +13,7 @@ export async function requireSuperAdmin() {
     redirect('/login')
   }
 
-  const userRef = adminDb.collection('users').doc(user.uid)
+  const userRef = adminDB.collection('users').doc(user.uid)
   const userSnap = await userRef.get()
 
   const role = userSnap.get('role')
