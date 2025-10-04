@@ -1,16 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { getUserRole } from '@/app/actions/get-user-role';
-import DashboardSuperAdmin from './_roles/super-admin';
-import DashboardAdmin from './_roles/admin';
-import DashboardEditor from './_roles/editor';
-import DashboardViewer from './_roles/viewer';
-import DashboardRenter from './_roles/renter';
 import { Loader2 } from 'lucide-react';
-import DashboardContentManager from './_roles/content-manager';
 import { redirect } from 'next/navigation';
+import AdminDashboard from './_roles/admin';
+import ContentManagerDashboard from './_roles/content-manager';
+import EditorDashboard from './_roles/editor';
+import RenterDashboard from './_roles/renter';
+import SuperAdminDashboard from './_roles/super-admin';
+import ViewerDashboard from './_roles/viewer';
 
 function LoadingSpinner() {
     return (
@@ -22,34 +20,25 @@ function LoadingSpinner() {
 
 
 export default function DashboardPage() {
-  const { user, claims } = useAuth();
-  const [role, setRole] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (claims?.role) {
-      setRole(claims.role);
-      setLoading(false);
-    } else if (claims) { // claims loaded, but no role
-        setLoading(false);
-    }
-  }, [claims]);
+  const { user, claims, loading } = useAuth();
 
   if (loading || !user) return <LoadingSpinner />;
 
-  switch (role) {
+  switch (claims?.role) {
     case 'super_admin':
-      return <DashboardSuperAdmin />;
+      return <SuperAdminDashboard />;
     case 'admin':
-      return <DashboardAdmin />;
+      return <AdminDashboard />;
+    case 'content_manager':
+        return <ContentManagerDashboard />;
     case 'editor':
-      return <DashboardEditor />;
+      return <EditorDashboard />;
     case 'reviewer':
-      return <DashboardViewer />;
+      return <ViewerDashboard />;
     case 'user':
       return redirect('/renter');
-    case 'content_manager':
-        return <DashboardContentManager />;
+    case 'renter':
+        return <RenterDashboard />;
     default:
       return <div className="text-red-500">Access Denied: No role assigned. Contact support if you believe this is an error.</div>;
   }
