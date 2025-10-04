@@ -9,6 +9,7 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import RealTimeNotifications from "@/components/admin/RealTimeNotifications";
+import DemoAnalytics from "@/components/DemoAnalytics";
 
 export default function SuperAdminDashboard() {
   const { user, role, loading } = useAuth();
@@ -79,8 +80,6 @@ export default function SuperAdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-8">
-          {/* Real-Time Alerts */}
-          <RealTimeNotifications />
 
           {/* Top Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -91,11 +90,18 @@ export default function SuperAdminDashboard() {
             <MetricCard title="Fraud Alerts" value={stats.fraud} />
             <MetricCard title="Blogs" value={stats.blogs} />
           </div>
+          
+          {/* Demo Analytics */}
+          <DemoAnalytics />
+
         </div>
 
         {/* Right Column */}
         <div className="lg:col-span-1 space-y-6">
-            <DashboardLink href="/admin/super-dashboard/system-health" title="System Health & Analytics" desc="View ops dashboard & metrics" />
+          {/* Real-Time Alerts */}
+          <RealTimeNotifications />
+          
+          <DashboardLink href="/admin/super-dashboard/system-health" title="System Health & Analytics" desc="View ops dashboard & metrics" />
             <DashboardLink href="/admin/super-dashboard/users" title="Manage Users" desc="Admins, Editors, Roles" />
             <DashboardLink href="/admin/super-dashboard/companies" title="Manage Companies" desc="View teams & landlords" />
             <DashboardLink href="/admin/super-dashboard/blogs" title="Manage Blogs" desc="Authors, publish, analytics" />

@@ -1,51 +1,49 @@
-import { NextResponse } from "next/server";
-import { getAuth } from "firebase-admin/auth";
+
+import { NextRequest, NextResponse } from "next/server";
 import { adminDB } from "@/firebase/server";
-import sgMail from "@sendgrid/mail";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { sendEmail } from "@/lib/email"; // Assuming a simple email utility
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
-
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const { orgId, email, role } = await req.json();
-    const token = req.headers.get("authorization")?.split(" ")[1];
-    const decoded = await getAuth().verifyIdToken(token!);
+    const { email, role, inviterName, companyName } = await req.json();
 
-    const inviteRef = adminDB.collection("orgs").doc(orgId).collection("invites").doc();
-    await inviteRef.set({
+    if (!email || !role || !inviterName || !companyName) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    // Generate a unique token for the invite
+    const token = Buffer.from(`${email}-${Date.now()}`).toString('base64url');
+
+    // Save invite to Firestore
+    const inviteRef = await addDoc(collection(adminDB, "invites"), {
       email,
       role,
-      invitedBy: decoded.uid,
-      createdAt: Date.now(),
-      expiresAt: Date.now() + 1000 * 60 * 60 * 24 * 7, // 7 days
-      status: "pending",
+      status: "PENDING",
+      createdAt: serverTimestamp(),
+      inviterName,
+      companyName,
+      token,
     });
 
-    await sgMail.send({
+    // Construct the invitation link
+    const inviteLink = `${process.env.NEXT_PUBLIC_BASE_URL}/invite/${token}`;
+
+    // Send the invitation email
+    await sendEmail({
       to: email,
-      from: { email: "invites@rentfax.ai", name: "RentFAX" },
-      subject: `You have been invited to join ${orgId} on RentFAX`,
+      subject: `You have been invited to join ${companyName} on RentFAX`,
       html: `
-        <h2>🚀 RentFAX Invitation</h2>
-        <p>You’ve been invited to join <strong>${orgId}</strong> as <strong>${role}</strong>.</p>
-        <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/invite?orgId=${orgId}&inviteId=${inviteRef.id}">
-          Accept Invitation
-        </a></p>
-        <p>This invite will expire in 7 days.</p>
+        <p>You have been invited to join ${companyName} as a ${role}.</p>
+        <p>Click the link below to accept your invitation:</p>
+        <a href="${inviteLink}">${inviteLink}</a>
+        <p>If you were not expecting this invitation, you can safely ignore it.</p>
       `,
     });
 
-    await adminDB.collection("auditLogs").add({
-      type: "INVITE_SENT",
-      actorUid: decoded.uid,
-      targetEmail: email,
-      orgId,
-      role,
-      timestamp: Date.now(),
-    });
-
     return NextResponse.json({ success: true, inviteId: inviteRef.id });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (error) {
+    console.error("Error sending invite:", error);
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }

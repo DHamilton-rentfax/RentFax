@@ -1,30 +1,16 @@
-'use client';
-import SupportAssistant from '@/components/support-assistant';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bot } from 'lucide-react';
-import FeatureGate from '@/components/feature-gate';
+import DisputeList from "@/components/DisputeList";
 
-export default function SupportPage() {
+export default function SupportDashboard() {
   return (
-    <div className="container mx-auto py-12 px-4 flex justify-center">
-      <div className="w-full max-w-2xl">
-        <Card className="shadow-lg">
-          <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <Bot className="w-12 h-12 text-primary" />
-            </div>
-            <CardTitle className="font-headline text-3xl md:text-4xl">AI Support Assistant</CardTitle>
-            <CardDescription className="text-lg pt-2">
-              Have a question? Ask our AI assistant for help.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <FeatureGate name="ai_assistant">
-              <SupportAssistant />
-            </FeatureGate>
-          </CardContent>
-        </Card>
-      </div>
+    <div className="p-6 space-y-6">
+      <h1 className="text-3xl font-bold">💬 Support Dashboard</h1>
+      <p className="text-gray-600">Handle disputes and customer interactions.</p>
+
+      <h2 className="text-xl font-semibold mt-6">Assigned Disputes</h2>
+      <DisputeList />
+
+      <h2 className="text-xl font-semibold mt-6">Live Chat</h2>
+      <p>Chat panel goes here.</p>
     </div>
   );
 }

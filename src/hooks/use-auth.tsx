@@ -2,46 +2,57 @@
 'use client';
 
 import { useEffect, useState, createContext, useContext, ReactNode } from 'react';
-import { onIdTokenChanged, User } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { auth, db } from '@/firebase/client';
+import { doc, getDoc } from 'firebase/firestore';
 
-interface AuthInfo {
-  user: User | null;
+interface AuthContextType {
+  user: (User & { role?: string }) | null;
   loading: boolean;
-  claims: any; // Consider defining a more specific type for claims
-  token: string | null;
+  role: string | null;
 }
 
-const AuthContext = createContext<AuthInfo>({ user: null, loading: true, claims: null, token: null });
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  loading: true,
+  role: null,
+});
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [authInfo, setAuthInfo] = useState<AuthInfo>({ user: null, loading: true, claims: null, token: null });
+  const [authInfo, setAuthInfo] = useState<AuthContextType>({
+    user: null,
+    loading: true,
+    role: null,
+  });
 
   useEffect(() => {
-    const unsubscribe = onIdTokenChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const tokenResult = await user.getIdTokenResult();
-        setAuthInfo({
-          user,
-          claims: tokenResult.claims,
-          loading: false,
-          token: tokenResult.token,
-        });
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const userData = docSnap.data();
+          setAuthInfo({
+            user: { ...user, role: userData.role },
+            loading: false,
+            role: userData.role,
+          });
+        } else {
+          setAuthInfo({ user, loading: false, role: null });
+        }
       } else {
-        setAuthInfo({ user: null, claims: null, loading: false, token: null });
+        setAuthInfo({ user: null, loading: false, role: null });
       }
     });
 
     return () => unsubscribe();
   }, []);
 
-  return <AuthContext.Provider value={authInfo}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={authInfo}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
-export function useAuth(): AuthInfo {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-}
+export const useAuth = () => useContext(AuthContext);

@@ -20,7 +20,7 @@ async function createNotification(notification: any): Promise<any> {
 
 export const disputeSlaCheck = functions.pubsub
   .schedule("every 24 hours")
-  .onRun(async (context) => {
+  .onRun(async () => {
 
     const db = admin.firestore();
     const sevenDaysAgo = new Date();
@@ -42,7 +42,6 @@ export const disputeSlaCheck = functions.pubsub
     const notificationPromises: Promise<any>[] = [];
 
     slaBreachedDisputes.docs.forEach((doc) => {
-      const dispute = doc.data();
       const message = `Dispute #${doc.id} has been open for more than 7 days and has breached the SLA.`;
 
       const notification = {

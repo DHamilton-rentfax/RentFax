@@ -1,16 +1,31 @@
 import { useState, useEffect } from "react";
-import { firestore } from "~/services/firebase";
+import { firestore } from "@/lib/firebase"; // Corrected import path
 import Link from "next/link";
+import { useAdminSettings } from "@/hooks/use-admin-settings"; // Corrected import path
+import { QuerySnapshot, DocumentData } from "firebase/firestore"; // Import types
+
+interface Alert {
+  id: string;
+  status: string;
+  type: string;
+  message: string;
+  createdAt: any; // Consider a more specific type if possible
+  targetLink?: string;
+  ackBy?: string;
+  ackAt?: any; // Consider a more specific type if possible
+  resolvedAt?: any; // Consider a more specific type if possible
+}
 
 export default function AlertsHistory() {
-  const [alerts, setAlerts] = useState<any[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const { mute, toggleMute } = useAdminSettings();
 
   useEffect(() => {
     const unsubscribe = firestore
       .collection("alerts")
       .orderBy("createdAt", "desc")
-      .onSnapshot((snapshot) => {
-        setAlerts(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      .onSnapshot((snapshot: QuerySnapshot<DocumentData>) => {
+        setAlerts(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Alert)));
       });
 
     return () => unsubscribe();
@@ -40,7 +55,17 @@ export default function AlertsHistory() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Live Incident Dashboard</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-4xl font-bold">🚨 Critical Alerts</h1>
+        <button
+          onClick={toggleMute}
+          className={`px-4 py-2 rounded ${
+            mute ? "bg-gray-500" : "bg-green-600"
+          } text-white`}
+        >
+          {mute ? "🔇 Alerts Muted" : "🔊 Alerts Active"}
+        </button>
+      </div>
       <ul>
         {alerts.map((a) => (
           <li key={a.id} className="py-3 flex justify-between items-center border-b">

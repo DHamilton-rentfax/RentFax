@@ -24,6 +24,12 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Helper to calculate percentage and avoid division by zero
+const calcPercent = (part: number, total: number): string => {
+  if (!total || total === 0) return "0.0%";
+  return ((part / total) * 100).toFixed(1) + "%";
+};
+
 export const dailyDigest = functions.pubsub
   .schedule("every 24 hours") // runs daily
   .timeZone("America/New_York")
@@ -108,8 +114,8 @@ export const weeklyDigest = functions.pubsub
 .timeZone("America/New_York")
 .onRun(async () => {
     const now = new Date();
-    const weekAgo = new Date();
-    weekAgo.setDate(now.getDate() - 7);
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(now.getDate() - 7);
     const twoWeeksAgo = new Date();
     twoWeeksAgo.setDate(now.getDate() - 14);
 
@@ -126,7 +132,7 @@ export const weeklyDigest = functions.pubsub
 
     // ---------- 2. Stripe Revenue ----------
     const revenueSnap = await db.collection("billingEvents")
-      .where("createdAt", ">=", weekAgo)
+      .where("createdAt", ">=", oneWeekAgo)
       .get();
 
     let newRevenue = 0;
@@ -142,7 +148,7 @@ export const weeklyDigest = functions.pubsub
     // ---------- Escalation Logic for Revenue Drop ----------
     const prevRevenueSnap = await db.collection("billingEvents")
         .where("createdAt", ">=", twoWeeksAgo)
-        .where("createdAt", "<", weekAgo)
+        .where("createdAt", "<", oneWeekAgo)
         .get();
 
     let prevNewRevenue = 0;
@@ -163,11 +169,11 @@ export const weeklyDigest = functions.pubsub
 
     // ---------- 3. Blog Stats ----------
     const blogsSnap = await db.collection("blogs")
-      .where("publishedAt", ">=", weekAgo)
+      .where("publishedAt", ">=", oneWeekAgo)
       .get();
 
     const blogViewsSnap = await db.collection("blogViews")
-      .where("createdAt", ">=", weekAgo)
+      .where("createdAt", ">=", oneWeekAgo)
       .get();
 
     const newBlogs = blogsSnap.size;
@@ -175,14 +181,78 @@ export const weeklyDigest = functions.pubsub
 
     // ---------- 4. User Growth ----------
     const usersSnap = await db.collection("users")
-      .where("createdAt", ">=", weekAgo)
+      .where("createdAt", ">=", oneWeekAgo)
       .get();
 
     const newUsers = usersSnap.size;
 
+    // ---------- 5. Demo Analytics ----------
+    const demoEntriesSnap = await db.collection("demoAnalytics")
+      .where("createdAt", ">=", oneWeekAgo)
+      .get();
+
+    const renterVisits = demoEntriesSnap.docs.filter(d => d.data().event === "demo_renter_report_viewed").length;
+    const companyVisits = demoEntriesSnap.docs.filter(d => d.data().event === "demo_company_dashboard_viewed").length;
+
+    const conversionsSnap = await db
+      .collection("demoAnalytics")
+      .where("event", "==", "demo_conversion")
+      .where("createdAt", ">=", oneWeekAgo)
+      .where("createdAt", "<=", now)
+      .get();
+
+    let renterConversions = 0;
+    let companyConversions = 0;
+    conversionsSnap.forEach((doc) => {
+      const data = doc.data().data || {};
+      if (data.source === "RENTER") renterConversions++;
+      if (data.source === "COMPANY") companyConversions++;
+    });
+
+    const renterTrialSnap = await db
+      .collection("users")
+      .where("plan", "==", "RENTER_TRIAL")
+      .where("createdAt", ">=", oneWeekAgo)
+      .where("createdAt", "<=", now)
+      .get();
+    const renterTrials = renterTrialSnap.size;
+
+    const companyTrialSnap = await db
+      .collection("users")
+      .where("plan", "==", "COMPANY_TRIAL")
+      .where("createdAt", ">=", oneWeekAgo)
+      .where("createdAt", "<=", now)
+      .get();
+    const companyTrials = companyTrialSnap.size;
+
+    const paidSnap = await db
+      .collection("users")
+      .where("demoConversion", "==", true)
+      .where("subscription.status", "==", "active")
+      .where("createdAt", ">=", oneWeekAgo)
+      .where("createdAt", "<=", now)
+      .get();
+
+    const renterPaids = paidSnap.docs.filter(d => d.data().source === "RENTER").length;
+    const companyPaids = paidSnap.docs.filter(d => d.data().source === "COMPANY").length;
+
     // ---------- Format Summary ----------
     const summary = `
 📊 RentFAX Weekly Digest
+
+Weekly RentFAX Demo Summary:
+
+👤 Renters
+- Demo Entries: ${renterVisits}
+- Conversions: ${renterConversions} (${calcPercent(renterConversions, renterVisits)})
+- Trials Started: ${renterTrials} (${calcPercent(renterTrials, renterConversions)} of conversions)
+- Paid Upgrades: ${renterPaids} (${calcPercent(renterPaids, renterTrials)} of trials)
+
+🏢 Companies
+- Demo Entries: ${companyVisits}
+- Conversions: ${companyConversions} (${calcPercent(companyConversions, companyVisits)})
+- Trials Started: ${companyTrials} (${calcPercent(companyTrials, companyConversions)} of conversions)
+- Paid Upgrades: ${companyPaids} (${calcPercent(companyPaids, companyTrials)} of trials)
 
 Ops Health:
 - Unresolved Disputes: ${unresolved}
@@ -201,6 +271,8 @@ Content:
 
 Users:
 - New Signups: ${newUsers}
+
+Visit your Super Admin Dashboard for detailed logs.
 `;
 
     // ---------- Send Email ----------

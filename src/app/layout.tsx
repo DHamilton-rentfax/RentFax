@@ -1,18 +1,15 @@
 
 import "./globals.css";
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Inter, Space_Grotesk } from "next/font/google";
-import Script from "next/script";
-import { Toaster } from "@/components/ui/toaster";
+import { Inter, Newsreader } from "next/font/google";
 import { AuthProvider } from "@/hooks/use-auth";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk" });
-
+const newsreader = Newsreader({ subsets: ["latin"], variable: "--font-newsreader" });
 
 export const metadata: Metadata = {
   title: "RentFAX — Smarter Risk, Safer Rentals",
@@ -21,7 +18,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
+    <html lang="en" className={`${inter.variable} ${newsreader.variable}`}>
       <body className="min-h-screen flex flex-col bg-background text-foreground antialiased selection:bg-indigo-200/40">
         <AuthProvider>
           <TooltipProvider>

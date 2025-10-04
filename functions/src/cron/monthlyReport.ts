@@ -1,5 +1,5 @@
 import * as functions from "firebase-functions";
-import { adminDB } from "../../src/lib/firebase-admin";
+import { adminDB } from "../lib/firebase-admin";
 import { getStorage } from "firebase-admin/storage";
 import sgMail from "@sendgrid/mail";
 import { jsPDF } from "jspdf";

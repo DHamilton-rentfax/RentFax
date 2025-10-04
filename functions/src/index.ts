@@ -7,8 +7,6 @@ if (admin.apps.length === 0) {
   admin.initializeApp();
 }
 
-const db = admin.firestore();
-
 const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL || "";
 
 // Fire when new notifications are created

@@ -3,76 +3,139 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { auth } from "@/lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
-import { acceptInvite } from "@/app/auth/actions";
-import Link from 'next/link';
+import { db } from "@/firebase/client";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  collection,
+  addDoc,
+  serverTimestamp,
+  query,
+  where,
+  limit,
+  getDocs,
+} from "firebase/firestore";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth"; // Correctly import auth functions
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Invite } from "@/types/invite";
 
 export default function AcceptInvitePage() {
-  const params = useParams();
-  const token = params?.token as string;
+  const { token } = useParams();
   const router = useRouter();
-  const { toast } = useToast();
-  const [status, setStatus] = useState("Verifying your invite...");
+  const { user } = useAuth();
+  const [invite, setInvite] = useState<Invite | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [password, setPassword] = useState("");
 
   useEffect(() => {
-    if (!token) {
-        setStatus("This invite link is invalid or has expired.");
-        return;
-    }
-
-    const unsub = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        setError("Please sign in or create an account to accept the invite.");
-        router.push(`/login?redirect=/invite/${token}`); // Redirect to login, then come back
-        return;
-      }
-
-      setError(null);
-      setStatus("Verifying your identity and invite...");
-      
+    const verifyToken = async () => {
       try {
-        await acceptInvite({ token });
-        setStatus("Success! You've joined the team. Redirecting you now...");
-        toast({ title: "Welcome to the team!", description: "Your account has been configured."});
-        setTimeout(() => router.push("/dashboard"), 2000);
-      } catch (e: any) {
-          setError(e.message || "Failed to accept invite.");
-          setStatus("Invite could not be accepted.");
-          toast({ title: "Error", description: e.message, variant: "destructive" });
-      }
-    });
+        const q = query(collection(db, "invites"), where("token", "==", token), limit(1));
+        const snapshot = await getDocs(q);
 
-    return () => unsub();
-  }, [token, router, toast]);
+        if (snapshot.empty) {
+          setError("Invalid or expired invitation token.");
+          setLoading(false);
+          return;
+        }
+
+        const inviteDoc = snapshot.docs[0];
+        const inviteData = { id: inviteDoc.id, ...inviteDoc.data() } as Invite;
+
+        if (inviteData.status !== "PENDING") {
+          setError(`This invitation has been ${inviteData.status.toLowerCase()}.`);
+          setLoading(false);
+          return;
+        }
+
+        setInvite(inviteData);
+        setLoading(false);
+      } catch (err) {
+        setError("An error occurred while verifying your invitation.");
+        setLoading(false);
+      }
+    };
+
+    verifyToken();
+  }, [token]);
+
+  const acceptInvite = async () => {
+    if (!invite || !password) return;
+
+    try {
+      const auth = getAuth();
+      // 1. Create a new user account
+      const userCredential = await createUserWithEmailAndPassword(auth, invite.email, password);
+      const newUser = userCredential.user;
+
+      if (!newUser) {
+        setError("Could not create an account. The email might be in use.");
+        return;
+      }
+
+      // 2. Update the invite status
+      await updateDoc(doc(db, "invites", invite.id), {
+        status: "ACCEPTED",
+        acceptedAt: serverTimestamp(),
+        acceptedBy: newUser.uid
+      });
+
+      // 3. Redirect to dashboard
+      router.push("/dashboard");
+
+    } catch (err: any) {
+      setError(err.message || "Failed to accept invitation.");
+    }
+  };
+
+  if (loading) {
+    return <p className="text-center p-8">Verifying your invitation...</p>;
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <Card className="w-full max-w-md mx-auto">
+          <CardHeader><CardTitle className="text-red-600">Invitation Error</CardTitle></CardHeader>
+          <CardContent>
+            <p>{error}</p>
+            <Button onClick={() => router.push("/")} className="mt-4">Go Home</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (user) {
+      return (
+          <div className="text-center p-8">
+              <p>You are already logged in. Please log out to accept this invitation.</p>
+          </div>
+      )
+  }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-muted/40">
-      <Card className="w-full max-w-md text-center">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+      <Card className="w-full max-w-md mx-auto">
         <CardHeader>
-            <CardTitle className="font-headline text-2xl">Accepting Your Invitation</CardTitle>
-            <CardDescription>Please wait while we set up your account.</CardDescription>
+          <CardTitle>Accept Your Invitation</CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col items-center justify-center gap-4 py-8">
-            {error ? (
-                <>
-                    <p className="text-lg text-destructive-foreground bg-destructive p-4 rounded-md">{error}</p>
-                    <Button asChild variant="secondary">
-                        <Link href="/login">Go to Login</Link>
-                    </Button>
-                </>
-            ) : (
-                 <>
-                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                    <p className="text-lg text-muted-foreground">{status}</p>
-                 </>
-            )}
-           
+        <CardContent className="space-y-4">
+          <p>You have been invited to join <strong>{invite?.companyName}</strong> as a <strong>{invite?.role}</strong>.</p>
+          <p>Create a password to accept your invitation.</p>
+          <Input
+            type="password"
+            placeholder="Choose a password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full"
+          />
+          <Button onClick={acceptInvite} className="w-full">Accept Invitation</Button>
         </CardContent>
       </Card>
     </div>

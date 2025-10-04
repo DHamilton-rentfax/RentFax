@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Building2, Menu, LogOut, Settings, User, Shield } from 'lucide-react';
-import { auth } from '@/lib/firebase';
+import { auth } from '@/firebase/client';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
@@ -31,7 +31,7 @@ const marketingNavLinks = [
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user, loading, claims } = useAuth();
+  const { user, loading, role } = useAuth();
   const pathname = usePathname();
 
   const handleLogout = async () => {
@@ -44,7 +44,7 @@ export default function Header() {
   };
 
   const isAppRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/admin') || pathname.startsWith('/settings') || pathname.startsWith('/setup') || pathname.startsWith('/invite') || pathname.startsWith('/renters') || pathname.startsWith('/incidents') || pathname.startsWith('/disputes');
-  const isSuperAdmin = claims?.role === 'super_admin';
+  const isSuperAdmin = role === 'super_admin';
 
   const renderDesktopRight = () => {
     if (loading) return <div className="h-8 w-24 rounded-md animate-pulse bg-muted" />;
@@ -84,7 +84,7 @@ export default function Header() {
                         </DropdownMenuItem>
                         {isSuperAdmin && (
                              <DropdownMenuItem asChild className="cursor-pointer">
-                                <Link href="/admin/control-center"><Shield className="mr-2 h-4 w-4" /><span>Super Admin</span></Link>
+                                <Link href="/admin/super-dashboard"><Shield className="mr-2 h-4 w-4" /><span>Super Admin</span></Link>
                             </DropdownMenuItem>
                         )}
                     </DropdownMenuGroup>

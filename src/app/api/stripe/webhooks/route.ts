@@ -30,6 +30,39 @@ export async function POST(req: Request) {
 
   try {
     switch (event.type) {
+      case "customer.created": {
+        const customer = event.data.object as Stripe.Customer;
+        if (customer.metadata.demoConversion === "true") {
+          const usersSnap = await adminDB
+            .collection("users")
+            .where("email", "==", customer.email)
+            .limit(1)
+            .get();
+
+          if (!usersSnap.empty) {
+            const doc = usersSnap.docs[0];
+            await doc.ref.update({
+              demoConversion: true,
+              source: "DEMO",
+            });
+          }
+        }
+        break;
+      }
+      case "customer.subscription.created": {
+        const subscription = event.data.object as Stripe.Subscription;
+        if (subscription.metadata.demoConversion === "true") {
+          await adminDB.collection("subscriptions").doc(subscription.id).set({
+            stripeCustomerId: subscription.customer,
+            status: subscription.status,
+            demoConversion: subscription.metadata.demoConversion === "true",
+            source: subscription.metadata.source, // RENTER or COMPANY
+            plan: subscription.items.data[0].price.lookup_key, // renter_trial or company_trial
+            createdAt: new Date(),
+          });
+        }
+        break;
+      }
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         const uid = session.metadata?.uid;
