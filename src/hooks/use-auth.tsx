@@ -3,18 +3,20 @@
 
 import { useEffect, useState, createContext, useContext, ReactNode } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth, db } from '@/firebase/client';
-import { doc, getDoc } from 'firebase/firestore';
+import { auth } from '@/firebase/client';
+import { whoAmI } from '@/app/auth/actions';
 
 interface AuthContextType {
-  user: (User & { role?: string }) | null;
+  user: User | null;
   loading: boolean;
+  claims: any | null;
   role: string | null;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
+  claims: null,
   role: null,
 });
 
@@ -22,26 +24,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [authInfo, setAuthInfo] = useState<AuthContextType>({
     user: null,
     loading: true,
-    role: null,
+    claims: null,
+    role: null
   });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const docRef = doc(db, "users", user.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const userData = docSnap.data();
-          setAuthInfo({
-            user: { ...user, role: userData.role },
-            loading: false,
-            role: userData.role,
-          });
-        } else {
-          setAuthInfo({ user, loading: false, role: null });
-        }
+        const idTokenResult = await user.getIdTokenResult(true);
+        setAuthInfo({ 
+          user, 
+          loading: false, 
+          claims: idTokenResult.claims,
+          role: idTokenResult.claims.role as string || null
+        });
       } else {
-        setAuthInfo({ user: null, loading: false, role: null });
+        setAuthInfo({ user: null, loading: false, claims: null, role: null });
       }
     });
 
