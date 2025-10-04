@@ -3,8 +3,6 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Inter, Newsreader } from "next/font/google";
 import { AuthProvider } from "@/hooks/use-auth";
-import Header from "@/components/layout/header";
-import Footer from "@/components/layout/footer";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -22,9 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen flex flex-col bg-background text-foreground antialiased selection:bg-indigo-200/40">
         <AuthProvider>
           <TooltipProvider>
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
+            {children}
             <Toaster />
           </TooltipProvider>
         </AuthProvider>

@@ -1,14 +1,15 @@
+
 'use client';
 
 import { useAuth } from '@/hooks/use-auth';
 import { Loader2 } from 'lucide-react';
 import { redirect } from 'next/navigation';
-import AdminDashboard from './_roles/admin';
-import ContentManagerDashboard from './_roles/content-manager';
-import EditorDashboard from './_roles/editor';
-import RenterDashboard from './_roles/renter';
-import SuperAdminDashboard from './_roles/super-admin';
-import ViewerDashboard from './_roles/viewer';
+import AdminDashboard from '@/app/(app)/dashboard/_roles/admin';
+import ContentManagerDashboard from '@/app/(app)/dashboard/_roles/content-manager';
+import EditorDashboard from '@/app/(app)/dashboard/_roles/editor';
+import RenterDashboard from '@/app/(app)/dashboard/_roles/renter';
+import SuperAdminDashboard from '@/app/(app)/dashboard/_roles/super-admin';
+import ViewerDashboard from '@/app/(app)/dashboard/_roles/viewer';
 import Protected from '@/components/protected';
 
 function LoadingSpinner() {
