@@ -1,56 +1,67 @@
 
-'use client';
+"use client";
 
-import { useEffect, useState, createContext, useContext, ReactNode } from 'react';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from '@/firebase/client';
-import { whoAmI } from '@/app/auth/actions';
+import { createContext, useContext, useEffect, useState } from "react";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "@/firebase/client";
+
+// Define roles in your system
+export type UserRole = "SUPER_ADMIN" | "ADMIN" | "USER" | null;
 
 interface AuthContextType {
   user: User | null;
+  role: UserRole;
   loading: boolean;
-  claims: any | null;
-  role: string | null;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  loading: true,
-  claims: null,
   role: null,
+  loading: true,
 });
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [authInfo, setAuthInfo] = useState<AuthContextType>({
-    user: null,
-    loading: true,
-    claims: null,
-    role: null
-  });
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [role, setRole] = useState<UserRole>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const idTokenResult = await user.getIdTokenResult(true);
-        setAuthInfo({ 
-          user, 
-          loading: false, 
-          claims: idTokenResult.claims,
-          role: idTokenResult.claims.role as string || null
-        });
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setUser(firebaseUser);
+
+      if (firebaseUser) {
+        try {
+          // Fetch role from Firestore: users/{uid}/role
+          const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            setRole((data.role as UserRole) || "USER");
+          } else {
+            // Default role if doc missing
+            setRole("USER");
+          }
+        } catch (err) {
+          console.error("Error fetching user role:", err);
+          setRole("USER");
+        }
       } else {
-        setAuthInfo({ user: null, loading: false, claims: null, role: null });
+        setRole(null);
       }
+
+      setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
   return (
-    <AuthContext.Provider value={authInfo}>
+    <AuthContext.Provider value={{ user, role, loading }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-export const useAuth = () => useContext(AuthContext);
+export function useAuth() {
+  return useContext(AuthContext);
+}
