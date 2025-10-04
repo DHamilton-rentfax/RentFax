@@ -2,102 +2,69 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ---------------------------
-    // USERS
-    // ---------------------------
+    // ========================
+    // Users collection
+    // ========================
     match /users/{userId} {
-      allow read: if request.auth != null
-        && (request.auth.uid == userId || request.auth.token.role in ["SUPER_ADMIN", "ADMIN"]);
-      allow write: if request.auth.uid == userId;
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Super Admins can read/write anyone's user doc
+      allow read, write: if isSuperAdmin();
     }
 
-    // ---------------------------
-    // TEAMS & MEMBERS
-    // ---------------------------
-    match /teams/{teamId} {
-      allow read: if request.auth.token.role in ["SUPER_ADMIN", "ADMIN"];
-      allow write: if request.auth.token.role == "SUPER_ADMIN";
+    // ========================
+    // Dashboard data (per user/team)
+    // ========================
+    match /dashboard/{docId} {
+      // Only logged-in users can read/write their own dashboard data
+      allow read, write: if request.auth != null;
     }
 
-    match /teams/{teamId}/members/{memberId} {
-      allow read: if request.auth != null
-        && (request.auth.token.role in ["SUPER_ADMIN", "ADMIN"] || request.auth.uid == memberId);
-      allow write: if request.auth.token.role in ["SUPER_ADMIN", "ADMIN"];
-      allow delete: if request.auth.token.role == "SUPER_ADMIN";
+    // ========================
+    // Incidents collection
+    // ========================
+    match /incidents/{incidentId} {
+      allow read: if request.auth != null; // renters/admins can read
+      allow write: if isAdminOrSuper();    // only admin/super can create/update
     }
 
-    // ---------------------------
-    // INVITES
-    // ---------------------------
-    match /invites/{inviteId} {
-      allow create: if request.auth.token.role in ["SUPER_ADMIN", "ADMIN"];
-      allow read: if request.auth != null
-        && (request.auth.token.role in ["SUPER_ADMIN", "ADMIN"] 
-            || resource.data.email == request.auth.token.email);
-      allow update: if request.auth.token.role in ["SUPER_ADMIN", "ADMIN"];
-      allow delete: if request.auth.token.role == "SUPER_ADMIN";
-    }
-
-    // ---------------------------
-    // DISPUTES
-    // ---------------------------
+    // ========================
+    // Disputes collection
+    // ========================
     match /disputes/{disputeId} {
-      allow read: if request.auth.token.role in ["SUPER_ADMIN", "ADMIN", "SUPPORT", "VIEWER"];
-      allow write: if request.auth.token.role in ["SUPER_ADMIN", "ADMIN", "SUPPORT"];
+      allow read: if request.auth != null; // renter can see their disputes
+      allow write: if request.auth != null; // renter can file disputes
     }
 
-    // ---------------------------
-    // FRAUD ALERTS (renters)
-    // ---------------------------
-    match /renters/{renterId} {
-      allow read: if request.auth.token.role in ["SUPER_ADMIN", "ADMIN", "SUPPORT", "VIEWER"];
-      allow update: if request.auth.token.role in ["SUPER_ADMIN", "ADMIN"];
-      allow delete: if request.auth.token.role == "SUPER_ADMIN";
+    // ========================
+    // Admin-only area
+    // ========================
+    match /admin/{docId} {
+      allow read, write: if isSuperAdmin();
+    }
+    
+    // ========================
+    // Notifications collection per user
+    // ========================
+    match /users/{userId}/notifications/{notificationId} {
+      allow read, update, delete: if request.auth.uid == userId;
+      allow create: if request.auth.uid == userId;
     }
 
-    // ---------------------------
-    // BLOG POSTS
-    // ---------------------------
-    match /blogs/{blogId} {
-      allow read: if true; // public blog visibility
-      allow create: if request.auth.token.role in ["SUPER_ADMIN", "ADMIN", "EDITOR"];
-      allow update: if request.auth.token.role in ["SUPER_ADMIN", "ADMIN", "EDITOR"];
-      allow delete: if request.auth.token.role in ["SUPER_ADMIN", "ADMIN"];
+    // ========================
+    // Functions (role helpers)
+    // ========================
+    function isSuperAdmin() {
+      return request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "SUPER_ADMIN";
     }
 
-    // ---------------------------
-    // AUDIT LOGS
-    // ---------------------------
-    match /auditLogs/{logId} {
-      allow read: if request.auth.token.role in ["SUPER_ADMIN", "ADMIN"];
-      allow create: if request.auth.token.role == "SYSTEM"; // cloud functions only
-      allow delete: if false;
-    }
-
-    // ---------------------------
-    // ALERTS
-    // ---------------------------
-    match /alerts/{alertId} {
-      allow read: if request.auth.token.role in ["SUPER_ADMIN", "ADMIN"];
-      allow create: if request.auth.token.role == "SYSTEM"; // cloud functions
-      allow update: if request.auth.token.role in ["SUPER_ADMIN", "ADMIN"]; // acknowledge
-      allow delete: if false;
-    }
-
-    // ---------------------------
-    // CHATS (Support)
-    // ---------------------------
-    match /chats/{chatId} {
-      allow read: if request.auth.token.role in ["SUPER_ADMIN", "ADMIN", "SUPPORT"];
-      allow create: if request.auth != null; // renters/customers can start chats
-      allow update: if request.auth.token.role in ["SUPER_ADMIN", "ADMIN", "SUPPORT"];
-      allow delete: if request.auth.token.role == "SUPER_ADMIN";
-    }
-
-    match /chats/{chatId}/messages/{msgId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow delete: if request.auth.token.role in ["SUPER_ADMIN", "ADMIN"];
+    function isAdminOrSuper() {
+      return request.auth != null
+        && (
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "ADMIN"
+          || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "SUPER_ADMIN"
+        );
     }
   }
 }
