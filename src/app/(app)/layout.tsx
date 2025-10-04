@@ -1,22 +1,137 @@
 
+'use client';
+
+import Link from "next/link";
+import {
+    Bell,
+    Home,
+    Users,
+    FileText,
+    ShieldQuestion,
+    BarChart2,
+    Settings,
+    Building2,
+    ListChecks,
+    SlidersHorizontal,
+} from "lucide-react";
+
+import Header from "@/components/layout/header";
+import BannerMessage from "@/components/banner-message";
 import Protected from "@/components/protected";
-import { NotificationBell } from "@/components/admin/NotificationBell";
-import ChatWidget from "@/components/chat/ChatWidget";
-import { Toaster } from 'sonner';
+import { useAuth } from "@/hooks/use-auth";
+import AdminDashboard from "./dashboard/_roles/admin";
+import SuperAdminDashboard from "./dashboard/_roles/super-admin";
+import ContentManagerDashboard from "./dashboard/_roles/content-manager";
+import EditorDashboard from "./dashboard/_roles/editor";
+import ViewerDashboard from "./dashboard/_roles/viewer";
+import RenterDashboard from "./dashboard/_roles/renter";
+
+const navLinks = [
+    { href: "/dashboard", label: "Dashboard", icon: Home, roles: ['user', 'reviewer', 'editor', 'admin', 'super_admin'] },
+    { href: "/dashboard/renters", label: "Renters", icon: Users, roles: ['user', 'reviewer', 'editor', 'admin', 'super_admin'] },
+    { href: "/dashboard/incidents", label: "Incidents", icon: FileText, roles: ['user', 'reviewer', 'editor', 'admin', 'super_admin'] },
+    { href: "/dashboard/disputes", label: "Disputes", icon: ShieldQuestion, roles: ['user', 'reviewer', 'editor', 'admin', 'super_admin'] },
+    { href: "/dashboard/analytics", label: "Analytics", icon: BarChart2, roles: ['editor', 'admin', 'super_admin'] },
+];
+
+const settingsLinks = [
+    { href: '/dashboard/team', label: 'Team', icon: Users, roles: ['admin', 'super_admin'] },
+    { href: '/dashboard/settings/rules', label: 'Rules & Branding', icon: ShieldQuestion, roles: ['admin', 'super_admin'] },
+    { href: '/dashboard/billing', label: 'Billing & Add-Ons', icon: Settings, roles: ['admin', 'super_admin'] },
+    { href: "/dashboard/notifications", label: "Notifications", icon: Bell, roles: ['user', 'reviewer', 'editor', 'admin', 'super_admin'] },
+]
+
+const adminNavLinks = [
+    { href: '/admin', label: 'Super Admin', icon: SlidersHorizontal, roles: ['super_admin'] },
+    { href: '/dashboard/audit', label: 'Audit Logs', icon: ListChecks, roles: ['admin', 'super_admin'] },
+]
+
+const DashboardRender = ({ children }: { children: React.ReactNode }) => {
+    const { claims } = useAuth();
+    switch (claims?.role) {
+        case 'super_admin':
+            return <SuperAdminDashboard />;
+        case 'admin':
+            return <AdminDashboard />;
+        case 'content_manager':
+            return <ContentManagerDashboard />;
+        case 'editor':
+            return <EditorDashboard />;
+        case 'viewer':
+            return <ViewerDashboard />;
+        case 'renter':
+                return <RenterDashboard />;
+        default:
+            return <>{children}</>;
+    }
+}
 
 export default function AppLayout({
-  children,
+    children,
 }: {
-  children: React.ReactNode;
+    children: React.ReactNode;
 }) {
-  return (
-    <Protected roles={['super_admin', 'admin', 'editor', 'reviewer', 'user', 'content_manager', 'rental_client']}>
-        <Toaster richColors />
-        <div className="flex justify-end p-4">
-            <NotificationBell />
-        </div>
-        {children}
-        <ChatWidget />
-    </Protected>
-  );
+    return (
+        <Protected roles={['user', 'reviewer', 'editor', 'admin', 'super_admin', 'content_manager', 'rental_client']}>
+            <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+                <div className="hidden border-r bg-muted/40 md:block">
+                    <div className="flex h-full max-h-screen flex-col gap-2">
+                        <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
+                            <Link href="/" className="flex items-center gap-2 font-semibold">
+                                <Building2 className="h-6 w-6" />
+                                <span className="">RentFAX</span>
+                            </Link>
+                        </div>
+                        <div className="flex-1 overflow-y-auto">
+                            <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+                                <p className="px-3 py-2 text-xs font-semibold text-muted-foreground">MENU</p>
+                                {navLinks.map(link => (
+                                    <Protected key={link.href} roles={link.roles}>
+                                        <Link
+                                            href={link.href}
+                                            className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                                        >
+                                            <link.icon className="h-4 w-4" />
+                                            {link.label}
+                                        </Link>
+                                    </Protected>
+                                ))}
+                                <p className="px-3 py-2 mt-4 text-xs font-semibold text-muted-foreground">SETTINGS</p>
+                                {settingsLinks.map(link => (
+                                    <Protected key={link.href} roles={link.roles}>
+                                        <Link
+                                            href={link.href}
+                                            className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                                        >
+                                            <link.icon className="h-4 w-4" />
+                                            {link.label}
+                                        </Link>
+                                    </Protected>
+                                ))}
+                                 <p className="px-3 py-2 mt-4 text-xs font-semibold text-muted-foreground">ADMIN</p>
+                                 {adminNavLinks.map(link => (
+                                     <Protected key={link.href} roles={link.roles}>
+                                        <Link
+                                            href={link.href}
+                                            className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                                        >
+                                            <link.icon className="h-4 w-4" />
+                                            {link.label}
+                                        </Link>
+                                    </Protected>
+                                ))}
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+                <div className="flex flex-col">
+                    <Header />
+                    <BannerMessage />
+                    <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background">
+                        <DashboardRender>{children}</DashboardRender>
+                    </main>
+                </div>
+            </div>
+        </Protected>
+    );
 }
