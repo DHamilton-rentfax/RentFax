@@ -2,27 +2,29 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { onAuthStateChanged, User } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-import { auth, db } from "@/firebase/client";
+import { onAuthStateChanged, User, getIdTokenResult } from "firebase/auth";
+import { auth } from "@/firebase/client";
 
 // Define roles in your system
-export type UserRole = "SUPER_ADMIN" | "ADMIN" | "USER" | null;
+export type UserRole = "super_admin" | "admin" | "editor" | "reviewer" | "user" | "rental_client" | "banned" | "content_manager" | null;
 
 interface AuthContextType {
   user: User | null;
+  claims: any | null;
   role: UserRole;
   loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
+  claims: null,
   role: null,
   loading: true,
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [claims, setClaims] = useState<any | null>(null);
   const [role, setRole] = useState<UserRole>(null);
   const [loading, setLoading] = useState(true);
 
@@ -32,20 +34,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (firebaseUser) {
         try {
-          // Fetch role from Firestore: users/{uid}/role
-          const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-          if (userDoc.exists()) {
-            const data = userDoc.data();
-            setRole((data.role as UserRole) || "USER");
-          } else {
-            // Default role if doc missing
-            setRole("USER");
-          }
+          const tokenResult = await getIdTokenResult(firebaseUser);
+          const userClaims = tokenResult.claims;
+          setClaims(userClaims);
+          setRole((userClaims.role as UserRole) || "user");
         } catch (err) {
-          console.error("Error fetching user role:", err);
-          setRole("USER");
+          console.error("Error fetching user claims:", err);
+          setClaims(null);
+          setRole("user"); // Default to basic role on error
         }
       } else {
+        setClaims(null);
         setRole(null);
       }
 
@@ -56,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, role, loading }}>
+    <AuthContext.Provider value={{ user, claims, role, loading }}>
       {children}
     </AuthContext.Provider>
   );

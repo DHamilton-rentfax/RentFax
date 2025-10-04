@@ -1,13 +1,15 @@
-// src/app/(app)/layout.tsx
+
 "use client";
 
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import Header from "@/components/layout/header";
+import { Loader2 } from "lucide-react";
+import Protected from "@/components/protected";
+
 
 const sidebarNavItems = [
     {
@@ -60,7 +62,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <>
+    <Protected>
         <Header />
         <div className="container mx-auto flex-1 items-start md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10">
             <aside className="fixed top-16 z-30 -ml-2 hidden h-[calc(100vh-4rem)] w-full shrink-0 md:sticky md:block">
@@ -72,6 +74,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 {children}
             </main>
         </div>
-    </>
+    </Protected>
   );
 }
+
