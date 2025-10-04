@@ -1,13 +1,13 @@
+
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/use-auth';
 import { Loader2 } from 'lucide-react';
-import Protected from '@/components/protected';
 import RenterActions from '@/components/renter-actions';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 // In a real app, this would be a more sophisticated API call
 async function getOrgUsers(orgId: string) {
     // This is a simplified client-side query for demonstration.
-    // In a production app, you'd have a secure Cloud Function to list users.
+    // In a production app, you'd have a secure Cloud Function to list users by org.
     const users: any[] = [];
     const q = query(collection(db, "users"), where("companyId", "==", orgId));
     const snap = await getDocs(q);
@@ -52,7 +52,6 @@ export default function TeamPage() {
   }
 
   return (
-    <Protected roles={['owner', 'manager']}>
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold font-headline">Team Management</h1>
@@ -111,6 +110,5 @@ export default function TeamPage() {
                 </CardContent>
             </Card>
         </div>
-    </Protected>
   );
 }

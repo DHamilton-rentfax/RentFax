@@ -2,7 +2,6 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import Protected from '@/components/protected';
 import {
   Card,
   CardContent,
