@@ -1,12 +1,21 @@
 
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '@/firebase/client';
+import { ref, uploadBytes, getDownloadURL, updateMetadata } from 'firebase/storage';
+import { storage, auth } from '@/firebase/client';
+import { User }from 'firebase/auth';
 
-export const uploadEvidenceFiles = async (renterId: string, files: File[]): Promise<string[]> => {
+export const uploadEvidenceFiles = async (disputeId: string, files: File[], user: User): Promise<string[]> => {
   const urls: string[] = [];
   for (const file of files) {
-    const storageRef = ref(storage, `disputes/${renterId}/${Date.now()}-${file.name}`);
-    await uploadBytes(storageRef, file);
+    const storageRef = ref(storage, `evidence/${disputeId}/${Date.now()}-${file.name}`);
+    
+    // Set metadata during upload
+    await uploadBytes(storageRef, file, {
+      customMetadata: {
+        actorUid: user.uid,
+        actorEmail: user.email || 'unknown',
+      },
+    });
+
     const url = await getDownloadURL(storageRef);
     urls.push(url);
   }

@@ -1,3 +1,4 @@
+
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import fetch from "node-fetch";
@@ -7,6 +8,7 @@ if (admin.apps.length === 0) {
   admin.initializeApp();
 }
 
+const db = admin.firestore();
 const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL || "";
 
 // Fire when new notifications are created
@@ -44,6 +46,48 @@ export const notifySlack = functions.firestore
       console.error("❌ Slack notification failed", err);
     }
   });
+
+// Trigger on Storage file create
+export const logEvidenceActivity = functions.storage.object().onFinalize(async (object) => {
+  const filePath = object.name || "";
+  
+  if (!filePath.startsWith("evidence/")) return; // only log evidence uploads
+
+  const [_, disputeId] = filePath.split("/");
+
+  const actorUid = object.metadata?.actorUid || "unknown";
+  const actorEmail = object.metadata?.actorEmail || "unknown";
+
+  await db.collection("auditLogs").add({
+    actor: actorUid,
+    actorEmail,
+    action: "EVIDENCE_UPLOAD",
+    target: filePath,
+    disputeId,
+    timestamp: admin.firestore.FieldValue.serverTimestamp(),
+  });
+});
+
+// Trigger on delete
+export const logEvidenceDelete = functions.storage.object().onDelete(async (object) => {
+  const filePath = object.name || "";
+  if (!filePath.startsWith("evidence/")) return;
+
+  const [_, disputeId] = filePath.split("/");
+
+  const actorUid = object.metadata?.actorUid || "unknown";
+  const actorEmail = object.metadata?.actorEmail || "unknown";
+
+  await db.collection("auditLogs").add({
+    actor: actorUid,
+    actorEmail,
+    action: "EVIDENCE_DELETE",
+    target: filePath,
+    disputeId,
+    timestamp: admin.firestore.FieldValue.serverTimestamp(),
+  });
+});
+
 
 export { disputeSlaCheck } from "./jobs/dispute-sla-check";
 export { dailyDigest, weeklyDigest } from "./jobs/digest";

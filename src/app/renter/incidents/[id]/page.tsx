@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState, FormEvent } from 'react';
@@ -51,7 +52,7 @@ export default function IncidentDetailPage({ params }: { params: { id: string } 
 
     setSubmitting(true);
     try {
-      const evidenceUrls = await uploadEvidenceFiles(user.uid, disputeFiles);
+      const evidenceUrls = await uploadEvidenceFiles(incident.id, disputeFiles, user);
       const newDisputeRef = await addDoc(collection(db, `renters/${user.uid}/disputes`), {
         id: incident.id,
         message: disputeMessage,

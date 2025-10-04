@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -10,6 +11,11 @@ service cloud.firestore {
 
       // Super Admins can read/write anyone's user doc
       allow read, write: if isSuperAdmin();
+    }
+    
+    match /users/{userId}/notifications/{notificationId} {
+      allow read, update, delete: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null; // More specific rules can be added if needed
     }
 
     // ========================
@@ -35,20 +41,22 @@ service cloud.firestore {
       allow read: if request.auth != null; // renter can see their disputes
       allow write: if request.auth != null; // renter can file disputes
     }
-
+    
     // ========================
+    // Audit Logs Collection
+    // ========================
+    match /auditLogs/{logId} {
+      // Users can read their own audit actions, admins can read all
+      allow read: if request.auth != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "SUPER_ADMIN" || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "ADMIN");
+      // Nobody can write directly (only Cloud Functions)
+      allow write: if false;
+    }
+
+    // = a======================
     // Admin-only area
     // ========================
     match /admin/{docId} {
       allow read, write: if isSuperAdmin();
-    }
-    
-    // ========================
-    // Notifications collection per user
-    // ========================
-    match /users/{userId}/notifications/{notificationId} {
-      allow read, update, delete: if request.auth.uid == userId;
-      allow create: if request.auth.uid == userId;
     }
 
     // ========================
