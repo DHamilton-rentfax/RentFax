@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/firebase/server';
+import { dbAdmin } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 
 // This is a mock file upload handler. In a real application, you would
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     const evidenceUrls = await handleFileUploads(evidenceFiles);
 
     // 2. Create a new dispute document in Firestore
-    const disputeRef = await db.collection('disputes').add({
+    const disputeRef = await dbAdmin.collection('disputes').add({
       id,
       message,
       evidence: evidenceUrls,
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     });
 
     // 3. Update the related incident to mark it as disputed
-    const incidentRef = db.collection('incidents').doc(id);
+    const incidentRef = dbAdmin.collection('incidents').doc(id);
     await incidentRef.update({ status: 'disputed' });
 
     return new NextResponse(JSON.stringify({ success: true, id: disputeRef.id }), { status: 201 });

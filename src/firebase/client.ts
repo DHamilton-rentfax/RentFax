@@ -1,6 +1,8 @@
-import { initializeApp, getApps } from "firebase/app";
+// src/firebase/client.ts
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { getStorage } from "firebase/storage";
 import { getAnalytics, logEvent } from "firebase/analytics";
 
 const firebaseConfig = {
@@ -9,18 +11,14 @@ const firebaseConfig = {
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!
 };
 
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-
-// Analytics only runs in browser (not SSR)
-let analytics: any = null;
-if (typeof window !== "undefined" && firebaseConfig.measurementId) {
-  analytics = getAnalytics(app);
-}
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null
 
 export const db = getFirestore(app);
 export const auth = getAuth(app);
-export { app, analytics, logEvent };
+export const storage = getStorage(app);
+export { analytics, logEvent };
+export default app;

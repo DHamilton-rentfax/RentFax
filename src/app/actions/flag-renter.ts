@@ -1,12 +1,12 @@
 
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { dbAdmin } from "@/lib/firebase-admin";
 import { logAuditEvent } from "./log-audit";
 
 export async function flagRenter(renterId: string, flaggedBy: string, reason: string) {
   try {
-    const renterRef = adminDb.collection("renters").doc(renterId);
+    const renterRef = dbAdmin.collection("renters").doc(renterId);
     await renterRef.update({
       alert: true,
       flaggedAt: new Date().toISOString(),

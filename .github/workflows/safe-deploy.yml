@@ -1,0 +1,71 @@
+name: Safe Deploy to Firebase
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm install
+      - name: Enable Firebase Web Frameworks
+        run: firebase experiments:enable webframeworks
+      - name: Build and Deploy to Staging
+        run: |
+          npm run build
+          firebase deploy --only hosting:rentfax-staging --force
+
+  smoke-test:
+    name: Run Smoke Tests
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for Staging URL
+        run: sleep 30
+      - name: Run Smoke Tests
+        run: |
+          curl -I https://rentfax-staging.web.app | grep "200" || exit 1
+          curl -I https://rentfax-staging.web.app/admin/login | grep "200" || exit 1
+
+  promote-production:
+    name: Promote to Production
+    needs: smoke-test
+    runs-on: ubuntu-latest
+    if: success()
+    steps:
+      - name: Promote Version
+        run: firebase hosting:clone rentfax-staging:live rentfax-demo:live
+
+  notify:
+    name: Notify Slack
+    needs: [deploy-staging, smoke-test, promote-production]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Send Slack Notification on Success
+        if: ${{ success() }}
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": "✅ RentFAX deployed successfully to production!"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Send Slack Notification on Failure
+        if: ${{ failure() }}
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": "🚫 RentFAX deployment failed. Please check the GitHub Actions logs."
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

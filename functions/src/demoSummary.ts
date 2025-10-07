@@ -10,8 +10,8 @@ const db = admin.firestore();
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: functions.config().mailer.user,
-    pass: functions.config().mailer.pass,
+    user: process.env.MAILER_USER,
+    pass: process.env.MAILER_PASS,
   },
 });
 
@@ -50,7 +50,7 @@ export const sendWeeklyDemoSummary = functions.pubsub
     `;
 
     await transporter.sendMail({
-      from: `"RentFAX Reports" <${functions.config().mailer.user}>`,
+      from: `"RentFAX Reports" <${process.env.MAILER_USER}>`,
       to: "info@rentfax.io",
       subject: "Weekly RentFAX Demo Summary",
       text: message,

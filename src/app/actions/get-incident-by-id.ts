@@ -1,8 +1,7 @@
 
 'use server';
 
-import { adminDB } from '@/firebase/server';
-import { FieldValue } from 'firebase-admin/firestore';
+import { dbAdmin } from '@/lib/firebase-admin';
 
 export interface Incident {
     id: string;
@@ -16,24 +15,23 @@ export interface Incident {
 
 export const getIncidentById = async (id: string): Promise<Incident | null> => {
     try {
-        const incidentDoc = await adminDB.collectionGroup('incidents').where('id', '==', id).get();
+        const incidentDoc = await dbAdmin.collection('incidents').doc(id).get();
 
-        if (incidentDoc.empty) {
+        if (!incidentDoc.exists) {
             return null;
         }
 
-        const incidentSnapshot = incidentDoc.docs[0];
-        const incidentData = incidentSnapshot.data();
+        const incidentData = incidentDoc.data()!;
 
         return {
-            id: incidentSnapshot.id,
-            renterId: incidentSnapshot.ref.parent.parent!.id,
+            id: incidentDoc.id,
+            renterId: incidentData.renterId,
             type: incidentData.type,
             status: incidentData.status,
             description: incidentData.description,
-            createdAt: incidentData.createdAt.toDate().toISOString(),
+            createdAt: incidentData.createdAt,
             evidence: incidentData.evidence || [],
-        };
+        } as Incident;
     } catch (error) {
         console.error('Error fetching incident by ID:', error);
         return null;

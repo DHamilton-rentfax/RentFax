@@ -82,7 +82,7 @@ export default function ChatPage() {
         </button>
       </div>
 
-      <div className.bg-white shadow rounded-lg">
+      <div className="bg-white shadow rounded-lg">
         <h2 className="text-xl font-semibold p-4 border-b">Active Chat Sessions</h2>
         {chats.length > 0 ? (
             chats.map(c => (

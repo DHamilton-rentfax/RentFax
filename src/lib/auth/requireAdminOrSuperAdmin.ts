@@ -1,7 +1,7 @@
 'use server'
 
 import { cookies } from 'next/headers'
-import { adminDb, auth } from '@/firebase/server'
+import { dbAdmin as adminDb, authAdmin as auth } from '@/lib/firebase-admin'
 import { redirect } from 'next/navigation'
 import { getUserFromSessionCookie } from './getUserFromSessionCookie'
 

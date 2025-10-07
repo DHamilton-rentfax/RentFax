@@ -1,8 +1,8 @@
 'use server';
 
-import { adminDB } from '@/firebase/server';
+import { dbAdmin } from '@/lib/firebase-admin';
 
 export async function getUserRole(uid: string): Promise<string | null> {
-  const snap = await adminDB.doc(`users/${uid}`).get();
+  const snap = await dbAdmin.doc(`users/${uid}`).get();
   return snap.exists ? (snap.data()?.role as string) : null;
 }

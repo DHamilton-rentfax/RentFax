@@ -1,19 +1,19 @@
-
-export default function HomePage() {
+export default function Home() {
   return (
-    <section className="max-w-5xl mx-auto py-20 text-center">
-      <h1 className="text-4xl font-bold">Welcome to RentFAX</h1>
-      <p className="mt-4 text-lg text-gray-600">
-        The platform for transparent rental history, fraud detection, and dispute resolution.
+    <section className="flex flex-col items-center justify-center min-h-[90vh] text-center bg-gradient-to-b from-background to-muted/50 px-6">
+      <h1 className="text-6xl font-bold tracking-tight mb-6 leading-tight">
+        Screen Renters. <span className="text-primary">Prevent Fraud.</span>
+      </h1>
+      <p className="text-lg text-muted-foreground max-w-2xl mb-8">
+        RentFAX helps landlords and property managers verify renter history,
+        detect fraud, and resolve disputes — all in one secure platform.
       </p>
-      <div className="mt-6 flex justify-center gap-4">
-        <a href="/pricing" className="px-5 py-3 bg-blue-600 text-white rounded-md">
-          View Pricing
-        </a>
-        <a href="/how-it-works" className="px-5 py-3 bg-gray-200 rounded-md">
-          Learn More
-        </a>
-      </div>
+      <a
+        href="/screen"
+        className="px-8 py-4 bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition text-lg font-semibold"
+      >
+        Start Screening
+      </a>
     </section>
   );
 }

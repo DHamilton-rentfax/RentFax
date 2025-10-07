@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/hooks/use-toast';
 import { db } from '@/firebase/client';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
@@ -13,18 +13,18 @@ export default function RenterDisputesPage({ searchParams }: { searchParams: { t
   const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [subject, setSubject] = useState('');
   const [details, setDetails] = useState('');
-  const { notify } = useToast();
+  const { toast } = useToast();
   const [orgId, renterId] = Buffer.from(token, 'base64').toString().split(':');
 
   useEffect(() => {
     const q = query(collection(db, `orgs/${orgId}/disputes`), where("renterId", "==", renterId));
     const unsub = onSnapshot(q, snap => {
         const newDisputes = snap.docChanges().filter(c => c.type === "added");
-        if (newDisputes.length > 0) notify("📢 New dispute created");
+        if (newDisputes.length > 0) toast({ title: "📢 New dispute created" });
         setDisputes(snap.docs.map(d => ({ id: d.id, ...d.data() } as any)));
     });
     return () => unsub();
-  }, [orgId, renterId, notify]);
+  }, [orgId, renterId, toast]);
 
   async function fileDispute() {
     await fetch('/api/renter/disputes', {
@@ -33,7 +33,7 @@ export default function RenterDisputesPage({ searchParams }: { searchParams: { t
     });
     setSubject('');
     setDetails('');
-    notify('Dispute filed successfully');
+    toast({ title: 'Dispute filed successfully' });
   }
 
   async function uploadEvidence(id: string, file: File) {
@@ -43,7 +43,7 @@ export default function RenterDisputesPage({ searchParams }: { searchParams: { t
     });
     const { uploadUrl } = await res.json();
     await fetch(uploadUrl, { method: 'PUT', body: file });
-    notify('Evidence uploaded');
+    toast({ title: 'Evidence uploaded' });
   }
 
   return (

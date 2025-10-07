@@ -1,12 +1,12 @@
 
 'use server';
 
-import { db } from '@/firebase/server';
+import { dbAdmin } from '@/lib/firebase-admin';
 import { Dispute } from '@/types/dispute';
 
 export async function getDisputesForRenter(renterId: string) {
   try {
-    const disputesSnapshot = await db.collection('disputes').where('renterId', '==', renterId).get();
+    const disputesSnapshot = await dbAdmin.collection('disputes').where('renterId', '==', renterId).get();
     const disputes = disputesSnapshot.docs.map(doc => {
       const data = doc.data();
       return {

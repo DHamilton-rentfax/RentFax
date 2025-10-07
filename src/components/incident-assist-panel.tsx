@@ -5,8 +5,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Sparkles, CheckSquare, MessageSquareText } from 'lucide-react';
-import { incidentAssist } from '@/app/auth/actions';
+// import { incidentAssist } from '@/app/auth/actions';
 import type { IncidentAssistOutput } from '@/ai/flows/ai-assistant';
+
+// Temporary fallback until implemented
+const incidentAssist = async () => {
+  console.warn("incidentAssist not implemented yet");
+  return null;
+};
 
 export default function IncidentAssistPanel({ incidentId }: { incidentId: string }) {
   const [notes, setNotes] = useState('');

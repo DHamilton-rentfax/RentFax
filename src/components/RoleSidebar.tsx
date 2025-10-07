@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useAuth } from "@/hooks/use-auth";
-import { Home, Users, FileText, MessageSquare, Shield, BarChart } from "lucide-react";
+import { Home, Users, FileText, MessageSquare, Shield, BarChart, Settings } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 export default function RoleSidebar() {
@@ -20,7 +20,8 @@ export default function RoleSidebar() {
       { href: "/admin/super-dashboard/billing", label: "Billing", icon: BarChart },
       { href: "/admin/super-dashboard/audit-log", label: "Audit Logs", icon: FileText },
       { href: "/admin/super-dashboard/alerts", label: "Alerts", icon: Shield },
-      { href: "/admin/super-dashboard/critical-alerts", label: "Critical Alerts", icon: Shield }
+      { href: "/admin/super-dashboard/critical-alerts", label: "Critical Alerts", icon: Shield },
+      { href: "/super-admin/settings", label: "Settings", icon: Settings }
     ],
     ADMIN: [
       { href: "/admin/dashboard", label: "Overview", icon: Home },

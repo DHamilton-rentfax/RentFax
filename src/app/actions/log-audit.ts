@@ -1,7 +1,7 @@
 
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { dbAdmin } from "@/lib/firebase-admin";
 
 export async function logAuditEvent(event: {
   action: string;               // e.g. ROLE_UPDATED, DISPUTE_STATUS_CHANGED
@@ -16,7 +16,7 @@ export async function logAuditEvent(event: {
   metadata?: any;
 }) {
   try {
-    await adminDb.collection("auditLogs").add({
+    await dbAdmin.collection("auditLogs").add({
       ...event,
       timestamp: new Date().toISOString(),
     });

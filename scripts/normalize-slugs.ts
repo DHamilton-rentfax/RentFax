@@ -1,72 +1,33 @@
 // scripts/normalize-slugs.ts
-import fs from "fs";
-import path from "path";
+import fs from 'node:fs';
+import path from 'node:path';
 
-const ROOT = path.resolve("src");
+type Replacement = string;
+const rules: Array<[RegExp, Replacement]> = [
+  // params { disputeId|incidentId: string }  ->  params { id: string }
+  [/(params:\s*\{)\s*(disputeId|incidentId)\s*:\s*string\s*(\})/g, '$1 id: string $3'],
 
-function walk(dir: string, callback: (filePath: string) => void) {
-  fs.readdirSync(dir, { withFileTypes: true }).forEach((entry) => {
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      walk(fullPath, callback);
-    } else {
-      callback(fullPath);
-    }
-  });
-}
+  // useParams<{ ... disputeId|incidentId: string }> -> useParams<{ id: string }>()
+  [/useParams<\{.*?(disputeId|incidentId): string \}>/g, 'useParams<{ id: string }>()'],
 
-function collectAndRenameFolders(dir: string) {
-    const foldersToRename: [string, string][] = [];
+  // ".../(disputes|incidents)/${disputeId|incidentId}" -> ".../$1/${id}"
+  [/(disputes|incidents)\/\$\{(?:disputeId|incidentId)\}/g, '$1/${id}'],
+];
 
-    function findFolders(currentDir: string) {
-        fs.readdirSync(currentDir, { withFileTypes: true }).forEach((entry) => {
-            const fullPath = path.join(currentDir, entry.name);
-            if (entry.isDirectory()) {
-                if (entry.name.includes("[disputeId]") || entry.name.includes("[incidentId]")) {
-                    foldersToRename.push([
-                        fullPath,
-                        path.join(currentDir, entry.name.replace(/\[(dispute|incident)Id\]/g, "[id]")),
-                    ]);
-                }
-                findFolders(fullPath);
-            }
-        });
-    }
-
-    findFolders(dir);
-
-    // Sort by path depth, descending, to rename deepest folders first
-    foldersToRename.sort((a, b) => b[0].length - a[0].length);
-
-    for (const [oldPath, newPath] of foldersToRename) {
-        fs.renameSync(oldPath, newPath);
-        console.log("Renamed:", oldPath, "→", newPath);
-    }
-}
-
-// 🔄 Replace disputeId/incidentId → id inside code
-function replaceInFile(file: string) {
-  let contents = fs.readFileSync(file, "utf8");
-
-  const patterns: [RegExp, string][] = [
-    [/\\bdisputeId\\b/g, "id"],
-    [/\\bincidentId\\b/g, "id"],
-    [/(params:\\s*\\{)\\s*(disputeId|incidentId)\\s*:\\s*string\\s*(\\})/g, "$1 id: string $3"],
-    [/useParams<\\{.*?(disputeId|incidentId): string \\}>/g, "useParams<{ id: string }>"],
-    [/(disputes|incidents)\\/\\$\\{(disputeId|incidentId)\\}/g, "$1/${id}"],
-  ];
-
-  let updated = contents;
-  patterns.forEach(([regex, replacement]) => {
-    updated = updated.replace(regex, replacement);
-  });
-
-  if (updated !== contents) {
-    fs.writeFileSync(file, updated, "utf8");
-    console.log("Updated:", file);
+function run(file: string) {
+  const full = path.resolve(file);
+  let contents = fs.readFileSync(full, 'utf8');
+  for (const [rx, replacement] of rules) {
+    contents = contents.replace(rx, replacement);
   }
+  fs.writeFileSync(full, contents);
 }
 
-// 🚀 Run
-collectAndRenameFolders(ROOT);
-walk(ROOT, replaceInFile);
+if (require.main === module) {
+  const file = process.argv[2];
+  if (!file) {
+    console.error('Usage: ts-node scripts/normalize-slugs.ts <file>');
+    process.exit(1);
+  }
+  run(file);
+}

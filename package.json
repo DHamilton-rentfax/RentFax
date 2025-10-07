@@ -3,29 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3000",
-    "dev:demo": "env-cmd -f .env.demo next dev -p 4000",
-    "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
-    "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit",
-    "lint:queries": "node tools/scanFirestoreQueries.cjs src",
-    "e2e": "playwright test",
-    "e2e:headed": "playwright test --headed",
-    "e2e:report": "playwright show-report",
-    "test:e2e": "playwright test",
-    "test": "jest",
-    "test:rules": "jest --config jest.config.js --runInBand firestore.rules.test.ts",
-    "normalize-slugs": "ts-node scripts/normalize-slugs.ts",
-    "promote-user": "ts-node -O '{\"module\": \"commonjs\"}' src/scripts/promote-user.ts",
-    "seed:emulator": "ts-node scripts/seed-emulator.ts",
-    "seed:demo": "ts-node scripts/seed-demo.ts"
+    "deploy:staging": "npm run build && firebase deploy --only hosting:staging",
+    "deploy:prod": "npm run build && firebase deploy --only hosting:revamp"
   },
   "dependencies": {
-    "@genkit-ai/googleai": "^1.14.1",
-    "@genkit-ai/next": "^1.14.1",
+    "@genkit-ai/flow": "^0.5.17",
+    "@genkit-ai/googleai": "^1.20.0",
+    "@genkit-ai/next": "^1.20.0",
     "@google-cloud/bigquery": "^7.8.0",
     "@google-cloud/tasks": "^5.3.0",
     "@google/generative-ai": "^0.18.0",
@@ -60,9 +48,12 @@
     "@tiptap/extension-underline": "^2.5.7",
     "@tiptap/react": "^2.5.7",
     "@tiptap/starter-kit": "^2.5.7",
+    "@types/csv-stringify": "^1.4.3",
+    "@types/json2csv": "^5.0.7",
     "@types/jspdf": "^1.3.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "csv-stringify": "^6.6.0",
     "date-fns": "^3.6.0",
     "dotenv": "^16.5.0",
     "embla-carousel-react": "^8.6.0",
@@ -70,7 +61,8 @@
     "firebase": "^11.10.0",
     "firebase-admin": "^12.4.0",
     "framer-motion": "^12.23.21",
-    "genkit": "^1.14.1",
+    "genkit": "^1.20.0",
+    "json2csv": "^6.0.0-alpha.2",
     "jspdf": "^3.0.3",
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.475.0",
@@ -80,9 +72,12 @@
     "openai": "^4.53.2",
     "papaparse": "^5.5.3",
     "patch-package": "^8.0.0",
+    "pdf-lib": "^1.17.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.54.2",
+    "react-markdown": "^10.1.0",
+    "react-select": "^5.10.2",
     "recharts": "^2.15.4",
     "sonner": "^2.0.7",
     "stripe": "^16.12.0",
@@ -103,12 +98,20 @@
     "@types/recharts": "^1.8.29",
     "@types/stripe": "^8.0.417",
     "@types/uuid": "^9.0.8",
-    "genkit-cli": "^1.14.1",
+    "genkit-cli": "^1.20.0",
     "jest": "^30.2.0",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "ts-jest": "^29.4.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "next": {
+    "experimental": {
+      "appDir": false
+    }
   }
 }

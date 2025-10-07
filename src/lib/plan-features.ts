@@ -1,5 +1,3 @@
-'use server';
-
 export type Plan = 'starter' | 'pro' | 'enterprise';
 export type CompanyStatus = 'active' | 'grace' | 'locked';
 

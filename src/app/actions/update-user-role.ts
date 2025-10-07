@@ -2,7 +2,7 @@
 "use server";
 
 import { getAuth } from "firebase-admin/auth";
-import { db as adminDb } from "@/lib/firebase-admin";
+import { dbAdmin as adminDb } from "@/lib/firebase-admin";
 import { logAuditEvent } from "./log-audit";
 
 export async function updateUserRole(userId: string, newRole: string, adminEmail: string) {

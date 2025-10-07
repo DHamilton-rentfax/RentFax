@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { adminDb } from '@/firebase/server'
+import { dbAdmin as adminDb } from '@/lib/firebase-admin'
 import { getUserFromSessionCookie } from '@/lib/auth/getUserFromSessionCookie'
 
 export async function GET() {

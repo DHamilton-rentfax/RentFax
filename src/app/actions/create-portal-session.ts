@@ -1,10 +1,10 @@
 'use server';
 
 import { stripe } from '@/lib/stripe';
-import { getCustomerId } from '@/lib/firestore-users'; // your mapping function
+import { getStripeCustomerId } from '@/lib/stripe-customers'; // your mapping function
 
 export async function createPortalSession(uid: string) {
-  const customerId = await getCustomerId(uid);
+  const customerId = await getStripeCustomerId(uid);
 
   const session = await stripe.billingPortal.sessions.create({
     customer: customerId,

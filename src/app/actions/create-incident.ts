@@ -1,12 +1,12 @@
 
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { dbAdmin } from "@/lib/firebase-admin";
 import { logAuditEvent } from "./log-audit";
 
 export async function createIncident(data: any, companyId: string, createdBy: string) {
   try {
-    const ref = await adminDb.collection("incidents").add({
+    const ref = await dbAdmin.collection("incidents").add({
       ...data,
       companyId,
       createdBy,

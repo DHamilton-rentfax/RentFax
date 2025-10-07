@@ -1,44 +1,27 @@
-
 import "./globals.css";
-import Link from "next/link";
-import { AuthProvider } from "@/hooks/use-auth";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
+import Footer from "@/components/layout/footer";
+import { Header } from "@/components/layout/header";
 
-export const metadata = {
-  title: "RentFAX",
-  description: "Rental incident reports, disputes, and fraud protection.",
+const inter = Inter({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: "RentFAX – Verify Renters, Protect Your Business",
+  description: "AI-powered renter verification and dispute resolution platform.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>
-        <AuthProvider>
-          {/* Public Header */}
-          <header className="w-full border-b bg-white">
-            <nav className="max-w-7xl mx-auto flex justify-between items-center p-4">
-              <Link href="/" className="font-bold text-xl">RentFAX</Link>
-              <div className="flex gap-4">
-                <Link href="/how-it-works">How It Works</Link>
-                <Link href="/pricing">Pricing</Link>
-                <Link href="/blog">Blog</Link>
-                <Link href="/login">Login</Link>
-                <Link href="/signup" className="px-3 py-1 bg-blue-600 text-white rounded-md">
-                  Sign Up
-                </Link>
-              </div>
-            </nav>
-          </header>
-
-          {/* Page Content */}
-          <main className="flex-1">{children}</main>
-
-          {/* Public Footer */}
-          <footer className="w-full border-t bg-gray-50 p-4 text-center text-sm">
-            © {new Date().getFullYear()} RentFAX. All rights reserved.
-          </footer>
-          <Toaster />
-        </AuthProvider>
+    <html lang="en" className={inter.className}>
+      <body className="bg-background text-foreground flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-1 pt-16">{/* Add padding-top to avoid content being hidden by fixed header */}
+          {children}
+        </main>
+        <Footer />
+        <Toaster />
       </body>
     </html>
   );

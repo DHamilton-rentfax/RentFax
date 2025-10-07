@@ -1,19 +1,35 @@
 {
-  "functions": {
-    "source": "functions"
+  "projects": {
+    "default": "rentfax-revamp"
   },
   "hosting": [
     {
-      "site": "rentfax-prod",
-      "public": "out",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-      "rewrites": [{ "source": "**", "destination": "/index.html" }]
+      "site": "rentfax-revamp",
+      "source": ".",
+      "frameworksBackend": {
+        "region": "us-central1"
+      }
     },
     {
       "site": "rentfax-demo",
-      "public": "out",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-      "rewrites": [{ "source": "**", "destination": "/index.html" }]
+      "source": ".",
+      "frameworksBackend": {
+        "region": "us-central1"
+      }
+    },
+    {
+      "site": "rentfax-staging",
+      "source": ".",
+      "frameworksBackend": {
+        "region": "us-central1"
+      }
     }
-  ]
+  ],
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  }
 }
