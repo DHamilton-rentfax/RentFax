@@ -1,38 +1,30 @@
-import { stripe } from "@/lib/stripe";
-import { NextResponse } from "next/server";
 
-export async function POST(request: Request) {
-  const { lookup_key, renterInfo } = await request.json();
+import { stripe } from '@/lib/stripe';
+import { NextResponse } from 'next/server';
 
-  if (!lookup_key || !renterInfo) {
-    return NextResponse.json({ error: "Missing lookup_key or renterInfo" }, { status: 400 });
-  }
+// IMPORTANT: This is a placeholder for the actual Stripe Price ID.
+// You must create a product in your Stripe Dashboard and replace this value.
+const PRICE_ID = 'price_1234567890'; // REPLACE THIS
 
+export async function GET(request: Request) {
   try {
-    const prices = await stripe.prices.list({
-      lookup_keys: [lookup_key],
-      expand: ["data.product"],
-    });
-
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
+      payment_method_types: ['card'],
       line_items: [
         {
-          price: prices.data[0].id,
+          price: PRICE_ID,
           quantity: 1,
         },
       ],
-      mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/report/${renterInfo}?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/screen?canceled=true`,
-      metadata: {
-        renterInfo: renterInfo,
-      }
+      mode: 'payment',
+      success_url: `${request.headers.get('origin')}/report/{CHECKOUT_SESSION_ID}`,
+      cancel_url: `${request.headers.get('origin')}/pricing`,
     });
 
-    return NextResponse.json({ url: session.url });
+    return NextResponse.redirect(session.url!);
   } catch (error) {
-    console.error("Error creating Stripe checkout session:", error);
-    return NextResponse.json({ error: "Error creating checkout session" }, { status: 500 });
+    console.error('Error creating Stripe session:', error);
+    // In a real app, you'd want to redirect to an error page.
+    return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

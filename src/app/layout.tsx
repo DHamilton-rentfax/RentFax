@@ -1,27 +1,23 @@
 import "./globals.css";
-import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { Toaster } from "@/components/ui/toaster";
-import Footer from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
+import Footer from "@/components/layout/footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: "RentFAX – Verify Renters, Protect Your Business",
-  description: "AI-powered renter verification and dispute resolution platform.",
+export const metadata = {
+  title: "RentFAX — Screen Renters. Verify Drivers. Prevent Fraud.",
+  description:
+    "AI-powered tenant and renter verification across property, car, and equipment rentals. Instantly detect fraud, manage disputes, and protect your business with RentFAX.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={inter.className}>
-      <body className="bg-background text-foreground flex flex-col min-h-screen">
+      <body className="bg-[#F8FAFC] text-[#111827] flex flex-col min-h-screen antialiased">
         <Header />
-        <main className="flex-1 pt-16">{/* Add padding-top to avoid content being hidden by fixed header */}
-          {children}
-        </main>
+        <main className="flex-1 pt-20">{children}</main>
         <Footer />
-        <Toaster />
       </body>
     </html>
   );
