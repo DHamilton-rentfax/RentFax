@@ -1,30 +1,38 @@
+import { NextResponse } from "next/server";
+import Stripe from "stripe";
 
-import { stripe } from '@/lib/stripe';
-import { NextResponse } from 'next/server';
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2024-04-10",
+});
 
-// IMPORTANT: This is a placeholder for the actual Stripe Price ID.
-// You must create a product in your Stripe Dashboard and replace this value.
-const PRICE_ID = 'price_1234567890'; // REPLACE THIS
-
-export async function GET(request: Request) {
+export async function POST(req: Request) {
   try {
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price: PRICE_ID,
-          quantity: 1,
+    const { items } = await req.json();
+
+    if (!items || items.length === 0)
+      return NextResponse.json({ error: "No items provided." }, { status: 400 });
+
+    const lineItems = items.map((item: any) => ({
+      price_data: { // Changed from 'price' to 'price_data' for ad-hoc items
+        currency: 'usd',
+        product_data: {
+          name: item.lookup_key, // Use lookup_key as product name
         },
-      ],
-      mode: 'payment',
-      success_url: `${request.headers.get('origin')}/report/{CHECKOUT_SESSION_ID}`,
-      cancel_url: `${request.headers.get('origin')}/pricing`,
+        unit_amount: item.price * 100, // Price in cents
+      },
+      quantity: 1,
+    }));
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      line_items: lineItems,
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success`,
+      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/pricing`,
     });
 
-    return NextResponse.redirect(session.url!);
-  } catch (error) {
-    console.error('Error creating Stripe session:', error);
-    // In a real app, you'd want to redirect to an error page.
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json({ url: session.url });
+  } catch (err: any) {
+    console.error("Stripe checkout error:", err.message);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

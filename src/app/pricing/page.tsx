@@ -1,222 +1,202 @@
-"use client";
-
+'''"use client";
 import { useState } from "react";
-import { Info } from "lucide-react";
-
-const plans = [
-  {
-    name: "Single Report",
-    priceMonthly: 20,
-    priceYearly: 200,
-    description: "Perfect for individual screenings.",
-    features: ["1 report", "Email delivery", "24-hr validity"],
-    cta: "Start Now",
-  },
-  {
-    name: "Pro 50 Reports",
-    priceMonthly: 149,
-    priceYearly: 1490,
-    description: "For growing property or rental businesses.",
-    features: [
-      "50 reports per month",
-      "Priority processing",
-      "Fraud analytics dashboard",
-    ],
-    highlight: true,
-    cta: "Get Pro",
-  },
-  {
-    name: "Unlimited Access",
-    priceMonthly: 299,
-    priceYearly: 2990,
-    description: "For enterprise-grade screening operations.",
-    features: ["Unlimited reports", "Dedicated support", "Custom integrations"],
-    cta: "Get Unlimited",
-  },
-];
-
-const addOns = [
-  {
-    name: "AI Risk Analysis",
-    priceMonthly: 9.99,
-    priceYearly: 99,
-    tooltip:
-      "Unlock advanced AI-powered risk scoring and behavioral anomaly detection.",
-  },
-  {
-    name: "Priority Support",
-    priceMonthly: 19,
-    priceYearly: 191.52,
-    tooltip: "24/7 support with live chat and phone concierge service.",
-  },
-  {
-    name: "Extra Team Seats",
-    priceMonthly: 5,
-    priceYearly: 50,
-    tooltip:
-      "Add additional team members to your RentFAX dashboard with full permissions.",
-  },
-  {
-    name: "Export & API Access",
-    priceMonthly: 15,
-    priceYearly: 150,
-    tooltip:
-      "Integrate RentFAX data into your CRM or analytics systems via secure API.",
-  },
-];
+import PricingCart from "./pricing-cart";
+import { motion } from "framer-motion";
+import Link from "next/link";
 
 export default function PricingPage() {
-  const [annual, setAnnual] = useState(false);
-  const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
+  const [selectedAddOns, setSelectedAddOns] = useState<any[]>([]);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
 
-  const toggleAddOn = (name: string) => {
+  // IMPORTANT: Replace with your actual Stripe Price IDs
+  const plans = [
+    {
+      id: "price_1RFimRCW7xBpCf283OUkDq7x", // Replace
+      name: "RentFAX Risk Report",
+      price: "$20 One-Time",
+      type: "one-time",
+      description: "Run a detailed tenant risk lookup.",
+    },
+    {
+      id: "price_1RFimxCW7xBpCf287yS081wW", // Replace
+      name: "RentFAX Pro",
+      price: "$149 / mo",
+      annualId: "price_1SBOUZCW7xBpCf28gUiMTORC", // Replace
+      description:
+        "Powerful tools, advanced reporting, and priority support.",
+    },
+    {
+      id: "price_1RFinRCW7xBpCf280UgoYgZL", // Replace
+      name: "RentFAX Unlimited",
+      price: "$299 / mo",
+      annualId: "price_1SBOVcCW7xBpCf281PzT28KW", // Replace
+      description: "Full platform access, unlimited lookups, and AI suite.",
+    },
+    {
+      id: null,
+      name: "Enterprise",
+      price: "Custom",
+      description: "Custom integrations, SLA, and team features.",
+    },
+  ];
+
+  // IMPORTANT: Replace with your actual Stripe Price IDs
+  const addOnGroups = [
+    {
+      title: "Fraud & Risk Tools",
+      description:
+        "Enhance your screening accuracy and detect fraud patterns.",
+      items: [
+        { name: "AI Dispute Draft Assistant", priceId: "addon_ai_dispute", slug: "ai-dispute-draft-assistant" }, // Example slug
+        { name: "Advanced AI Risk Reports", priceId: "addon_ai_risk", slug: "advanced-ai-risk-reports" },
+        { name: "Branded Tenant Reports", priceId: "addon_branded", slug: "branded-tenant-reports" },
+      ],
+    },
+    {
+      title: "Compliance & Legal",
+      description:
+        "Automate filings and stay compliant across all jurisdictions.",
+      items: [
+        { name: "Court Filing Automation", priceId: "addon_filing", slug: "court-filing-automation" },
+        { name: "Compliance Toolkit", priceId: "addon_compliance", slug: "compliance-toolkit" },
+        { name: "Premium Audit Log & Archive", priceId: "addon_audit", slug: "premium-audit-log-archive" },
+      ],
+    },
+    {
+      title: "Data & Reporting",
+      description: "Deeper insights to manage portfolios at scale.",
+      items: [
+        { name: "Portfolio Insights Dashboard", priceId: "addon_insights", slug: "portfolio-insights-dashboard" },
+        { name: "Data Enrichment", priceId: "addon_data", slug: "data-enrichment" },
+        { name: "Bulk Upload Expansion", priceId: "addon_bulk", slug: "bulk-upload-expansion" },
+      ],
+    },
+  ];
+
+  const toggleAddOn = (addon: any) => {
     setSelectedAddOns((prev) =>
-      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]
+      prev.some((a) => a.priceId === addon.priceId)
+        ? prev.filter((a) => a.priceId !== addon.priceId)
+        : [...prev, addon]
     );
   };
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <section className="text-center py-20 px-6 bg-primary/5">
-        <h1 className="text-4xl font-extrabold mb-4">
-          Choose the plan that fits your business
-        </h1>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          Simple pricing designed for flexibility — pay as you go or unlock
-          unlimited access.
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Hero */}
+      <section className="text-center py-20 bg-gradient-to-b from-background to-muted/30">
+        <h1 className="text-4xl font-bold mb-4">Simple, Transparent Pricing</h1>
+        <p className="text-lg text-muted-foreground">
+          Choose the plan that fits your business — and customize it with add-ons.
         </p>
-
-        {/* Toggle */}
-        <div className="mt-8 flex justify-center gap-3 items-center">
-          <span
-            className={`text-sm font-medium ${
-              !annual ? "text-primary" : "text-muted-foreground"
-            }`}
-          >
-            Monthly
-          </span>
-          <button
-            className="w-12 h-6 bg-muted rounded-full relative"
-            onClick={() => setAnnual(!annual)}
-          >
-            <span
-              className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-primary transition-transform ${
-                annual ? "translate-x-6" : "translate-x-0"
-              }`}
-            />
-          </button>
-          <span
-            className={`text-sm font-medium ${
-              annual ? "text-primary" : "text-muted-foreground"
-            }`}
-          >
-            Annual (save 20%)
-          </span>
-        </div>
       </section>
 
-      {/* Pricing Cards */}
-      <section className="bg-[#0a1630] text-white py-20">
-        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-6 px-6">
-          {plans.map((plan) => (
-            <div
-              key={plan.name}
-              className={`rounded-2xl p-8 shadow-lg border transition-transform hover:-translate-y-1 ${
-                plan.highlight
-                  ? "bg-[#d6aa2f] text-gray-900"
-                  : "bg-white text-gray-900"
-              }`}
-            >
-              <h3 className="text-xl font-semibold mb-2">{plan.name}</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                {plan.description}
-              </p>
-              <div className="text-5xl font-extrabold mb-2">
-                ${annual ? plan.priceYearly : plan.priceMonthly}
-              </div>
-              <p className="text-sm mb-6">
-                {annual ? "per year" : "per month"}
-              </p>
-              <ul className="mb-6 space-y-2 text-sm">
-                {plan.features.map((f) => (
-                  <li key={f}>• {f}</li>
-                ))}
-              </ul>
+      {/* Plans */}
+      <section className="grid md:grid-cols-4 gap-6 p-8">
+        {plans.map((plan) => (
+          <motion.div
+            key={plan.name}
+            whileHover={{ scale: 1.02 }}
+            className={`p-6 border rounded-2xl shadow-sm cursor-pointer ${selectedPlan?.name === plan.name ? "border-primary bg-primary/5" : "border-muted"}`}
+            onClick={() => {
+              if (plan.name === "Enterprise") setShowContactModal(true);
+              else if (plan.type === "one-time") setShowReportModal(true);
+              else setSelectedPlan(plan);
+            }}
+          >
+            <h2 className="text-xl font-semibold mb-2">{plan.name}</h2>
+            <p className="text-muted-foreground mb-2">{plan.description}</p>
+            <p className="text-2xl font-bold">{plan.price}</p>
+          </motion.div>
+        ))}
+      </section>
+
+      {/* Add-on groups */}
+      <section className="p-8 space-y-10">
+        {addOnGroups.map((group) => (
+          <div key={group.title}>
+            <h3 className="text-2xl font-semibold mb-2">{group.title}</h3>
+            <p className="text-muted-foreground mb-4">{group.description}</p>
+            <div className="grid md:grid-cols-3 gap-4">
+              {group.items.map((addon) => {
+                const selected = selectedAddOns.some((a) => a.priceId === addon.priceId);
+                return (
+                  <div key={addon.name} className={`p-4 border rounded-xl transition-colors ${selected ? "border-primary bg-primary/5" : "border-muted"}`}>
+                    <div className="font-medium mb-2">{addon.name}</div>
+                    <div className="flex justify-between items-center">
+                        <Link href={`/docs/addons/${addon.slug}`}>
+                            <a className="text-sm text-primary hover:underline">Learn more →</a>
+                        </Link>
+                        <button onClick={() => toggleAddOn(addon)} className={`px-3 py-1 text-sm rounded-md ${selected ? 'bg-red-500/10 text-red-400' : 'bg-primary/10 text-primary'}`}>
+                            {selected ? 'Remove' : 'Add'}
+                        </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </section>
+
+      {/* Cart Drawer */}
+      <PricingCart
+        selectedPlan={selectedPlan}
+        selectedAddOns={selectedAddOns}
+        onCheckoutComplete={() => {
+          setSelectedPlan(null);
+          setSelectedAddOns([]);
+        }}
+      />
+
+      {/* Risk Report Modal */}
+      {showReportModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-background p-6 rounded-xl shadow-lg w-full max-w-md">
+            <h2 className="text-xl font-bold mb-3">Run a Tenant Lookup</h2>
+            <p className="text-sm text-muted-foreground mb-4">Enter tenant details to generate a RentFAX Risk Report.</p>
+            <form className="space-y-3">
+              <input placeholder="Tenant Name" className="w-full p-2 border rounded" />
+              <input placeholder="Email Address" className="w-full p-2 border rounded" />
+              <input placeholder="Property Address" className="w-full p-2 border rounded" />
+            </form>
+            <div className="mt-4 flex justify-end gap-2">
+              <button onClick={() => setShowReportModal(false)} className="px-4 py-2 text-sm bg-muted rounded">Cancel</button>
               <button
-                className={`w-full rounded-xl py-3 font-semibold transition ${
-                  plan.highlight
-                    ? "bg-gray-900 text-white hover:bg-gray-800"
-                    : "bg-primary text-primary-foreground hover:opacity-90"
-                }`}
+                onClick={() => {
+                  setShowReportModal(false);
+                  setSelectedPlan(plans[0]);
+                }}
+                className="px-4 py-2 text-sm bg-primary text-white rounded"
               >
-                {plan.cta}
+                Continue →
               </button>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Add-Ons */}
-      <section className="py-20 px-6 bg-background">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-10">
-            À la Carte Add-Ons
-          </h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            {addOns.map((addOn) => {
-              const selected = selectedAddOns.includes(addOn.name);
-              return (
-                <div
-                  key={addOn.name}
-                  className={`border rounded-2xl p-6 flex justify-between items-start transition hover:shadow-md ${
-                    selected ? "border-primary bg-primary/5" : "border-muted"
-                  }`}
-                >
-                  <div>
-                    <h3 className="font-semibold text-lg flex items-center gap-2">
-                      {addOn.name}
-                      <div
-                        className="relative group cursor-pointer"
-                        title={addOn.tooltip}
-                      >
-                        <Info className="w-4 h-4 text-muted-foreground group-hover:text-primary transition" />
-                        <span className="hidden group-hover:block absolute left-6 top-1/2 -translate-y-1/2 w-56 bg-gray-900 text-white text-xs rounded-md p-2 shadow-lg z-20">
-                          {addOn.tooltip}
-                        </span>
-                      </div>
-                    </h3>
-                    <p className="text-muted-foreground text-sm mt-1">
-                      {annual
-                        ? `$${addOn.priceYearly}/yr`
-                        : `$${addOn.priceMonthly}/mo`}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => toggleAddOn(addOn.name)}
-                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
-                      selected
-                        ? "bg-primary text-primary-foreground"
-                        : "border border-primary text-primary hover:bg-primary/10"
-                    }`}
-                  >
-                    {selected ? "Added" : "Add"}
-                  </button>
-                </div>
-              );
-            })}
           </div>
-
-          {/* Summary */}
-          {selectedAddOns.length > 0 && (
-            <div className="mt-10 bg-muted rounded-2xl p-6 text-center">
-              <h4 className="font-semibold mb-2">Selected Add-Ons:</h4>
-              <p className="text-sm text-muted-foreground">
-                {selectedAddOns.join(", ")}
-              </p>
-            </div>
-          )}
         </div>
-      </section>
-    </main>
+      )}
+
+      {/* Contact Sales Modal */}
+      {showContactModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-background p-6 rounded-xl shadow-lg w-full max-w-md">
+            <h2 className="text-xl font-bold mb-3">Contact Sales</h2>
+            <p className="text-sm text-muted-foreground mb-4">Tell us about your organization — our team will reach out.</p>
+            <form className="space-y-3">
+              <input placeholder="Name" className="w-full p-2 border rounded" />
+              <input placeholder="Company Name" className="w-full p-2 border rounded" />
+              <textarea placeholder="What are you looking for?" className="w-full p-2 border rounded" />
+            </form>
+            <div className="mt-4 flex justify-end gap-2">
+              <button onClick={() => setShowContactModal(false)} className="px-4 py-2 text-sm bg-muted rounded">Close</button>
+              <button onClick={() => setShowContactModal(false)} className="px-4 py-2 text-sm bg-primary text-white rounded">Submit</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
+'''

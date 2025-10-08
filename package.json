@@ -56,7 +56,7 @@
     "clsx": "^2.1.1",
     "csv-stringify": "^6.6.0",
     "date-fns": "^3.6.0",
-    "dotenv": "^16.5.0",
+    "dotenv": "^16.6.1",
     "embla-carousel-react": "^8.6.0",
     "env-cmd": "^10.1.0",
     "firebase": "^11.10.0",

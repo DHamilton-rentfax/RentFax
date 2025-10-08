@@ -1,191 +1,148 @@
-import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { adminDB } from "@/firebase/server";
+import { adminDB } from "@/lib/firebase-admin";
+
+// ✅ Disable automatic JSON parsing
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
+  apiVersion: "2024-04-10",
 });
 
 export async function POST(req: Request) {
+  const sig = req.headers.get("stripe-signature");
+  
+  // ✅ Read raw body as text, NOT JSON
   const body = await req.text();
-  const sig = headers().get("stripe-signature");
 
   if (!sig) {
     return NextResponse.json({ error: "Missing Stripe signature" }, { status: 400 });
   }
 
-  let event: Stripe.Event;
-
   try {
-    event = stripe.webhooks.constructEvent(
+    const event = stripe.webhooks.constructEvent(
       body,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET!
     );
-  } catch (err: any) {
-    console.error("❌ Webhook signature verification failed:", err.message);
-    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
-  }
 
-  try {
+    // ✅ Webhook test log
+    await adminDB.collection("webhook_test").add({
+      receivedAt: new Date().toISOString(),
+      eventType: event.type,
+    });
+
     switch (event.type) {
-      case "customer.created": {
-        const customer = event.data.object as Stripe.Customer;
-        if (customer.metadata.demoConversion === "true") {
-          const usersSnap = await adminDB
-            .collection("users")
-            .where("email", "==", customer.email)
-            .limit(1)
-            .get();
-
-          if (!usersSnap.empty) {
-            const doc = usersSnap.docs[0];
-            await doc.ref.update({
-              demoConversion: true,
-              source: "DEMO",
-            });
-          }
-        }
-        break;
-      }
-      case "customer.subscription.created": {
-        const subscription = event.data.object as Stripe.Subscription;
-        if (subscription.metadata.demoConversion === "true") {
-          await adminDB.collection("subscriptions").doc(subscription.id).set({
-            stripeCustomerId: subscription.customer,
-            status: subscription.status,
-            demoConversion: subscription.metadata.demoConversion === "true",
-            source: subscription.metadata.source, // RENTER or COMPANY
-            plan: subscription.items.data[0].price.lookup_key, // renter_trial or company_trial
-            createdAt: new Date(),
-          });
-        }
-        break;
-      }
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        const uid = session.metadata?.uid;
 
-        if (!uid) break;
+        if (!session.customer_email) break;
 
-        // Save subscription info to Firestore
-        const subscriptionId = session.subscription as string;
-        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        const userRef = adminDB.collection("users").doc(session.customer_email);
+        const subscriptionId = session.subscription as string | undefined;
 
-        const items = subscription.items.data.map((item) => ({
-          priceId: item.price.id,
-          lookupKey: item.price.lookup_key,
-          quantity: item.quantity,
-        }));
-
-        await adminDB.collection("users").doc(uid).set(
+        await userRef.set(
           {
-            subscription: {
-              id: subscriptionId,
-              status: subscription.status,
-              plan: session.metadata?.plan,
-              billingCycle: session.metadata?.billingCycle,
-              addons: session.metadata?.addons
-                ? session.metadata.addons.split(",").filter(Boolean)
-                : [],
-              currentPeriodEnd: subscription.current_period_end * 1000,
-              items,
-            },
+            stripeCustomerId: session.customer,
+            subscriptionId,
+            lastCheckout: new Date().toISOString(),
           },
           { merge: true }
         );
 
-        console.log(`✅ Synced subscription for user ${uid}`);
+        // Add audit log entry
+        await adminDB.collection("audit_logs").add({
+          type: "CHECKOUT_COMPLETED",
+          user: session.customer_email,
+          timestamp: new Date().toISOString(),
+          details: session.metadata || {},
+        });
         break;
       }
 
       case "customer.subscription.updated": {
-        const subscription = event.data.object as Stripe.Subscription;
-        const customerId = subscription.customer as string;
+        const sub = event.data.object as Stripe.Subscription;
+        const customerId = sub.customer as string;
 
-        // Find Firestore user by subscription.customer if stored
-        const usersSnap = await adminDB
+        const priceIds = sub.items.data.map((i) => i.price.lookup_key);
+
+        const snapshot = await adminDB
           .collection("users")
-          .where("subscription.id", "==", subscription.id)
+          .where("stripeCustomerId", "==", customerId)
           .limit(1)
           .get();
 
-        if (!usersSnap.empty) {
-          const doc = usersSnap.docs[0];
-          await doc.ref.set(
-            {
-              subscription: {
-                ...doc.data().subscription,
-                status: subscription.status,
-                currentPeriodEnd: subscription.current_period_end * 1000,
-              },
-            },
-            { merge: true }
-          );
-          console.log(`🔄 Updated subscription status for ${doc.id}`);
+        if (!snapshot.empty) {
+          const userDoc = snapshot.docs[0].ref;
+          await userDoc.update({
+            activePlan: priceIds[0] || null,
+            activeAddOns: priceIds.slice(1),
+            subscriptionStatus: sub.status,
+            updatedAt: new Date().toISOString(),
+          });
+
+          await adminDB.collection("audit_logs").add({
+            type: "SUBSCRIPTION_UPDATED",
+            user: userDoc.id,
+            timestamp: new Date().toISOString(),
+            details: { priceIds, status: sub.status },
+          });
         }
         break;
       }
 
-      case "invoice.payment_failed": {
+      case "invoice.paid": {
         const invoice = event.data.object as Stripe.Invoice;
-        const subscriptionId = invoice.subscription as string;
-
-        const usersSnap = await adminDB
-          .collection("users")
-          .where("subscription.id", "==", subscriptionId)
-          .limit(1)
-          .get();
-
-        if (!usersSnap.empty) {
-          const doc = usersSnap.docs[0];
-          await doc.ref.set(
-            {
-              subscription: {
-                ...doc.data().subscription,
-                status: "past_due",
-              },
-            },
-            { merge: true }
-          );
-          console.log(`⚠️ Payment failed for ${doc.id}`);
-        }
+        await adminDB.collection("audit_logs").add({
+          type: "INVOICE_PAID",
+          timestamp: new Date().toISOString(),
+          details: {
+            customer: invoice.customer_email,
+            total: invoice.total / 100,
+            invoiceId: invoice.id,
+          },
+        });
         break;
       }
 
       case "customer.subscription.deleted": {
-        const subscription = event.data.object as Stripe.Subscription;
+        const sub = event.data.object as Stripe.Subscription;
+        const customerId = sub.customer as string;
 
-        const usersSnap = await adminDB
+        const snapshot = await adminDB
           .collection("users")
-          .where("subscription.id", "==", subscription.id)
+          .where("stripeCustomerId", "==", customerId)
           .limit(1)
           .get();
 
-        if (!usersSnap.empty) {
-          const doc = usersSnap.docs[0];
-          await doc.ref.set(
-            {
-              subscription: {
-                ...doc.data().subscription,
-                status: "canceled",
-              },
-            },
-            { merge: true }
-          );
-          console.log(`🛑 Subscription canceled for ${doc.id}`);
+        if (!snapshot.empty) {
+          const userDoc = snapshot.docs[0].ref;
+          await userDoc.update({
+            activePlan: null,
+            activeAddOns: [],
+            subscriptionStatus: "canceled",
+          });
+
+          await adminDB.collection("audit_logs").add({
+            type: "SUBSCRIPTION_CANCELED",
+            user: userDoc.id,
+            timestamp: new Date().toISOString(),
+          });
         }
         break;
       }
 
       default:
-        console.log(`Unhandled event type ${event.type}`);
+        console.log(`Unhandled event type: ${event.type}`);
     }
 
     return NextResponse.json({ received: true });
   } catch (err: any) {
     console.error("Webhook error:", err.message);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: err.message }, { status: 400 });
   }
 }
