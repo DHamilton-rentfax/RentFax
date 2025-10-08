@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { dbAdmin as db } from "@/lib/firebase-admin";
 
 export async function GET() {
-  const ref = await adminDB.doc("config/docDefaults").get();
+  const ref = await db.doc("config/docDefaults").get();
   return NextResponse.json(ref.exists ? ref.data() : { categories: [] });
 }
 
@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   const { categories } = await req.json();
 
   // TODO: check super admin role from session
-  await adminDB.doc("config/docDefaults").set({
+  await db.doc("config/docDefaults").set({
     categories,
     updatedAt: Date.now(),
   });

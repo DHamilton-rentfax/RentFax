@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
-import { adminDB } from "@/firebase/server";
+import { dbAdmin as db } from "@/lib/firebase-admin";
 
 export async function GET(req: Request) {
   try {
@@ -11,7 +11,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const settingsDoc = await adminDB.collection("settings").doc("auditExports").get();
+    const settingsDoc = await db.collection("settings").doc("auditExports").get();
 
     if (!settingsDoc.exists) {
       return NextResponse.json({
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
 
     const { enabled, frequency, recipients } = await req.json();
 
-    await adminDB.collection("settings").doc("auditExports").set(
+    await db.collection("settings").doc("auditExports").set(
       {
         enabled,
         frequency,

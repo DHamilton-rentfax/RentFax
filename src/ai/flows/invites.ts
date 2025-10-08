@@ -6,7 +6,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import {v4 as uuid} from 'uuid';
 import {FlowAuth} from 'genkit/flow';
-import { admin, dbAdmin as db, authAdmin } from '@/lib/firebase-admin';
+import { admin, adminDB as db, adminAuth } from '@/lib/firebase-admin';
 
 // Canonical Role Hierarchy
 type Role = 'super_admin' | 'admin' | 'editor' | 'reviewer' | 'user' | 'rental_client' | 'banned' | 'content_manager';
@@ -37,7 +37,7 @@ const createInviteFlow = ai.defineFlow(
     outputSchema: CreateInviteOutputSchema,
     authPolicy: async (auth, input) => {
       if (!auth) throw new Error('Authentication is required.');
-      const caller = await authAdmin.getUser(auth.uid);
+      const caller = await adminAuth.getUser(auth.uid);
       const claims = (caller.customClaims || {}) as any;
       if (!claims.role || !claims.companyId) throw new Error('Caller must belong to a company.');
       if (!['super_admin', 'admin'].includes(claims.role)) throw new Error('Only admins can create invites.');
@@ -45,7 +45,7 @@ const createInviteFlow = ai.defineFlow(
   },
   async ({email, role}, {auth}) => {
     if (!auth) throw new Error('Auth context missing');
-    const caller = await authAdmin.getUser(auth.uid);
+    const caller = await adminAuth.getUser(auth.uid);
     const claims = caller.customClaims!;
 
     const token = uuid();
@@ -109,14 +109,14 @@ const acceptInviteFlow = ai.defineFlow(
       throw new Error('This invite has expired.');
     }
 
-    const user = await authAdmin.getUser(auth.uid);
+    const user = await adminAuth.getUser(auth.uid);
     if ((user.email || '').toLowerCase() !== inv.email) {
       throw new Error('This invite is for a different email address.');
     }
 
     // Set claims and mark invite accepted
-    await authAdmin.setCustomUserClaims(auth.uid, {role: inv.role, companyId: inv.companyId});
-    await authAdmin.revokeRefreshTokens(auth.uid);
+    await adminAuth.setCustomUserClaims(auth.uid, {role: inv.role, companyId: inv.companyId});
+    await adminAuth.revokeRefreshTokens(auth.uid);
     await docRef.update({status: 'accepted', acceptedBy: auth.uid, acceptedAt: admin.firestore.FieldValue.serverTimestamp()});
 
     return {ok: true, companyId: inv.companyId, role: inv.role};

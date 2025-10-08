@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
-import Header from "@/components/layout/header";
+import { Header } from "@/components/layout/header";
 import { Loader2 } from "lucide-react";
 import Protected from "@/components/protected";
 

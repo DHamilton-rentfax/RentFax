@@ -5,7 +5,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import {FlowAuth} from 'genkit/flow';
-import { admin, dbAdmin as db, authAdmin } from '@/lib/firebase-admin';
+import { admin, adminDB as db, adminAuth } from '@/lib/firebase-admin';
 
 
 const UpsertRentalSchema = z.object({
@@ -36,13 +36,13 @@ const upsertRentalFlow = ai.defineFlow(
     outputSchema: UpsertRentalOutputSchema,
     authPolicy: async (auth, input) => {
       if (!auth) throw new Error('Authentication is required.');
-      const {role} = ((await authAdmin.getUser(auth.uid)).customClaims as any) || {};
+      const {role} = ((await adminAuth.getUser(auth.uid)).customClaims as any) || {};
       if (!['owner', 'manager', 'agent'].includes(role)) throw new Error('Insufficient permissions.');
     },
   },
   async (rentalData, {auth}) => {
     if (!auth) throw new Error('Auth context is missing.');
-    const {companyId} = ((await authAdmin.getUser(auth.uid)).customClaims as any) || {};
+    const {companyId} = ((await adminAuth.getUser(auth.uid)).customClaims as any) || {};
     if (!companyId) throw new Error('User is not associated with a company.');
 
     const {id, ...data} = rentalData;
@@ -91,7 +91,7 @@ const deleteRentalFlow = ai.defineFlow(
     authPolicy: async (auth, input) => {
       if (!auth) throw new Error('Authentication is required.');
       const {uid} = auth;
-      const {companyId, role} = ((await authAdmin.getUser(uid)).customClaims as any) || {};
+      const {companyId, role} = ((await adminAuth.getUser(uid)).customClaims as any) || {};
       if (!['owner', 'manager'].includes(role)) throw new Error('Insufficient permissions.');
 
       const rentalDoc = await db.collection('rentals').doc(input.id).get();

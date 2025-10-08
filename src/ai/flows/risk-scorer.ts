@@ -5,7 +5,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import {FlowAuth} from 'genkit/flow';
-import { admin, dbAdmin as db, authAdmin } from '@/lib/firebase-admin';
+import { admin, adminDB as db, adminAuth } from '@/lib/firebase-admin';
 import { logAudit } from './audit';
 
 type Reason = {code: string; message: string; weight: number};
@@ -86,7 +86,7 @@ const recomputeRenterScoreFlow = ai.defineFlow(
   },
   async ({renterId}, {auth}) => {
     if (!auth) throw new Error('Auth context missing');
-    const { companyId, uid, role } = ((await authAdmin.getUser(auth.uid)).customClaims as any) || {};
+    const { companyId, uid, role } = ((await adminAuth.getUser(auth.uid)).customClaims as any) || {};
     if (!companyId) throw new Error('User is not associated with a company.');
 
     const renterRef = db.doc(`renters/${renterId}`);

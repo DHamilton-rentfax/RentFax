@@ -1,62 +1,44 @@
-import { NextResponse } from "next/server";
-import Stripe from "stripe";
-import { getAuth } from "firebase-admin/auth";
+import { NextResponse } from 'next/server';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
-});
+// @ts-ignore
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
-    const token = req.headers.get("authorization")?.split(" ")[1];
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { email, fullName } = await request.json();
+
+    if (!email || !fullName) {
+      return NextResponse.json({ error: 'Email and Full Name are required' }, { status: 400 });
     }
 
-    const decoded = await getAuth().verifyIdToken(token);
-    const { plan, addons, billingCycle } = await req.json();
-
-    if (!plan) {
-      return NextResponse.json({ error: "No plan selected" }, { status: 400 });
-    }
-
-    const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
-
-    // Add main plan
-    line_items.push({
-      price: plan,
-      quantity: 1,
-    });
-
-    // Add-ons
-    if (addons && addons.length > 0) {
-      addons.forEach((addon: string) => {
-        line_items.push({
-          price: addon,
-          quantity: 1,
-        });
-      });
-    }
-
-    // Create checkout session
     const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      payment_method_types: ["card"],
-      customer_email: decoded.email,
-      line_items,
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?canceled=true`,
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: 'RentFAX Single Report',
+              description: 'One-time comprehensive screening for one applicant.',
+            },
+            unit_amount: 2000, // $20.00 in cents
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      customer_email: email,
       metadata: {
-        uid: decoded.uid,
-        plan,
-        billingCycle,
-        addons: addons?.join(",") || "",
+        fullName: fullName,
       },
+      success_url: `${request.headers.get('origin')}/report?status=processing&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${request.headers.get('origin')}/?payment=cancelled`,
     });
 
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({ sessionId: session.id });
+
   } catch (err: any) {
-    console.error("Checkout error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error('STRIPE_ERROR:', err.message);
+    return NextResponse.json({ error: 'Error creating checkout session' }, { status: 500 });
   }
 }

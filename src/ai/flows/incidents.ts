@@ -6,7 +6,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import {recomputeRenterScore} from './risk-scorer';
 import {FlowAuth} from 'genkit/flow';
-import { admin, dbAdmin as db, authAdmin } from '@/lib/firebase-admin';
+import { admin, adminDB as db, adminAuth } from '@/lib/firebase-admin';
 
 
 const CreateIncidentSchema = z.object({
@@ -34,13 +34,13 @@ const createIncidentFlow = ai.defineFlow(
     outputSchema: CreateIncidentOutputSchema,
     authPolicy: async (auth, input) => {
       if (!auth) throw new Error('Authentication is required.');
-      const {role} = ((await authAdmin.getUser(auth.uid)).customClaims as any) || {};
+      const {role} = ((await adminAuth.getUser(auth.uid)).customClaims as any) || {};
       if (!['owner', 'manager', 'agent', 'collections'].includes(role)) throw new Error('Insufficient permissions.');
     },
   },
   async (incidentData, {auth}) => {
     if (!auth) throw new Error('Auth context is missing.');
-    const {companyId} = ((await authAdmin.getUser(auth.uid)).customClaims as any) || {};
+    const {companyId} = ((await adminAuth.getUser(auth.uid)).customClaims as any) || {};
     if (!companyId) throw new Error('User is not associated with a company.');
 
     const {renterId} = incidentData;

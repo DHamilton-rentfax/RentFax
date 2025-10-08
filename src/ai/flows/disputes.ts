@@ -7,7 +7,7 @@ import {z} from 'genkit';
 import {logAudit} from './audit';
 import {sendNotification} from '@/lib/notifications';
 // import {FlowAuth} from 'genkit/flow';
-import { admin, dbAdmin as db, authAdmin } from '@/lib/firebase-admin';
+import { admin, adminDB as db, adminAuth } from '@/lib/firebase-admin';
 
 const PROJECT_ID = process.env.GCLOUD_PROJECT!;
 const LOCATION = process.env.TASKS_LOCATION || 'us-central1';
@@ -76,7 +76,7 @@ const startDisputeFlow = ai.defineFlow(
   async (payload, {auth}) => {
     if (!auth) throw new Error('Auth context missing');
     const {uid} = auth;
-    const {companyId, role} = ((await authAdmin.getUser(uid)).customClaims as any) || {};
+    const {companyId, role} = ((await adminAuth.getUser(uid)).customClaims as any) || {};
 
     if (!payload.renterId || !payload.incidentId || !payload.reason) {
       throw new Error('renterId, incidentId, reason required');
@@ -159,7 +159,7 @@ const postDisputeMessageFlow = ai.defineFlow(
   async (payload, {auth}) => {
     if (!auth) throw new Error('Auth context missing');
     const {uid} = auth;
-    const {companyId, role} = ((await authAdmin.getUser(uid)).customClaims as any) || {};
+    const {companyId, role} = ((await adminAuth.getUser(uid)).customClaims as any) || {};
 
     const ref = db.doc(`disputes/${payload.id}`);
     const snap = await ref.get();
@@ -217,7 +217,7 @@ const updateDisputeStatusFlow = ai.defineFlow(
   async (payload, {auth}) => {
     if (!auth) throw new Error('Auth context missing');
     const {uid} = auth;
-    const {companyId, role} = ((await authAdmin.getUser(uid)).customClaims as any) || {};
+    const {companyId, role} = ((await adminAuth.getUser(uid)).customClaims as any) || {};
 
     const ref = db.doc(`disputes/${payload.id}`);
     const snap = await ref.get();

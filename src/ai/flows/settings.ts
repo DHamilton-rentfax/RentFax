@@ -5,7 +5,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { FlowAuth } from 'genkit/flow';
-import { dbAdmin as db, authAdmin } from '@/lib/firebase-admin';
+import { adminDB as db, adminAuth } from '@/lib/firebase-admin';
 
 const CompanySettingsSchema = z.object({
   bannerMessage: z.string().optional(),
@@ -57,7 +57,7 @@ const updateCompanySettingsFlow = ai.defineFlow(
         outputSchema: z.void(),
         authPolicy: async (auth) => {
             if (!auth) throw new Error('Authentication is required.');
-            const { role } = (await authAdmin.getUser(auth.uid)).customClaims || {};
+            const { role } = (await adminAuth.getUser(auth.uid)).customClaims || {};
             if (!['owner', 'manager'].includes(role)) throw new Error('Permission denied.');
         },
     },

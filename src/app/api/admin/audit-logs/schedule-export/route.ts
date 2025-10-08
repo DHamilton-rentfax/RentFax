@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
-import { adminDB } from "@/firebase/server";
+import { dbAdmin as db } from "@/lib/firebase-admin";
 import cron from "node-cron";
 import nodemailer from "nodemailer";
 
@@ -40,18 +40,18 @@ async function sendExport(emails: string[], logs: any[]) {
 }
 
 async function runScheduledExport(id: string, schedule: any) {
-  const snapshot = await adminDB.collection("auditLogs").orderBy("timestamp", "desc").get();
+  const snapshot = await db.collection("auditLogs").orderBy("timestamp", "desc").get();
   const logs = snapshot.docs.map((doc) => doc.data());
 
   await sendExport(schedule.emails, logs);
 
-  await adminDB.collection("scheduledExports").doc(id).update({
+  await db.collection("scheduledExports").doc(id).update({
     lastRun: new Date(),
   });
 }
 
 // Schedule existing jobs on startup
-adminDB.collection("scheduledExports").get().then((snapshot) => {
+db.collection("scheduledExports").get().then((snapshot) => {
   snapshot.forEach((doc) => {
     const schedule = doc.data();
     cron.schedule(schedule.cron, () => runScheduledExport(doc.id, schedule));
@@ -73,7 +73,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid cron expression" }, { status: 400 });
     }
 
-    const docRef = await adminDB.collection("scheduledExports").add({
+    const docRef = await db.collection("scheduledExports").add({
       cron: cronExpression,
       emails,
       lastRun: null,

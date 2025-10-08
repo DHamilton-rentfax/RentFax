@@ -6,7 +6,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { FlowAuth } from 'genkit/flow';
 import { v4 as uuid } from 'uuid';
-import { admin, dbAdmin as db, authAdmin } from '@/lib/firebase-admin';
+import { admin, adminDB as db, adminAuth } from '@/lib/firebase-admin';
 import { logAudit } from './audit';
 
 // --- Upsert Renter ---
@@ -37,7 +37,7 @@ const upsertRenterFlow = ai.defineFlow(
     outputSchema: UpsertRenterOutputSchema,
     authPolicy: async (auth) => {
       if (!auth) throw new Error('Authentication required.');
-      const { role } = (await authAdmin.getUser(auth.uid)).customClaims || {};
+      const { role } = (await adminAuth.getUser(auth.uid)).customClaims || {};
       if (!['owner', 'manager', 'agent'].includes(role)) throw new Error('Permission denied.');
     },
   },
@@ -100,7 +100,7 @@ const importRentersFlow = ai.defineFlow(
     outputSchema: ImportRentersOutputSchema,
     authPolicy: async (auth) => {
         if (!auth) throw new Error('Authentication required.');
-        const { role } = (await authAdmin.getUser(auth.uid)).customClaims || {};
+        const { role } = (await adminAuth.getUser(auth.uid)).customClaims || {};
         if (!['owner', 'manager'].includes(role)) throw new Error('Permission denied. Must be an owner or manager.');
     },
   },
@@ -174,7 +174,7 @@ const undoRenterImportFlow = ai.defineFlow({
     outputSchema: UndoRenterImportOutputSchema,
      authPolicy: async (auth) => {
         if (!auth) throw new Error('Authentication required.');
-        const { role } = (await authAdmin.getUser(auth.uid)).customClaims || {};
+        const { role } = (await adminAuth.getUser(auth.uid)).customClaims || {};
         if (!['owner', 'manager'].includes(role)) throw new Error('Permission denied.');
     },
 }, async ({ uploadBatchId }, { auth }) => {

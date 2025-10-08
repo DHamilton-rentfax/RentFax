@@ -6,7 +6,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { FlowAuth } from 'genkit/flow';
-import { admin, dbAdmin as db, authAdmin } from '@/lib/firebase-admin';
+import { admin, adminDB as db, adminAuth } from '@/lib/firebase-admin';
 
 type Role = 'owner' | 'manager' | 'agent' | 'collections' | 'renter' | 'superadmin';
 
@@ -53,7 +53,7 @@ const seedStagingFlow = ai.defineFlow(
       if (!auth) {
         throw new Error('Authentication is required.');
       }
-      const caller = await authAdmin.getUser(auth.uid);
+      const caller = await adminAuth.getUser(auth.uid);
       const callerClaims = caller.customClaims || {};
       if (callerClaims.role !== 'superadmin') {
         throw new Error('Permission denied: Superadmin only.');

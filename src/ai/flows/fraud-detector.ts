@@ -5,7 +5,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { FlowAuth } from 'genkit/flow';
-import { dbAdmin as db, authAdmin } from '@/lib/firebase-admin';
+import { adminDB as db, adminAuth } from '@/lib/firebase-admin';
 
 const DetectFraudSignalsInputSchema = z.object({
   renterId: z.string(),
@@ -43,7 +43,7 @@ const detectFraudSignalsFlow = ai.defineFlow(
     outputSchema: DetectFraudSignalsOutputSchema,
     authPolicy: async (auth, input) => {
       if (!auth) throw new Error('Authentication is required.');
-      const { role } = (await authAdmin.getUser(auth.uid)).customClaims || {};
+      const { role } = (await adminAuth.getUser(auth.uid)).customClaims || {};
       if (!['owner', 'manager', 'agent'].includes(role)) throw new Error('Permission denied.');
     },
   },

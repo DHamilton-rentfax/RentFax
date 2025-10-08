@@ -1,16 +1,16 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { dbAdmin as db } from "@/lib/firebase-admin";
 
 export async function GET() {
-  const orgs = await adminDB.collection("orgs").get();
+  const orgs = await db.collection("orgs").get();
 
   let totalRenters = 0;
   let totalDisputes = 0;
   let fraudFlags = 0;
 
   for (const org of orgs.docs) {
-    const renters = await adminDB.collection(`orgs/${org.id}/renters`).get();
-    const disputes = await adminDB.collection(`orgs/${org.id}/disputes`).get();
+    const renters = await db.collection(`orgs/${org.id}/renters`).get();
+    const disputes = await db.collection(`orgs/${org.id}/disputes`).get();
     const flagged = renters.docs.filter(d => d.get("fraudFlag") === true).length;
 
     totalRenters += renters.size;
@@ -18,7 +18,7 @@ export async function GET() {
     fraudFlags += flagged;
   }
 
-  const engagementSnap = await adminDB
+  const engagementSnap = await db
     .collection("analyticsEvents")
     .where("event", "in", ["report_previewed", "report_downloaded"])
     .where("ts", ">=", Date.now() - 30 * 24 * 60 * 60 * 1000)
@@ -65,8 +65,8 @@ export async function GET() {
   const orgsData: Record<string, any> = {};
   const orgIds = Object.keys(orgEngagement);
   if (orgIds.length) {
-    const orgDocs = await adminDB.getAll(
-      ...orgIds.map((id) => adminDB.collection("orgs").doc(id))
+    const orgDocs = await db.getAll(
+      ...orgIds.map((id) => db.collection("orgs").doc(id))
     );
     orgDocs.forEach((doc) => {
       if (doc.exists) orgsData[doc.id] = doc.data();

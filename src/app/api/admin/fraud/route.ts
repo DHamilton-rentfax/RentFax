@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { dbAdmin as db } from "@/lib/firebase-admin";
 
 export async function GET(req: NextRequest) {
-  const snap = await adminDB.collectionGroup("fraudReports")
+  const snap = await db.collectionGroup("fraudReports")
     .orderBy("createdAt", "desc")
     .limit(50)
     .get();

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
-import { adminDB } from "@/firebase/server";
+import { dbAdmin as db } from "@/lib/firebase-admin";
 
 export async function GET(req: Request) {
   try {
@@ -15,7 +15,7 @@ export async function GET(req: Request) {
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
 
-    let query: FirebaseFirestore.Query = adminDB.collection("auditLogs");
+    let query: FirebaseFirestore.Query = db.collection("auditLogs");
 
     if (startDate) query = query.where("timestamp", ">=", Number(startDate));
     if (endDate) query = query.where("timestamp", "<=", Number(endDate));

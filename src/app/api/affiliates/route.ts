@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { dbAdmin as db } from "@/lib/firebase-admin";
 
 /**
  * Track referrals: 
@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
   if (!code) return NextResponse.json({ error: "Missing code" }, { status: 400 });
 
-  const ref = await adminDB.collection("affiliates").doc(code).get();
+  const ref = await db.collection("affiliates").doc(code).get();
   if (!ref.exists) {
     return NextResponse.json({ error: "Invalid code" }, { status: 404 });
   }

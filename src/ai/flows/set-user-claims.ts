@@ -6,7 +6,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import {FlowAuth} from 'genkit/flow';
-import { admin, dbAdmin as db, authAdmin } from '@/lib/firebase-admin';
+import { admin, adminDB as db, adminAuth } from '@/lib/firebase-admin';
 
 type Role = 'super_admin' | 'admin' | 'editor' | 'reviewer' | 'user' | 'rental_client' | 'banned';
 
@@ -33,7 +33,7 @@ const setUserClaimsFlow = ai.defineFlow(
       if (!auth) {
         throw new Error('Authentication is required.');
       }
-      const caller = await authAdmin.getUser(auth.uid);
+      const caller = await adminAuth.getUser(auth.uid);
       const callerClaims = caller.customClaims || {};
       const callerRole = callerClaims?.role as Role | undefined;
 
@@ -57,16 +57,16 @@ const setUserClaimsFlow = ai.defineFlow(
   async ({uid, role, companyId}, {auth}) => {
     if (!auth) throw new Error('Auth context missing');
 
-    const caller = await authAdmin.getUser(auth.uid);
+    const caller = await adminAuth.getUser(auth.uid);
     const callerClaims = caller.customClaims || {};
 
     // Set custom claims
     const finalCompanyId = companyId || callerClaims.companyId;
     if (!finalCompanyId) throw new Error('Company ID is required when caller is not an admin.');
 
-    await authAdmin.setCustomUserClaims(uid, {role, companyId: finalCompanyId});
+    await adminAuth.setCustomUserClaims(uid, {role, companyId: finalCompanyId});
     // Force token refresh on client
-    await authAdmin.revokeRefreshTokens(uid);
+    await adminAuth.revokeRefreshTokens(uid);
 
     return {success: true};
   }

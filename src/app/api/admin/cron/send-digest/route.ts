@@ -1,22 +1,22 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { dbAdmin as db } from "@/lib/firebase-admin";
 import sendgrid from "@sendgrid/mail";
 
 sendgrid.setApiKey(process.env.SENDGRID_API_KEY!);
 
 export async function GET() {
-  const runRef = adminDB.collection("digestRuns").doc();
+  const runRef = db.collection("digestRuns").doc();
   const logs: any[] = [];
 
   let totalSent = 0;
   let totalFailed = 0;
 
-  const usersSnap = await adminDB.collection("users").get();
+  const usersSnap = await db.collection("users").get();
   for (const user of usersSnap.docs) {
     const prefs = user.get("notificationPrefs") || {};
     if (!prefs.digest?.enabled) continue;
 
-    const notifSnap = await adminDB.collection(`users/${user.id}/notifications`)
+    const notifSnap = await db.collection(`users/${user.id}/notifications`)
       .where("read", "==", false)
       .get();
 

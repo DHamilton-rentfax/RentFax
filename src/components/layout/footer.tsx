@@ -30,27 +30,27 @@ const footerLinks = {
 
 export default function Footer() {
   return (
-    <footer className="bg-card border-t">
+    <footer className="bg-white border-t border-gray-200 mt-12">
       <div className="container mx-auto py-8 px-4">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
           {/* Logo and mission */}
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
               <Building2 className="h-6 w-6 text-primary" />
-              <span className="font-headline text-xl font-bold">RentFAX</span>
+              <span className="font-headline text-xl font-bold text-black">RentFAX</span>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-gray-600">
               Smarter Risk. Safer Rentals.
             </p>
           </div>
 
           {/* Links */}
           <div>
-            <h3 className="font-semibold mb-3">Product</h3>
+            <h3 className="font-semibold mb-3 text-black">Product</h3>
             <ul className="space-y-2">
               {footerLinks.product.map(link => (
                 <li key={link.name}>
-                  <Link href={link.href} className="text-sm text-muted-foreground hover:text-primary">
+                  <Link href={link.href} className="text-sm text-gray-600 hover:text-black">
                     {link.name}
                   </Link>
                 </li>
@@ -58,11 +58,11 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="font-semibold mb-3">Company</h3>
+            <h3 className="font-semibold mb-3 text-black">Company</h3>
             <ul className="space-y-2">
               {footerLinks.company.map(link => (
                 <li key={link.name}>
-                  <Link href={link.href} className="text-sm text-muted-foreground hover:text-primary">
+                  <Link href={link.href} className="text-sm text-gray-600 hover:text-black">
                     {link.name}
                   </Link>
                 </li>
@@ -70,11 +70,11 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="font-semibold mb-3">Resources</h3>
+            <h3 className="font-semibold mb-3 text-black">Resources</h3>
             <ul className="space-y-2">
               {footerLinks.resources.map(link => (
                 <li key={link.name}>
-                  <Link href={link.href} className="text-sm text-muted-foreground hover:text-primary">
+                  <Link href={link.href} className="text-sm text-gray-600 hover:text-black">
                     {link.name}
                   </Link>
                 </li>
@@ -82,11 +82,11 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="font-semibold mb-3">Legal</h3>
+            <h3 className="font-semibold mb-3 text-black">Legal</h3>
             <ul className="space-y-2">
               {footerLinks.legal.map(link => (
                 <li key={link.name}>
-                  <Link href={link.href} className="text-sm text-muted-foreground hover:text-primary">
+                  <Link href={link.href} className="text-sm text-gray-600 hover:text-black">
                     {link.name}
                   </Link>
                 </li>
@@ -96,8 +96,8 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-8 pt-6 border-t flex flex-col md:flex-row justify-between items-center gap-4">
-           <p className="text-sm text-muted-foreground">
+        <div className="mt-8 pt-6 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
+           <p className="text-sm text-gray-600">
             &copy; {new Date().getFullYear()} RentFAX, Inc. All rights reserved.
           </p>
           <ChatNowButton />

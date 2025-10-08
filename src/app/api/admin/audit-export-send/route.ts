@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
-import { adminDB } from "@/firebase/server";
+import { adminDB as db } from "@/lib/firebase-admin";
 import sgMail from "@sendgrid/mail";
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
@@ -16,14 +16,14 @@ export async function POST(req: Request) {
 
     const { startDate, endDate } = await req.json();
 
-    const settingsDoc = await adminDB.collection("settings").doc("auditExports").get();
+    const settingsDoc = await db.collection("settings").doc("auditExports").get();
     if (!settingsDoc.exists || !settingsDoc.data()?.enabled) {
       return NextResponse.json({ error: "Exports not enabled" }, { status: 400 });
     }
 
     const { recipients } = settingsDoc.data()!;
 
-    let query: FirebaseFirestore.Query = adminDB.collection("auditLogs");
+    let query: FirebaseFirestore.Query = db.collection("auditLogs");
 
     if (startDate) query = query.where("timestamp", ">=", Number(startDate));
     if (endDate) query = query.where("timestamp", "<=", Number(endDate));

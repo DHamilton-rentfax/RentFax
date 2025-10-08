@@ -2,6 +2,7 @@ import "./globals.css";
 import { Inter } from "next/font/google";
 import { Header } from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
+import { ModalProvider } from "@/context/ModalContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -15,9 +16,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={inter.className}>
       <body className="bg-[#F8FAFC] text-[#111827] flex flex-col min-h-screen antialiased">
-        <Header />
-        <main className="flex-1 pt-20">{children}</main>
-        <Footer />
+        <ModalProvider>
+          <Header />
+          <main className="flex-1 pt-20">{children}</main>
+          <Footer />
+        </ModalProvider>
       </body>
     </html>
   );

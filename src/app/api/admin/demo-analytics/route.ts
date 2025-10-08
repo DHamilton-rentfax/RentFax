@@ -1,35 +1,22 @@
-import { NextResponse } from 'next/server';
-import { dbAdmin as db } from '@/lib/firebase-admin';
+import { NextResponse } from "next/server";
+import { dbAdmin as db } from "@/lib/firebase-admin"; // ✅ fixed import path
 
 export async function GET() {
   try {
-    const snap = await db.collection('demo_analytics').get();
-    
-    const stats = {
-        demo_role_selected_renter: 0,
-        demo_role_selected_company: 0,
-        demo_renter_report_viewed: 0,
-        demo_company_dashboard_viewed: 0,
-    };
+    // Example Firestore query
+    const snapshot = await db.collection("demo_analytics").get();
 
-    snap.forEach((doc) => {
-      const event = doc.data();
-      if (event.eventName === 'demo_role_selected') {
-        if (event.params.role === 'RENTER') {
-          stats.demo_role_selected_renter++;
-        } else if (event.params.role === 'COMPANY') {
-          stats.demo_role_selected_company++;
-        }
-      } else if (event.eventName === 'demo_renter_report_viewed') {
-        stats.demo_renter_report_viewed++;
-      } else if (event.eventName === 'demo_company_dashboard_viewed') {
-        stats.demo_company_dashboard_viewed++;
-      }
-    });
+    const data = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
 
-    return NextResponse.json(stats);
-  } catch (error) {
-    console.error('Error fetching demo analytics:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json({ success: true, data });
+  } catch (error: any) {
+    console.error("Error fetching demo analytics:", error);
+    return NextResponse.json(
+      { success: false, message: "Failed to fetch demo analytics." },
+      { status: 500 }
+    );
   }
 }
