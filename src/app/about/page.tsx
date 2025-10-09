@@ -1,4 +1,6 @@
 
+"use client";
+
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -180,6 +182,112 @@ export default function AboutPage() {
               Talk to Sales
             </Button>
           </Link>
+        </div>
+      </section>
+
+      {/* Meet the Team Section */}
+      <section className="py-20 px-6 md:px-20 bg-muted/20">
+        <div className="max-w-6xl mx-auto text-center">
+          <h2 className="text-3xl font-bold mb-8">Meet the Team Behind RentFAX</h2>
+          <p className="text-muted-foreground max-w-3xl mx-auto mb-16">
+            We’re a team of innovators, problem-solvers, and real-world business owners who believe in one thing — accountability creates trust.  
+            RentFAX was founded on real experience, and our team is dedicated to building a safer and smarter future for renters and businesses alike.
+          </p>
+
+          <div className="grid gap-10 md:grid-cols-3">
+            {/* Founder */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.3 }}
+              className="bg-background border shadow-lg rounded-2xl p-8 flex flex-col items-center text-center"
+            >
+              <img
+                src="/images/founder.jpg"
+                alt="Dominique, Founder of RentFAX"
+                className="w-32 h-32 rounded-full object-cover mb-5 shadow-md"
+              />
+              <h3 className="text-xl font-semibold mb-1">Dominique — Founder & CEO</h3>
+              <p className="text-muted-foreground text-sm mb-4">
+                Visionary entrepreneur and founder of RentFAX. After facing repeated losses, contract violations, and fraud as a rental business owner, Dominique built RentFAX to protect others from the same risks.
+              </p>
+              <div className="flex gap-4">
+                <a
+                  href="https://www.linkedin.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  LinkedIn
+                </a>
+                <a
+                  href="mailto:info@rentfax.io"
+                  className="text-primary hover:underline"
+                >
+                  Email
+                </a>
+              </div>
+            </motion.div>
+
+            {/* Product Lead */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="bg-background border shadow-lg rounded-2xl p-8 flex flex-col items-center text-center"
+            >
+              <img
+                src="/images/team-product.jpg"
+                alt="Product Lead"
+                className="w-32 h-32 rounded-full object-cover mb-5 shadow-md"
+              />
+              <h3 className="text-xl font-semibold mb-1">Jordan — Product & UX Lead</h3>
+              <p className="text-muted-foreground text-sm mb-4">
+                Oversees user experience and product design to ensure RentFAX feels intuitive, accessible, and empowering for both renters and businesses.
+              </p>
+              <div className="flex gap-4">
+                <a
+                  href="https://www.linkedin.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  LinkedIn
+                </a>
+              </div>
+            </motion.div>
+
+            {/* Technical Lead */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.4 }}
+              className="bg-background border shadow-lg rounded-2xl p-8 flex flex-col items-center text-center"
+            >
+              <img
+                src="/images/team-tech.jpg"
+                alt="Technical Lead"
+                className="w-32 h-32 rounded-full object-cover mb-5 shadow-md"
+              />
+              <h3 className="text-xl font-semibold mb-1">Ava — Engineering Lead</h3>
+              <p className="text-muted-foreground text-sm mb-4">
+                Leads RentFAX’s AI and data infrastructure, ensuring every fraud detection and risk analysis engine runs fast, accurately, and securely.
+              </p>
+              <div className="flex gap-4">
+                <a
+                  href="https://www.linkedin.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  LinkedIn
+                </a>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </section>
     </div>
