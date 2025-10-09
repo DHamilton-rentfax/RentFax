@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/firebase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { postDisputeMessage, updateDisputeStatus } from '@/app/auth/actions';
 

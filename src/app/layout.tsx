@@ -1,10 +1,14 @@
-import "./globals.css";
-import { Inter } from "next/font/google";
-import { Header } from "@/components/layout/header";
-import Footer from "@/components/layout/footer";
-import { ModalProvider } from "@/context/ModalContext";
 
-const inter = Inter({ subsets: ["latin"] });
+import "./globals.css";
+import { Inter, Space_Grotesk } from "next/font/google";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "sonner";
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
+});
 
 export const metadata = {
   title: "RentFAX — Screen Renters. Verify Drivers. Prevent Fraud.",
@@ -12,15 +16,23 @@ export const metadata = {
     "AI-powered tenant and renter verification across property, car, and equipment rentals. Instantly detect fraud, manage disputes, and protect your business with RentFAX.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="en" className={inter.className}>
-      <body className="bg-[#F8FAFC] text-[#111827] flex flex-col min-h-screen antialiased">
-        <ModalProvider>
-          <Header />
-          <main className="flex-1 pt-20">{children}</main>
-          <Footer />
-        </ModalProvider>
+    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`} suppressHydrationWarning>
+      <body className="min-h-screen bg-background font-sans antialiased">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

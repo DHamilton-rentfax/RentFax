@@ -1,5 +1,5 @@
-// src/app/api/renters/link/route.ts
-import { dbAdmin as db } from "@/lib/firebase-admin";
+
+import { adminDB as db } from "@/firebase/server";
 import { NextResponse } from "next/server";
 
 // POST /api/renters/link
@@ -14,8 +14,8 @@ export async function POST(req: Request) {
     if (!renterSnap.exists) throw new Error("Renter not found");
 
     const renter = renterSnap.data();
-    if (!renter) throw new Error("Renter data is missing");
-
+    if (!renter) throw new Error("Renter data not found");
+    
     const { fullName, dateOfBirth, govIdLast4 } = renter;
 
     // --- Match incidents ---
