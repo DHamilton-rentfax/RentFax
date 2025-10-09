@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -49,7 +50,10 @@ export default function DisputesPage() {
 
   // Fetch disputes for current renter
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+        setLoading(false);
+        return;
+    };
     const q = query(
       collection(dbClient, "disputes"),
       where("renterId", "==", user.uid),
@@ -95,6 +99,10 @@ export default function DisputesPage() {
       alert("Please fill in all required fields.");
       return;
     }
+    if (!user) {
+      alert("You must be logged in to submit a dispute.");
+      return;
+    }
 
     setSubmitting(true);
 
@@ -118,10 +126,9 @@ export default function DisputesPage() {
         });
       }
 
-      // Create dispute
       const newDispute = {
-        renterId: user?.uid,
-        renterEmail: user?.email,
+        renterId: user.uid,
+        renterEmail: user.email,
         incidentId,
         description,
         evidence: evidenceUrl || null,
@@ -148,7 +155,7 @@ export default function DisputesPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          renterEmail: user?.email,
+          renterEmail: user.email,
           incidentId,
           description,
         }),
@@ -199,20 +206,20 @@ export default function DisputesPage() {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-4xl font-bold">My Disputes</h1>
         <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() =>
-                window.open(`/api/disputes/pdf?uid=${user?.uid}`, "_blank")
-              }
-            >
-              Download Dispute Report (PDF)
-            </Button>
-            <Button
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" /> Submit New Dispute
-            </Button>
+          <Button
+            variant="outline"
+            onClick={() =>
+              window.open(`/api/disputes/pdf?uid=${user?.uid}`, "_blank")
+            }
+          >
+            Download Dispute Report (PDF)
+          </Button>
+          <Button
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" /> Submit New Dispute
+          </Button>
         </div>
       </div>
 
@@ -266,20 +273,8 @@ export default function DisputesPage() {
                   </div>
                 )}
 
-                {/* AI Summary Section */}
-                {d.aiSummary && (
-                  <div className="mt-6 border-t pt-4">
-                    <h3 className="text-lg font-semibold mb-2">
-                      🤖 AI Summary
-                    </h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {d.aiSummary}
-                    </p>
-                  </div>
-                )}
-
                 {d.status === "Resolved" && (
-                  <div className="mt-6 flex items-center text-green-600">
+                  <div className="mt-4 flex items-center text-green-600">
                     <CheckCircle2 className="h-5 w-5 mr-2" />
                     <p className="text-sm font-medium">
                       This dispute has been marked as resolved.
