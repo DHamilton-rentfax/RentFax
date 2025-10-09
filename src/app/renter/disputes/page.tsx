@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { dbClient, storageClient } from "@/lib/firebase-client";
 import {
   collection,
@@ -22,9 +23,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, Loader2, FileText, MessageCircle, CheckCircle2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function DisputesPage() {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
+  const { toast } = useToast();
+
   const [disputes, setDisputes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState<string | null>(null);
@@ -33,17 +38,39 @@ export default function DisputesPage() {
   // Fetch disputes for current renter
   useEffect(() => {
     if (!user) return;
+    
+    // This logic is now safely inside useEffect
+    const token = searchParams.get('token');
+    if (!token) {
+        // You might want to handle cases where the token is missing, e.g., redirect or show an error.
+        setLoading(false);
+        return;
+    };
+
+    const [orgId, renterId] = Buffer.from(token, 'base64').toString().split(':');
+
     const q = query(
       collection(dbClient, "disputes"),
-      where("renterId", "==", user.uid),
+      where("renterId", "==", renterId),
+      where("orgId", "==", orgId),
       orderBy("createdAt", "desc")
     );
+
     const unsub = onSnapshot(q, (snap) => {
       setDisputes(snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
       setLoading(false);
+    }, (error) => {
+        console.error("Error fetching disputes:", error);
+        toast({
+            title: "Error",
+            description: "Could not load your disputes. Please ensure you have a valid link.",
+            variant: "destructive",
+        });
+        setLoading(false);
     });
+
     return () => unsub();
-  }, [user]);
+  }, [user, searchParams, toast]);
 
   const handleFileUpload = async (disputeId: string) => {
     if (!selectedFile) return;
@@ -56,6 +83,7 @@ export default function DisputesPage() {
       null,
       (error) => {
         console.error(error);
+        toast({ title: "Upload Failed", description: error.message, variant: "destructive" });
         setUploading(null);
       },
       async () => {
@@ -66,7 +94,7 @@ export default function DisputesPage() {
           updatedAt: new Date(),
         });
         setUploading(null);
-        alert("Evidence uploaded successfully!");
+        toast({ title: "Evidence Uploaded", description: "Your file has been successfully attached to the dispute." });
       }
     );
   };
