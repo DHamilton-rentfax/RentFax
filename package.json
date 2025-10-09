@@ -12,7 +12,9 @@
     "deploy": "firebase deploy --only hosting:rentfax-revamp",
     "fix:searchparams": "node --experimental-modules scripts/fix-searchparams.js",
     "restore:searchparams": "node --experimental-modules scripts/restore-searchparams.js",
-    "backup:app": "cp -r src/app src/app_backup_$(date +%Y%m%d)"
+    "backup:app": "cp -r src/app src/app_backup_$(date +%Y%m%d)",
+    "test": "jest",
+    "test:firestore": "jest test/firestore.rules.test.ts"
   },
   "dependencies": {
     "@genkit-ai/flow": "^0.5.17",
