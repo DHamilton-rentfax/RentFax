@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
@@ -6,7 +6,7 @@ import Link from 'next/link';
 import NotificationBell from '@/components/ui/NotificationBell';
 import { useAuth } from '@/hooks/use-auth';
 
-export default function PortalLayout({ children }: { children: React.ReactNode }) {
+export default function RenterLayout({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const { user } = useAuth();

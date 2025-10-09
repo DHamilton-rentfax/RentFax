@@ -1,18 +1,23 @@
-// Firebase Admin SDK initialization (for server-side)
-import * as admin from "firebase-admin";
-
+// ✅ SERVER ONLY
 if (typeof window !== "undefined") {
-  throw new Error("firebase-admin should not be imported on the client.");
+  throw new Error("🚫 firebase-admin should never be imported on the client!");
 }
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-  });
-}
+import { cert, getApps, initializeApp, getApp } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
+import { getAuth } from "firebase-admin/auth";
+import { getStorage } from "firebase-admin/storage";
 
-const adminDB = admin.firestore();
-const adminAuth = admin.auth();
-const adminStorage = admin.storage();
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY as string);
 
-export { admin, adminDB, adminAuth, adminStorage };
+const adminApp = !getApps().length
+  ? initializeApp({
+      credential: cert(serviceAccount),
+      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    })
+  : getApp();
+
+export const authAdmin = getAuth(adminApp);
+export const dbAdmin = getFirestore(adminApp);
+export const storageAdmin = getStorage(adminApp);
+export const admin = adminApp;

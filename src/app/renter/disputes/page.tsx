@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import Link from 'next/link';
-import { useToast } from '@/hooks/use-toast';
-import { db } from '@/firebase/client';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { useToast } from "@/hooks/use-toast";
+import { db } from "@/firebase/client";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 
 type Dispute = { id: string; subject: string; status: string; createdAt: number };
 
@@ -14,9 +14,10 @@ export default function RenterDisputesPage({ searchParams }: { searchParams: { t
   const [subject, setSubject] = useState('');
   const [details, setDetails] = useState('');
   const { toast } = useToast();
-  const [orgId, renterId] = Buffer.from(token, 'base64').toString().split(':');
+  const [orgId, renterId] = token ? Buffer.from(token, 'base64').toString().split(':') : [null, null];
 
   useEffect(() => {
+    if (!orgId || !renterId) return;
     const q = query(collection(db, `orgs/${orgId}/disputes`), where("renterId", "==", renterId));
     const unsub = onSnapshot(q, snap => {
         const newDisputes = snap.docChanges().filter(c => c.type === "added");
@@ -44,6 +45,15 @@ export default function RenterDisputesPage({ searchParams }: { searchParams: { t
     const { uploadUrl } = await res.json();
     await fetch(uploadUrl, { method: 'PUT', body: file });
     toast({ title: 'Evidence uploaded' });
+  }
+
+  if (!token) {
+      return (
+          <div className="p-10 text-center">
+              <h1 className="text-2xl font-bold">Access Denied</h1>
+              <p className="text-muted-foreground">A valid access token is required to view this page.</p>
+          </div>
+      )
   }
 
   return (
