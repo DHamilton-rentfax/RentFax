@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -17,30 +18,13 @@ service cloud.firestore {
 
     // --- Resolutions (Renter Resolution Portal) ---
     match /resolutions/{resolutionId} {
-      allow read: if resource.data.renterId == request.auth.uid || hasAdminRole();
-      allow create: if request.auth.uid == request.resource.data.renterId;
-      allow update: if hasAdminRole();
+      allow read, update: if (request.auth != null && resource.data.renterId == request.auth.uid) || hasAdminRole();
+      allow create: if request.auth != null && request.resource.data.renterId == request.auth.uid;
     }
 
     // --- Helper Function ---
     function hasAdminRole() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['ADMIN', 'SUPER_ADMIN'];
-    }
-
-    // --- Existing Rules ---
-    match /orgs/{orgId} {
-      allow read, write: if request.auth.uid != null && request.auth.token.orgId == orgId;
-
-      match /renters/{renterId} {
-        allow read: if request.auth.uid != null && request.auth.token.orgId == orgId;
-        allow write: if request.auth.uid != null && request.auth.token.orgId == orgId;
-      }
-
-      match /logs/{logId} {
-        allow read: if request.auth.uid != null && request.auth.token.orgId == orgId;
-        allow create: if request.auth.uid != null;
-        allow update, delete: if false; // Immutable
-      }
     }
   }
 }
