@@ -59,7 +59,7 @@ export default function VerifyPage() {
       });
       
       // Redirect to the renter dashboard, passing the renterId
-      router.push(`/renter/dashboard?rid=${renterId}`);
+      router.push(`/renter/dashboard`);
 
     } catch (e: any) {
       setError(e.message);

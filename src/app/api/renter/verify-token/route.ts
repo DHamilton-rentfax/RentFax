@@ -14,44 +14,37 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Token and verification value are required." }, { status: 400 });
     }
 
-    const tokenQuery = await adminDB.collection("verifyTokens").where("token", "==", token).limit(1).get();
+    const tokenDocRef = adminDB.collection("verifyTokens").doc(token);
+    const tokenDoc = await tokenDocRef.get();
 
-    if (tokenQuery.empty) {
+    if (!tokenDoc.exists) {
       return NextResponse.json({ error: "Invalid or expired token." }, { status: 404 });
     }
 
-    const tokenDoc = tokenQuery.docs[0];
-    const tokenData = tokenDoc.data();
+    const tokenData = tokenDoc.data()!;
 
     if (tokenData.used || tokenData.expiresAt.toDate() < new Date()) {
       return NextResponse.json({ error: "Invalid or expired token." }, { status: 404 });
     }
 
-    const renterDoc = await adminDB.doc(`renters/${tokenData.renterId}`).get();
-    if (!renterDoc.exists) {
-        return NextResponse.json({ error: "Associated renter account not found." }, { status: 404 });
-    }
-
-    const renter = renterDoc.data()!;
-    
     // Check against phone's last 4 or license's last 4
-    const phoneLast4 = renter.phone ? renter.phone.slice(-4) : null;
-    const licenseLast4 = renter.licenseNumber ? renter.licenseNumber.slice(-4) : null;
+    const phoneLast4 = tokenData.phone ? String(tokenData.phone).slice(-4) : null;
+    const licenseLast4 = tokenData.licenseNumber ? String(tokenData.licenseNumber).slice(-4) : null;
 
     if (verificationValue !== phoneLast4 && verificationValue !== licenseLast4) {
-      return NextResponse.json({ error: "Verification failed." }, { status: 403 });
+      return NextResponse.json({ error: "Verification failed. The provided value did not match our records." }, { status: 403 });
     }
 
     // Mark token as used
-    await tokenDoc.ref.update({ used: true });
+    await tokenDocRef.update({ used: true });
 
-    // Create a custom session token for the RRP
-    const customToken = await adminAuth.createCustomToken(tokenData.renterId, { isRenter: true });
+    // Create a custom session token for the Renter Portal
+    const customToken = await adminAuth.createCustomToken(tokenData.renterId, { isRenter: true, orgId: tokenData.orgId });
 
     return NextResponse.json({ success: true, customToken });
 
   } catch (error: any) {
     console.error("Token verification error:", error);
-    return NextResponse.json({ error: "An internal error occurred." }, { status: 500 });
+    return NextResponse.json({ error: "An internal server error occurred." }, { status: 500 });
   }
 }
