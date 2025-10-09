@@ -5,9 +5,7 @@ import {
   serverTimestamp
 } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { sendEmail } from '@/lib/notifications/sendEmail'
-import { sendSMS } from '@/lib/notifications/sendSMS'
-import { detectFraudSignals } from '@/ai/flows/fraud-detector';
+import { createNotification } from './notifications/createNotification'
 
 export async function createDispute({ description, files }: { description: string, files: FileList | null }) {
   try {
@@ -25,7 +23,7 @@ export async function createDispute({ description, files }: { description: strin
       }
     }
 
-    const newDispute = {
+    const docRef = await addDoc(collection(db, 'disputes'), {
       renterId: user.uid,
       name: user.displayName || '',
       email: user.email || '',
@@ -33,51 +31,28 @@ export async function createDispute({ description, files }: { description: strin
       files: fileURLs,
       status: 'submitted',
       createdAt: serverTimestamp()
-    };
-
-    const docRef = await addDoc(collection(db, 'disputes'), newDispute);
-
-    // Run Fraud Detection in the background
-    detectFraudSignals({ renterId: user.uid }).then(fraudResult => {
-      if (fraudResult.signals.length > 0) {
-        console.log(`Fraud signals detected for new dispute ${docRef.id}:`, fraudResult.signals);
-        // In a real app, you would flag this for admin review
-        addDoc(collection(db, 'alerts'), {
-          type: 'fraud_warning',
-          disputeId: docRef.id,
-          reason: `Found ${fraudResult.signals.length} fraud signals.`,
-          signals: fraudResult.signals.map(s => s.code),
-          createdAt: serverTimestamp()
-        });
-      }
-    }).catch(err => {
-      console.error("Error running fraud detection:", err);
     });
 
     // Notify Renter
     if (user.email) {
-      await sendEmail({
-        to: user.email,
-        subject: 'Dispute Received – RentFAX',
-        html: `<p>Hi ${user.displayName || 'Renter'},</p><p>We've received your dispute. Our team will review and update you shortly.</p>`,
-      })
+      await createNotification({
+        userId: user.uid,
+        type: 'dispute',
+        message: 'Your dispute has been successfully submitted.',
+        link: `/renter/disputes/${docRef.id}`,
+        email: user.email,
+        phone: user.phoneNumber || undefined,
+      });
     }
 
-    // Notify Admin
-    await sendEmail({
-      to: 'admin@rentfax.com', // Replace with a real admin email
-      subject: 'New Dispute Submitted',
-      html: `<p>A new dispute has been submitted by ${user.email}.</p><p><strong>Description:</strong> ${description}</p>`,
+    // Notify Admin (using a placeholder admin ID)
+    const adminId = 'some-admin-uid'; // In a real app, this would be dynamically determined.
+    await createNotification({
+        userId: adminId,
+        type: 'dispute',
+        message: `New dispute submitted by ${user.email}.`,
+        link: `/admin/disputes/${docRef.id}`
     })
-
-    // Optional SMS to Renter
-    if (user.phoneNumber) {
-        await sendSMS({
-            to: user.phoneNumber,
-            message: 'RentFAX: We’ve received your dispute. We’ll notify you once it’s under review.',
-        })
-    }
-
 
     return { success: true }
   } catch (err: any) {

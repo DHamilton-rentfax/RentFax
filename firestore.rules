@@ -1,85 +1,47 @@
-
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    function isSuperAdmin() {
-      return request.auth.token.role == 'super_admin';
+  
+    // RENTERS can only read/update their own doc
+    match /renters/{uid} {
+      allow read, update: if request.auth.uid == uid;
+      allow create: if request.auth.uid != null;
     }
 
-    function isAdmin(companyId) {
-      return request.auth.token.role == 'admin' && request.auth.token.companyId == companyId;
-    }
-    
-    function isOwner(userId) {
-        return request.auth.uid == userId;
-    }
-    
-    function isProPlan() {
-        return request.auth.token.plan == 'pro' || request.auth.token.plan == 'enterprise';
-    }
-
-    // Admins can read/write their own company data
-    match /companies/{companyId} {
-      allow read, write: if isAdmin(companyId) || isSuperAdmin();
-    }
-    
-    // Users can read/write their own data
-    match /users/{userId} {
-        allow read, write: if isOwner(userId) || isSuperAdmin();
-    }
-    
-    // Invites can be read by anyone, but only created/updated by admins
-    match /invites/{inviteId} {
-        allow read: if request.auth != null;
-        allow create, update: if isAdmin(request.resource.data.companyId) || isSuperAdmin();
-    }
-    
-    // Only Pro plans can create disputes
+    // DISPUTES can be created by auth'd users. Can only be read/updated by creator or admin.
     match /disputes/{id} {
-      allow create: if request.auth != null && isProPlan();
-      allow read, update: if request.auth != null && (isAdmin(resource.data.companyId) || isSuperAdmin());
-    }
-
-    // Only admins/superadmins can manage systemSettings
-    match /systemSettings/global {
-      allow read, write: if isSuperAdmin();
-    }
-
-    // Public rules are readable by anyone
-    match /companyRules/{companyId} {
-        allow read: if true;
-        allow write: if isAdmin(companyId) || isSuperAdmin();
+      allow create: if request.auth != null;
+      allow read, update: if request.auth.uid == resource.data.renterId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
-    // Logging collections are write-only for the application
-    match /systemLogs/{logId} {
-        allow read: if isSuperAdmin();
-        allow write: if true; // Typically written by backend services
+    // VERIFICATION TOKENS are admin-only
+    match /verificationTokens/{id} {
+        allow read, write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
-     match /auditLogs/{logId} {
-        allow read: if isSuperAdmin();
-        allow write: if true;
-    }
-    
-     match /webhook_test/{logId} {
-        allow read, write: if true;
-    }
-    
-     match /demoAnalytics/{logId} {
-        allow read, write: if true;
+    // NOTIFICATIONS can only be accessed by the assigned user
+     match /notifications/{id} {
+      allow read, update: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null; // Server/functions will create these
     }
 
-     // Subscription data is mostly managed by webhooks
-    match /subscriptions/{subId} {
-      allow read: if isSuperAdmin();
-      allow write: if false; // Only backend/webhooks can write
+    // USERS can read their own doc. Admins can read/write any.
+    match /users/{uid} {
+      allow read, update: if request.auth.uid == uid;
+      allow create; // Allow user signup
+      allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
-
-    // Default deny
-    match /{document=**} {
-      allow read, write: if false;
+    
+    // SYSTEM SETTINGS are admin-only
+    match /systemSettings/{docId} {
+        allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // SUBSCRIPTIONS can be created by server, read by user.
+    match /subscriptions/{id} {
+        allow read: if request.auth.uid == resource.data.userId;
+        allow create, write: if false; // Only server can write
     }
   }
 }

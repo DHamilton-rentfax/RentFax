@@ -9,6 +9,7 @@ import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { Header } from "@/components/layout/header";
 import { Loader2 } from "lucide-react";
 import Protected from "@/components/protected";
+import NotificationBell from "@/components/notifications/NotificationBell";
 
 
 const sidebarNavItems = [
@@ -64,6 +65,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <Protected>
         <Header />
+        <div className="flex justify-end p-4">
+          <NotificationBell />
+        </div>
         <div className="container mx-auto flex-1 items-start md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10">
             <aside className="fixed top-16 z-30 -ml-2 hidden h-[calc(100vh-4rem)] w-full shrink-0 md:sticky md:block">
                 <div className="h-full py-6 pr-6 lg:py-8">
@@ -77,4 +81,3 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     </Protected>
   );
 }
-
