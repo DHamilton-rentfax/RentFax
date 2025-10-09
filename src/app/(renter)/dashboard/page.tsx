@@ -1,154 +1,96 @@
+'use client'
 
-"use client";
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
-
-interface Incident {
-  id: string;
-  description: string;
-  status: string;
-  severity: number;
-  createdAt: string;
-}
+import { useEffect, useState } from 'react'
+import { getRenterDisputes } from '@/lib/getRenterDisputes'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Loader2, FileText, CheckCircle2, Clock, AlertTriangle } from 'lucide-react'
+import Link from 'next/link'
 
 export default function RenterDashboard() {
-  const searchParams = useSearchParams();
-  const renterId = searchParams.get("rid");
-  const [renter, setRenter] = useState<any>(null);
-  const [incidents, setIncidents] = useState<Incident[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true)
+  const [disputes, setDisputes] = useState<any[]>([])
 
   useEffect(() => {
-    if (!renterId) return;
     const fetchData = async () => {
-      try {
-        const res = await fetch(`/api/renters/${renterId}`);
-        const data = await res.json();
-        setRenter(data.renter);
-        setIncidents(data.incidents);
-      } catch (err) {
-        console.error("Failed to load renter data", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [renterId]);
+      const res = await getRenterDisputes()
+      setDisputes(res || [])
+      setLoading(false)
+    }
+    fetchData()
+  }, [])
 
-  if (loading) return <div className="text-center mt-20">Loading your dashboard...</div>;
+  const renderStatusIcon = (status: string) => {
+    switch (status) {
+      case 'submitted':
+        return <Clock className="w-4 h-4 text-gray-500" />
+      case 'reviewing':
+        return <AlertTriangle className="w-4 h-4 text-yellow-500" />
+      case 'resolved':
+        return <CheckCircle2 className="w-4 h-4 text-green-600" />
+      default:
+        return <FileText className="w-4 h-4 text-gray-400" />
+    }
+  }
 
-  if (!renter)
+  if (loading) {
     return (
-      <div className="text-center mt-20 text-red-500">
-        Could not load renter data.
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
       </div>
-    );
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      {/* Header */}
-      <div className="max-w-5xl mx-auto bg-white shadow-lg rounded-2xl p-8 mb-10">
+    <div className="min-h-screen bg-gray-50 px-4 py-10">
+      <div className="max-w-5xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Welcome, {renter.name}</h1>
-            <p className="text-gray-500">Verified Email: {renter.email}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-sm text-gray-600">Your Risk Score</p>
-            <p
-              className={`text-3xl font-bold ${
-                renter.score > 75
-                  ? "text-green-600"
-                  : renter.score > 50
-                  ? "text-yellow-500"
-                  : "text-red-600"
-              }`}
-            >
-              {renter.score || 72}
-            </p>
-          </div>
+          <h1 className="text-2xl font-semibold">Renter Dashboard</h1>
+          <Link href="/renter/disputes/new">
+            <Button className="bg-primary hover:bg-primary/90">+ New Dispute</Button>
+          </Link>
         </div>
-      </div>
 
-      {/* Main Grid */}
-      <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left Column - Incidents */}
-        <div className="md:col-span-2 bg-white shadow-md rounded-xl p-6">
-          <h2 className="text-xl font-semibold mb-4">Your Incidents</h2>
+        {/* Score Card */}
+        <Card className="shadow-sm border border-gray-200">
+          <CardHeader>
+            <CardTitle>Rental Score</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold text-primary">720</p>
+            <p className="text-sm text-gray-500">Excellent standing</p>
+          </CardContent>
+        </Card>
 
-          {incidents.length === 0 ? (
-            <p className="text-gray-500">No incidents linked to your account.</p>
-          ) : (
-            <ul className="space-y-4">
-              {incidents.map((incident) => (
-                <li
-                  key={incident.id}
-                  className="border rounded-lg p-4 hover:shadow transition"
-                >
-                  <div className="flex justify-between items-center">
-                    <p className="font-medium text-gray-800">
-                      {incident.description}
-                    </p>
-                    <span
-                      className={`px-3 py-1 text-sm rounded-full ${
-                        incident.status === "OPEN"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : incident.status === "DISPUTED"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-green-100 text-green-700"
-                      }`}
-                    >
-                      {incident.status}
-                    </span>
+        {/* Disputes */}
+        <Card className="shadow-sm border border-gray-200">
+          <CardHeader>
+            <CardTitle>Your Disputes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {disputes.length === 0 ? (
+              <p className="text-gray-500 text-sm">No disputes found.</p>
+            ) : (
+              <div className="divide-y">
+                {disputes.map((d) => (
+                  <div key={d.id} className="py-3 flex justify-between items-center">
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">{d.description}</p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(d.createdAt?.toDate?.() || d.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {renderStatusIcon(d.status)}
+                      <span className="text-sm capitalize text-gray-600">{d.status}</span>
+                    </div>
                   </div>
-                  <p className="text-gray-500 text-sm mt-1">
-                    Created: {new Date(incident.createdAt).toLocaleDateString()}
-                  </p>
-                  <button
-                    className="mt-3 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700"
-                    onClick={() =>
-                      (window.location.href = `/renter/disputes/new?incident=${incident.id}`)
-                    }
-                  >
-                    View / Dispute
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        {/* Right Column - Quick Actions */}
-        <div className="bg-white shadow-md rounded-xl p-6">
-          <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-          <ul className="space-y-3">
-            <li>
-              <button
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                onClick={() => (window.location.href = "/renter/disputes")}
-              >
-                Manage Disputes
-              </button>
-            </li>
-            <li>
-              <button
-                className="w-full px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
-                onClick={() => (window.location.href = "/renter/documents")}
-              >
-                View Uploaded Documents
-              </button>
-            </li>
-            <li>
-              <button
-                className="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-                onClick={() => (window.location.href = "/renter/payments")}
-              >
-                Make a Payment
-              </button>
-            </li>
-          </ul>
-        </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
-  );
+  )
 }
