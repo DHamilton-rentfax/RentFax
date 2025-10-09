@@ -1,15 +1,17 @@
-import { dbAdmin as db } from '@/lib/firebase-admin';
-import { collection, getCountFromServer } from 'firebase/firestore'
 import { NextResponse } from 'next/server';
+import { collection, getCountFromServer, getDocs, query, where } from 'firebase/firestore';
+import { dbAdmin } from '@/lib/firebase-admin';
 
 export async function GET() {
-  const disputes = await getCountFromServer(collection(db, 'disputes'))
-  const users = await getCountFromServer(collection(db, 'users'))
-  const logs = await getCountFromServer(collection(db, 'systemLogs'))
+  const disputesSnap = await getCountFromServer(collection(dbAdmin, 'disputes'));
+  const usersSnap = await getCountFromServer(collection(dbAdmin, 'users'));
+  const logsSnap = await getCountFromServer(collection(dbAdmin, 'systemLogs'));
+  const fraudSnap = await getDocs(query(collection(dbAdmin, 'renters'), where('alert', '==', true)));
 
-  return Response.json({
-    totalDisputes: disputes.data().count,
-    totalUsers: users.data().count,
-    totalLogs: logs.data().count,
-  })
+  return NextResponse.json({
+    totalDisputes: disputesSnap.data().count,
+    totalUsers: usersSnap.data().count,
+    totalLogs: logsSnap.data().count,
+    fraudAlerts: fraudSnap.size,
+  });
 }

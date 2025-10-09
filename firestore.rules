@@ -3,84 +3,73 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Allow public read for blog posts and company rules
-    match /blogs/{slug} {
+    // Helper functions
+    function isSuperAdmin() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'SUPER_ADMIN';
+    }
+
+    function isAdmin() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['ADMIN', 'SUPER_ADMIN'];
+    }
+
+    function isEditor() {
+      return get(/databases/$(database)/documents/users/$(request.auth_uid)).data.role in ['EDITOR', 'ADMIN', 'SUPER_ADMIN'];
+    }
+
+    // PUBLIC
+    match /blogs/{blogId} {
       allow read: if true;
-      allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'super_admin', 'content_manager'];
+      allow write: if isEditor();
     }
-    match /companyRules/{companyId} {
-        allow read: if true;
-        allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'super_admin'];
-    }
-
-    // Protect user data
+    
+    // AUTHENTICATED
     match /users/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow write: if request.auth != null && request.auth.uid == userId;
-      // Allow admins to update roles
-      allow update: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'super_admin'];
+      allow read: if request.auth != null;
+      allow write: if request.auth.uid == userId;
     }
 
-    // Protect renter data, but allow company access
-    match /renters/{renterId} {
-        allow read, write: if request.auth != null && 
-                           (request.auth.uid == renterId || 
-                            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.companyId);
-    }
-    
-    // Protect company data
     match /companies/{companyId} {
-        allow read: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId;
-        allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'super_admin'];
+      allow read: if request.auth.token.companyId == companyId;
+      allow write: if request.auth.token.companyId == companyId && request.auth.token.role == 'owner';
     }
 
-    // Disputes can be created by renters, managed by company
+    // ADMIN-ONLY
     match /disputes/{disputeId} {
-        allow create: if request.auth != null;
-        allow read, update: if request.auth != null && 
-                               (request.auth.uid == resource.data.renterId || 
-                                get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.companyId);
+      allow read, write: if isAdmin();
     }
 
-    // Incidents can be created/managed by company members
-    match /incidents/{incidentId} {
-        allow create, read, update: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.companyId;
+    match /renters/{renterId} {
+      allow read, write: if isAdmin();
     }
 
-    // Invites can be created by admins, read by members of the same company
     match /invites/{inviteId} {
-        allow create: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'super_admin'];
-        allow read: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.companyId;
-        allow update: if request.auth != null; // For accepting invites
+      allow read, write: if isAdmin();
     }
     
-    // Notifications are private to each user
-    match /notifications/{notificationId} {
-      allow read, update: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null; // Server-side creation
+    match /systemLogs/{id} {
+      allow read: if request.auth != null && request.auth.token.role in ['admin','superadmin'];
+      allow write: if false;
     }
-
-    // Verification tokens are write-only for creation, read by server function
+    match /alerts/{id} {
+      allow read: if request.auth != null && request.auth.token.role in ['admin','superadmin'];
+      allow write: if isAdmin();
+    }
+    
     match /verificationTokens/{id} {
-        allow read: if false; // No client-side reads
-        allow create: if true; // Anyone can request a token (server validates)
-        allow update: if false; // Server-side only
+      allow read, write: if request.auth != null && request.auth.token.role == 'admin';
     }
 
-    // Subscriptions are private
-     match /subscriptions/{subId} {
-      allow read, write: if request.auth != null; // More specific rules needed
+    // RENTER-OWNED
+    match /chats/{chatId} {
+      allow read, write: if request.auth != null && (isAdmin() || request.auth.uid == chatId);
     }
-
-     // System settings are admin-only
-    match /systemSettings/global {
-        allow read: if true;
-        allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super_admin';
-    }
-
-     // Chat history is private to the user
+    
     match /chatHistory/{id} {
       allow read, write: if request.auth != null && request.auth.uid == resource.data.uid;
+    }
+
+    match /subscriptions/{subId} {
+      allow read: if request.auth != null; // more specific rules needed
     }
   }
 }
