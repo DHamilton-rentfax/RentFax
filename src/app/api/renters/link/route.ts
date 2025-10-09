@@ -1,7 +1,9 @@
 // src/app/api/renters/link/route.ts
-import { adminDB as db } from "@/lib/firebase-admin";
+import { dbAdmin as db } from "@/lib/firebase-admin";
 import { NextResponse } from "next/server";
 
+// POST /api/renters/link
+// Body: { renterId: string }
 export async function POST(req: Request) {
   try {
     const { renterId } = await req.json();
@@ -13,15 +15,16 @@ export async function POST(req: Request) {
 
     const renter = renterSnap.data();
     if (!renter) throw new Error("Renter data is missing");
-    
+
     const { fullName, dateOfBirth, govIdLast4 } = renter;
 
-    // 🔍 Search for matching incidents
+    // --- Match incidents ---
     const incidentQuery = await db.collection("incidents")
       .where("renterName", "==", fullName)
       .get();
 
     const matchedIncidents: string[] = [];
+
     for (const doc of incidentQuery.docs) {
       const data = doc.data();
       if (
@@ -29,16 +32,14 @@ export async function POST(req: Request) {
         (data.renterGovIdLast4 && data.renterGovIdLast4 === govIdLast4)
       ) {
         matchedIncidents.push(doc.id);
-        await doc.ref.update({ renterId: renterId });
+        await doc.ref.update({ renterId });
       }
     }
 
-    // 🔍 Link resolutions
-    const resolutionQuery = await db.collection("resolutions")
-      .where("renterId", "==", null)
-      .get();
-
+    // --- Match resolutions linked to those incidents ---
+    const resolutionQuery = await db.collection("resolutions").get();
     const matchedResolutions: string[] = [];
+
     for (const doc of resolutionQuery.docs) {
       const data = doc.data();
       if (matchedIncidents.includes(data.incidentId)) {
@@ -47,7 +48,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // 🔗 Update renter document
+    // --- Update renter doc with linked data ---
     await renterRef.update({
       linkedIncidents: matchedIncidents,
       linkedResolutions: matchedResolutions,

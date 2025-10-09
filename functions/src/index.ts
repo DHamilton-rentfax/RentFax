@@ -95,3 +95,4 @@ export { sendSmsAlert } from "./jobs/sms-alert";
 export { checkCriticalAlerts } from "./jobs/check-critical-alerts";
 export { autoResolveDisputeAlerts } from "./triggers/auto-resolve-disputes";
 export { autoResolveFraudAlerts } from "./triggers/auto-resolve-fraud";
+export { linkRenterOnCreate } from "./linkRenterOnCreate";
