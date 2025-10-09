@@ -15,8 +15,8 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
 
     let incidents: any[] = [];
     if (incidentRefs.length > 0) {
-      const incidentSnaps = await dbAdmin.collection("incidents").where('__name__', 'in', incidentRefs).get();
-      incidents = incidentSnaps.docs.map(snap => ({ id: snap.id, ...snap.data() }));
+        const incidentSnaps = await dbAdmin.collection("incidents").where('__name__', 'in', incidentRefs).get();
+        incidents = incidentSnaps.docs.map(snap => ({ id: snap.id, ...snap.data() }));
     }
 
     return NextResponse.json({ renter, incidents });
