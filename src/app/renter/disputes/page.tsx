@@ -2,7 +2,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { dbClient, storageClient } from "@/lib/firebase-client";
 import {
   collection,
@@ -13,98 +12,53 @@ import {
   doc,
   orderBy,
 } from "firebase/firestore";
-import {
-  ref,
-  uploadBytesResumable,
-  getDownloadURL,
-} from "firebase/storage";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, Loader2, FileText, MessageCircle, CheckCircle2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Upload, Loader2 } from "lucide-react";
 
 export default function DisputesPage() {
-  const { user } = useAuth();
-  const searchParams = useSearchParams();
-  const { toast } = useToast();
-
+  const { user, loading: authLoading } = useAuth();
   const [disputes, setDisputes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState<string | null>(null);
 
-  // Fetch disputes for current renter
+  // ✅ Only run this when user is logged in
   useEffect(() => {
     if (!user) return;
-    
-    // This logic is now safely inside useEffect
-    const token = searchParams.get('token');
-    if (!token) {
-        // You might want to handle cases where the token is missing, e.g., redirect or show an error.
-        setLoading(false);
-        return;
-    };
-
-    const [orgId, renterId] = Buffer.from(token, 'base64').toString().split(':');
-
     const q = query(
       collection(dbClient, "disputes"),
-      where("renterId", "==", renterId),
-      where("orgId", "==", orgId),
+      where("renterId", "==", user.uid),
       orderBy("createdAt", "desc")
     );
-
     const unsub = onSnapshot(q, (snap) => {
       setDisputes(snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
       setLoading(false);
-    }, (error) => {
-        console.error("Error fetching disputes:", error);
-        toast({
-            title: "Error",
-            description: "Could not load your disputes. Please ensure you have a valid link.",
-            variant: "destructive",
-        });
-        setLoading(false);
     });
-
     return () => unsub();
-  }, [user, searchParams, toast]);
+  }, [user]);
 
-  const handleFileUpload = async (disputeId: string) => {
-    if (!selectedFile) return;
-    setUploading(disputeId);
-    const fileRef = ref(storageClient, `disputes/${disputeId}/${selectedFile.name}`);
-    const uploadTask = uploadBytesResumable(fileRef, selectedFile);
-
-    uploadTask.on(
-      "state_changed",
-      null,
-      (error) => {
-        console.error(error);
-        toast({ title: "Upload Failed", description: error.message, variant: "destructive" });
-        setUploading(null);
-      },
-      async () => {
-        const url = await getDownloadURL(uploadTask.snapshot.ref);
-        const disputeRef = doc(dbClient, "disputes", disputeId);
-        await updateDoc(disputeRef, {
-          evidence: url,
-          updatedAt: new Date(),
-        });
-        setUploading(null);
-        toast({ title: "Evidence Uploaded", description: "Your file has been successfully attached to the dispute." });
-      }
+  // ✅ Handle states clearly
+  if (authLoading)
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="animate-spin h-8 w-8 text-primary" />
+      </div>
     );
-  };
 
   if (!user)
     return (
       <div className="p-10 text-center">
-        <p className="text-lg text-muted-foreground">
-          Please log in to view your disputes.
+        <h1 className="text-2xl font-semibold mb-2">Access Restricted</h1>
+        <p className="text-muted-foreground">
+          Please log in to view and manage your disputes.
         </p>
+        <Button onClick={() => (window.location.href = "/login")} className="mt-4">
+          Log In
+        </Button>
       </div>
     );
 
@@ -127,38 +81,23 @@ export default function DisputesPage() {
         <div className="grid gap-6">
           {disputes.map((d) => (
             <Card key={d.id} className="border rounded-2xl shadow-md">
-              <CardHeader className="flex justify-between items-center">
+              <CardHeader>
                 <CardTitle className="text-xl">
                   Incident: {d.incidentId || "N/A"}
                 </CardTitle>
-                <span
-                  className={`px-3 py-1 rounded-full text-sm ${
-                    d.status === "Resolved"
-                      ? "bg-green-100 text-green-700"
-                      : d.status === "Under Review"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : "bg-red-100 text-red-700"
-                  }`}
-                >
-                  {d.status || "Open"}
-                </span>
               </CardHeader>
-
               <CardContent>
                 <p className="text-muted-foreground mb-4">{d.description}</p>
 
-                {/* Evidence Upload Section */}
-                <div className="flex items-center gap-3 mb-4">
+                {/* Evidence Upload */}
+                <div className="flex items-center gap-3">
                   <Input
                     type="file"
-                    accept="image/*,application/pdf"
                     onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                    className="flex-1"
                   />
                   <Button
                     onClick={() => handleFileUpload(d.id)}
                     disabled={!selectedFile || uploading === d.id}
-                    className="flex items-center gap-2"
                   >
                     {uploading === d.id ? (
                       <>
@@ -171,53 +110,6 @@ export default function DisputesPage() {
                     )}
                   </Button>
                 </div>
-
-                {/* Evidence Display */}
-                {d.evidence && (
-                  <a
-                    href={d.evidence}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-primary hover:underline"
-                  >
-                    <FileText className="h-4 w-4" /> View Submitted Evidence
-                  </a>
-                )}
-
-                {/* Admin Notes */}
-                {d.adminNotes && (
-                  <div className="mt-6 bg-muted/20 p-4 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <MessageCircle className="h-4 w-4 text-muted-foreground" />
-                      <p className="text-sm font-medium text-muted-foreground">
-                        Admin Notes
-                      </p>
-                    </div>
-                    <p className="text-sm leading-relaxed">{d.adminNotes}</p>
-                  </div>
-                )}
-
-                {/* AI Summary Section */}
-                {d.aiSummary && (
-                  <div className="mt-6 border-t pt-4">
-                    <h3 className="text-lg font-semibold mb-2">
-                      🤖 AI Summary
-                    </h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {d.aiSummary}
-                    </p>
-                  </div>
-                )}
-
-                {/* Status Completed */}
-                {d.status === "Resolved" && (
-                  <div className="mt-6 flex items-center text-green-600">
-                    <CheckCircle2 className="h-5 w-5 mr-2" />
-                    <p className="text-sm font-medium">
-                      This dispute has been marked as resolved.
-                    </p>
-                  </div>
-                )}
               </CardContent>
             </Card>
           ))}
@@ -225,4 +117,30 @@ export default function DisputesPage() {
       )}
     </div>
   );
+
+  async function handleFileUpload(disputeId: string) {
+    if (!selectedFile) return;
+    setUploading(disputeId);
+    const fileRef = ref(storageClient, `disputes/${disputeId}/${selectedFile.name}`);
+    const uploadTask = uploadBytesResumable(fileRef, selectedFile);
+
+    uploadTask.on(
+      "state_changed",
+      null,
+      (error) => {
+        console.error(error);
+        setUploading(null);
+      },
+      async () => {
+        const url = await getDownloadURL(uploadTask.snapshot.ref);
+        const disputeRef = doc(dbClient, "disputes", disputeId);
+        await updateDoc(disputeRef, {
+          evidence: url,
+          updatedAt: new Date(),
+        });
+        setUploading(null);
+        alert("Evidence uploaded successfully!");
+      }
+    );
+  }
 }
