@@ -9,7 +9,9 @@
     "lint": "next lint",
     "deploy:staging": "npm run build && firebase deploy --only hosting:staging",
     "deploy:prod": "npm run build && firebase deploy --only hosting:revamp",
-    "fix:searchparams": "node --experimental-modules scripts/fix-searchparams.js"
+    "fix:searchparams": "node --experimental-modules scripts/fix-searchparams.js",
+    "restore:searchparams": "node --experimental-modules scripts/restore-searchparams.js",
+    "backup:app": "cp -r src/app src/app_backup_$(date +%Y%m%d)"
   },
   "dependencies": {
     "@genkit-ai/flow": "^0.5.17",
