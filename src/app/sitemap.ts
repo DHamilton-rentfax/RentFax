@@ -1,4 +1,4 @@
-import { adminDB } from "@/firebase/server";
+import { adminDB } from "@/lib/firebase-admin";
 
 export default async function sitemap() {
   const baseUrl = "https://rentfax.io";
@@ -23,7 +23,7 @@ export default async function sitemap() {
     const snap = await adminDB.collection("blogs").where("published", "==", true).get();
     blogRoutes = snap.docs.map((doc) => ({
       url: `${baseUrl}/blog/${doc.data().slug || doc.id}`,
-      lastModified: doc.data().date ? new Date(doc.data().date) : new Date(),
+      lastModified: doc.data().createdAt?.toDate() || new Date(),
     }));
   } catch (e) {
     console.warn("Error building blog sitemap:", e);
