@@ -1,24 +1,43 @@
-'use client';
+import Link from "next/link";
 
-export default function DocsPage() {
+export default function DocsHome() {
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-5xl mx-auto px-6 py-24">
-        <h1 className="text-5xl font-extrabold text-gray-900">Documentation</h1>
-        <p className="mt-4 text-lg text-gray-600">
-          Welcome to the RentFAX docs. Here you’ll find guides, API references, and integration help.
-        </p>
+    <div className="max-w-5xl mx-auto py-20 px-6">
+      <h1 className="text-4xl font-bold mb-4">Documentation</h1>
+      <p className="text-muted-foreground mb-10">
+        Welcome to the RentFAX Docs. Find guides, API references, and feature explanations.
+      </p>
 
-        <div className="mt-12 grid md:grid-cols-2 gap-8">
-          <div className="p-6 bg-white rounded-xl shadow border">
-            <h3 className="text-xl font-semibold text-indigo-600">Getting Started</h3>
-            <p className="mt-2 text-gray-600">Learn how to set up your account and run your first report.</p>
-          </div>
-          <div className="p-6 bg-white rounded-xl shadow border">
-            <h3 className="text-xl font-semibold text-indigo-600">API Reference</h3>
-            <p className="mt-2 text-gray-600">Endpoints, authentication, and sample requests.</p>
-          </div>
-        </div>
+      <div className="grid md:grid-cols-3 gap-6">
+        <Link
+          href="/docs/getting-started"
+          className="p-6 border rounded-xl hover:border-primary transition"
+        >
+          <h2 className="font-semibold text-primary mb-1">Getting Started</h2>
+          <p className="text-sm text-muted-foreground">
+            Set up your account and run your first report.
+          </p>
+        </Link>
+
+        <Link
+          href="/docs/api-reference"
+          className="p-6 border rounded-xl hover:border-primary transition"
+        >
+          <h2 className="font-semibold text-primary mb-1">API Reference</h2>
+          <p className="text-sm text-muted-foreground">
+            Endpoints, authentication, and sample requests.
+          </p>
+        </Link>
+
+        <Link
+          href="/docs/addons/ai-dispute-draft-assistant" // Updated to a specific addon page
+          className="p-6 border rounded-xl hover:border-primary transition"
+        >
+          <h2 className="font-semibold text-primary mb-1">Add-Ons Guide</h2>
+          <p className="text-sm text-muted-foreground">
+            Learn how each add-on improves your rental operations.
+          </p>
+        </Link>
       </div>
     </div>
   );

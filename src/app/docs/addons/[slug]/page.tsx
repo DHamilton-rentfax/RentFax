@@ -1,86 +1,114 @@
-'''import { getAddonBySlug } from "@/lib/addons-data";
+import { getAddonBySlug } from "@/lib/addons-data";
+import { addonCategories } from "../navigation";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Check, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { motion } from "framer-motion";
+import MobileCta from "../mobile-cta";
 
-export default function AddonDetailPage({ params }: { params: { slug: string } }) {
+export function generateStaticParams() {
+  return addonCategories.flatMap((c) => c.items.map((i) => ({ slug: i.slug })));
+}
+
+export default function AddOnDetailPage({ params }: { params: { slug: string } }) {
   const addon = getAddonBySlug(params.slug);
+  if (!addon) return notFound();
 
-  if (!addon) {
-    notFound();
-  }
+  // flatten all items for next/prev nav
+  const allItems = addonCategories.flatMap((c) => c.items);
+  const currentIndex = allItems.findIndex((i) => i.slug === addon.slug);
+  const prevAddon = allItems[currentIndex - 1];
+  const nextAddon = allItems[currentIndex + 1];
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="max-w-4xl mx-auto py-16 px-6">
-        {/* Header */}
-        <div className="text-center mb-12 border-b border-muted pb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-primary mb-3">
-            {addon.name}
-          </h1>
-          <p className="text-lg md:text-xl text-muted-foreground">
-            {addon.tagline}
-          </p>
+    <motion.div
+      key={addon.slug}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="relative max-w-5xl mx-auto py-16 px-6"
+    >
+      {/* Sticky CTA */}
+      <div className="hidden lg:block fixed right-10 top-40 w-64 bg-primary/5 border border-primary rounded-xl p-5">
+        <h3 className="text-lg font-semibold mb-3">{addon.name}</h3>
+        <p className="text-sm text-muted-foreground mb-4">{addon.tagline}</p>
+        <Link
+          href={`/pricing?selected=${addon.priceId}`}
+          className="block w-full text-center bg-primary text-white py-2 rounded-md hover:bg-primary/90"
+        >
+          Add to Plan →
+        </Link>
+        <p className="text-xs text-center text-muted-foreground mt-2">
+          Available via Pricing page.
+        </p>
+      </div>
+
+      {/* Header */}
+      <div className="text-center mb-12 border-b border-muted pb-8">
+        <h1 className="text-4xl font-bold text-primary mb-3">{addon.name}</h1>
+        <p className="text-lg text-muted-foreground">{addon.tagline}</p>
+      </div>
+
+      {/* Content */}
+      <div className="grid lg:grid-cols-3 gap-12">
+        {/* Overview */}
+        <div className="lg:col-span-2">
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-3">Overview</h2>
+            <p className="text-muted-foreground leading-relaxed">
+              {addon.overview}
+            </p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-3">Example Use Case</h2>
+            <div className="bg-muted/50 p-6 rounded-lg border">
+              <h4 className="font-semibold text-primary mb-2">
+                {addon.useCase.title}
+              </h4>
+              <p className="text-muted-foreground">{addon.useCase.content}</p>
+            </div>
+          </section>
+
+          {/* Next / Previous Navigation */}
+          <div className="flex justify-between mt-16 border-t pt-6">
+            {prevAddon ? (
+              <Link
+                href={`/docs/addons/${prevAddon.slug}`}
+                className="text-sm text-primary hover:underline flex items-center gap-1"
+              >
+                <ArrowLeft className="w-4 h-4" /> {prevAddon.name}
+              </Link>
+            ) : <div />}
+
+            {nextAddon && (
+              <Link
+                href={`/docs/addons/${nextAddon.slug}`}
+                className="text-sm text-primary hover:underline flex items-center gap-1"
+              >
+                {nextAddon.name} <ArrowRight className="w-4 h-4" />
+              </Link>
+            )}
+          </div>
         </div>
 
-        {/* Main Content */}
-        <div className="grid md:grid-cols-3 gap-12">
-          <div className="md:col-span-2">
-            {/* Overview */}
-            <section className="mb-10">
-              <h2 className="text-2xl font-semibold mb-4">What It Is</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                {addon.overview}
-              </p>
-            </section>
-
-            {/* Use Case */}
-            <section>
-              <h2 className="text-2xl font-semibold mb-4">Example Use Case</h2>
-              <div className="bg-muted/50 p-6 rounded-lg border">
-                <h4 className="font-semibold text-primary mb-2">
-                  {addon.useCase.title}
-                </h4>
-                <p className="text-muted-foreground">
-                  {addon.useCase.content}
-                </p>
-              </div>
-            </section>
-          </div>
-
-          {/* Sidebar */}
-          <div className="md:col-span-1 space-y-8">
-            {/* Key Benefits */}
-            <section className="bg-muted/50 p-6 rounded-lg border">
-              <h3 className="text-xl font-semibold mb-4">Key Benefits</h3>
-              <ul className="space-y-3">
-                {addon.keyBenefits.map((benefit) => (
-                  <li key={benefit} className="flex items-start gap-3">
-                    <Check
-                      className="w-5 h-5 text-green-500 mt-1 flex-shrink-0"
-                    />
-                    <span className="text-muted-foreground">{benefit}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-
-            {/* CTA Card */}
-            <section className="bg-primary/5 p-6 rounded-lg border border-primary sticky top-24">
-              <h3 className="text-xl font-semibold mb-4">Get This Add-On</h3>
-              <Link href="/pricing">
-                <a className="w-full block text-center bg-primary text-primary-foreground rounded-lg py-3 font-semibold hover:bg-primary/90 transition">
-                  Add to Plan <ArrowRight className="inline w-4 h-4 ml-1" />
-                </a>
-              </Link>
-              <p className="text-xs text-center text-muted-foreground mt-2">
-                You can select your plan and add-ons on the pricing page.
-              </p>
-            </section>
-          </div>
+        {/* Key Benefits */}
+        <div className="lg:col-span-1 space-y-5">
+          <section className="bg-muted/50 p-6 rounded-lg border">
+            <h3 className="text-xl font-semibold mb-4">Key Benefits</h3>
+            <ul className="space-y-2">
+              {addon.keyBenefits.map((b) => (
+                <li key={b} className="flex items-start gap-2">
+                  <Check className="w-4 h-4 text-green-500 mt-1" />
+                  <span className="text-muted-foreground text-sm">{b}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
         </div>
       </div>
-    </div>
+      
+      <MobileCta addon={addon} />
+    </motion.div>
   );
 }
-'''

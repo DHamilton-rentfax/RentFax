@@ -1,45 +1,36 @@
-import { NextResponse } from 'next/server';
-import Stripe from 'stripe';
+import { stripe } from "@/lib/stripe";
+import { NextResponse } from "next/server";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-04-10', // Always pin your API version
-});
+const origin = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const { items, email } = await request.json();
+    const { email, fullName, priceId } = await req.json();
 
-    // Validate the input
-    if (!email || !items || !Array.isArray(items) || items.length === 0) {
-      return NextResponse.json({ error: 'Email and a list of items are required.' }, { status: 400 });
+    if (!priceId) {
+      return NextResponse.json({ error: "Missing Price ID" }, { status: 400 });
     }
-
-    // The origin is needed for the success and cancel URLs
-    const origin = request.headers.get('origin') || 'http://localhost:3000';
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      // Map the items from the frontend to the format Stripe expects
-      line_items: items.map(item => ({
-        price: item.priceId, // Ensure your frontend sends 'priceId'
-        quantity: item.quantity,
-      })),
-      mode: 'payment', // Use 'subscription' for recurring payments
-      customer_email: email,
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ],
+      mode: "subscription",
       success_url: `${origin}/thank-you?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/pricing?payment=cancelled`,
+      cancel_url: `${origin}/pricing`,
+      customer_email: email, // Pre-fill the email address
+      metadata: {
+        fullName, // Pass full name to the metadata
+      }
     });
 
-    // Return the URL for the frontend to redirect to
-    if (session.url) {
-        return NextResponse.json({ url: session.url });
-    } else {
-        return NextResponse.json({ error: 'Failed to create a session URL.' }, { status: 500 });
-    }
-
+    return NextResponse.json({ sessionId: session.id });
   } catch (err: any) {
-    console.error('STRIPE_CHECKOUT_ERROR:', err.message);
-    // Return the actual Stripe error message for easier debugging
+    console.error("Stripe Session Creation Error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

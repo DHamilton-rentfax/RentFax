@@ -40,7 +40,7 @@ jobs:
     if: success()
     steps:
       - name: Promote Version
-        run: firebase hosting:clone rentfax-staging:live rentfax-demo:live
+        run: firebase hosting:clone rentfax-staging:live rentfax-revamp:live
 
   notify:
     name: Notify Slack
