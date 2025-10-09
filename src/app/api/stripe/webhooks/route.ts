@@ -1,6 +1,8 @@
+
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { adminDB } from "@/lib/firebase-admin";
+import { updateUserPlan } from "@/lib/billing/updateUserPlan";
 
 // ✅ Disable automatic JSON parsing
 export const config = {
@@ -39,7 +41,6 @@ export async function POST(req: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-
         if (!session.customer_email) break;
 
         const userRef = adminDB.collection("users").doc(session.customer_email);
@@ -53,6 +54,9 @@ export async function POST(req: Request) {
           },
           { merge: true }
         );
+        
+        // Update user plan and role
+        await updateUserPlan(session);
 
         // Add audit log entry
         await adminDB.collection("audit_logs").add({
@@ -111,28 +115,7 @@ export async function POST(req: Request) {
 
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
-        const customerId = sub.customer as string;
-
-        const snapshot = await adminDB
-          .collection("users")
-          .where("stripeCustomerId", "==", customerId)
-          .limit(1)
-          .get();
-
-        if (!snapshot.empty) {
-          const userDoc = snapshot.docs[0].ref;
-          await userDoc.update({
-            activePlan: null,
-            activeAddOns: [],
-            subscriptionStatus: "canceled",
-          });
-
-          await adminDB.collection("audit_logs").add({
-            type: "SUBSCRIPTION_CANCELED",
-            user: userDoc.id,
-            timestamp: new Date().toISOString(),
-          });
-        }
+        await updateUserPlan({ customer: sub.customer, canceled: true });
         break;
       }
 
