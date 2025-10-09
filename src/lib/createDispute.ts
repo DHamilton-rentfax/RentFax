@@ -16,7 +16,7 @@ export async function createDispute({ description, files }: { description: strin
     if (files && files.length > 0) {
       for (const file of Array.from(files)) {
         const storageRef = ref(storage, `disputes/${user.uid}/${Date.now()}_${file.name}`)
-        const snapshot = await uploadBytes(storageRef, file as Blob)
+        const snapshot = await uploadBytes(storageRef, file)
         const url = await getDownloadURL(snapshot.ref)
         fileURLs.push(url)
       }
