@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import PricingCart from "./pricing-cart";
+import PricingCart from "@/components/pricing/pricing-cart";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
