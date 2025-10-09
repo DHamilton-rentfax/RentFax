@@ -16,6 +16,37 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+// --- SEO metadata for How It Works page ---
+export const metadata = {
+  title: "How RentFAX Works | AI-Powered Renter Verification & Fraud Detection",
+  description:
+    "Discover how RentFAX uses AI to simplify renter screening, detect fraud, and manage disputes with full transparency. Smarter rentals. Safer decisions.",
+  openGraph: {
+    title: "How RentFAX Works | AI-Powered Renter Verification & Fraud Detection",
+    description:
+      "Learn how RentFAX automates renter verification and fraud detection using AI. Gain instant insights and protect your properties with confidence.",
+    url: "https://rentfax.io/how-it-works",
+    siteName: "RentFAX",
+    images: [
+      {
+        url: "https://rentfax.io/images/og-how-it-works.jpg", // 👈 Replace with your actual OG image path
+        width: 1200,
+        height: 630,
+        alt: "RentFAX - How It Works",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "How RentFAX Works | AI Renter Verification & Fraud Detection",
+    description:
+      "Smarter rentals. Safer decisions. Learn how RentFAX automates verification and detects risk in seconds.",
+    images: ["https://rentfax.io/images/og-how-it-works.jpg"],
+  },
+};
+
 export default function HowItWorksPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
@@ -41,8 +72,37 @@ export default function HowItWorksPage() {
     },
   ];
 
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name: "How RentFAX Works",
+    description:
+      "Step-by-step process explaining how RentFAX automates renter verification, fraud detection, and dispute resolution.",
+    step: [
+      {
+        "@type": "HowToStep",
+        name: "Submit & Verify",
+        text: "Start by submitting renter details. Our AI instantly verifies identities and checks databases.",
+      },
+      {
+        "@type": "HowToStep",
+        name: "AI Fraud Detection",
+        text: "Our Fraud Signal Engine analyzes data to detect duplicates and mismatched records.",
+      },
+      {
+        "@type": "HowToStep",
+        name: "Dispute & Decision",
+        text: "Review the final report, resolve disputes, and make informed leasing decisions.",
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       {/* Hero */}
       <section className="text-center py-20 bg-gradient-to-b from-background to-muted/30">
         <motion.h1
@@ -224,3 +284,5 @@ export default function HowItWorksPage() {
     </div>
   );
 }
+
+    
