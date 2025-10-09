@@ -1,7 +1,9 @@
+
 import { stripe } from "@/lib/stripe";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle } from "lucide-react";
+import * as React from "react";
 
 async function getSessionData(sessionId: string) {
   try {
@@ -16,9 +18,11 @@ async function getSessionData(sessionId: string) {
 }
 
 export default async function ThankYouPage({ searchParams }: { searchParams: { session_id: string } }) {
-  if (!searchParams.session_id) return notFound();
+  const params = React.use(searchParams);
+  const sessionId = params.session_id;
+  if (!sessionId) return notFound();
 
-  const session = await getSessionData(searchParams.session_id);
+  const session = await getSessionData(sessionId);
 
   if (!session) {
     // A more user-friendly error page could be shown here

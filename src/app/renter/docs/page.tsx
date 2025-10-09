@@ -1,18 +1,24 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import * as React from "react";
 
 type Doc = { id: string; name: string; category: string };
 
-export default function RenterDocsPage({ searchParams }: { searchParams: { token: string } }) {
-  const { token } = searchParams;
+export default function RenterDocsPage() {
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
   const [docs, setDocs] = useState<Doc[]>([]);
 
   useEffect(() => {
+    if (!token) return;
     fetch(`/api/renter/docs?token=${token}`).then(r => r.json()).then(setDocs);
   }, [token]);
 
   async function viewDoc(docId: string) {
+    if (!token) return;
     const res = await fetch(`/api/renter/docs/${docId}/download?token=${token}`);
     const data = await res.json();
     if (data.url) window.open(data.url, "_blank");

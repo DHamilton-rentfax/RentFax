@@ -1,19 +1,25 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import * as React from "react";
 
 type Message = { id: string; from: string; text: string; createdAt: number };
 
-export default function RenterMessagesPage({ searchParams }: { searchParams: { token: string } }) {
-  const { token } = searchParams;
+export default function RenterMessagesPage() {
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState("");
 
   useEffect(() => {
+    if (!token) return;
     fetch(`/api/renter/messages?token=${token}`).then(r => r.json()).then(setMessages);
   }, [token]);
 
   async function send() {
+    if (!token) return;
     await fetch("/api/renter/messages", {
       method: "POST",
       body: JSON.stringify({ token, text }),

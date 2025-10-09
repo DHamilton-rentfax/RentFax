@@ -1,14 +1,16 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { auth } from "@/firebase/client";
+import * as React from "react";
 
 export default function InvitePage() {
-  const params = useSearchParams();
   const router = useRouter();
-  const orgId = params.get("orgId");
-  const inviteId = params.get("inviteId");
+  const searchParams = useSearchParams();
+  const orgId = searchParams.get("orgId");
+  const inviteId = searchParams.get("inviteId");
 
   const [invite, setInvite] = useState<any>(null);
   const [loading, setLoading] = useState(true);

@@ -1,15 +1,20 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useSearchParams } from "next/navigation";
+import * as React from "react";
 
 type Incident = { id: string; type: string; notes: string; createdAt: number };
 
-export default function RenterHistoryPage({ searchParams }: { searchParams: { token: string } }) {
-  const { token } = searchParams;
+export default function RenterHistoryPage() {
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
   const [incidents, setIncidents] = useState<Incident[]>([]);
 
   useEffect(() => {
+    if (!token) return;
     fetch(`/api/renter/history?token=${token}`).then(r => r.json()).then(setIncidents);
   }, [token]);
 

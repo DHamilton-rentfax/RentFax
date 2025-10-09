@@ -1,4 +1,5 @@
 
+
 import { getRenterData } from '@/app/actions/get-renter-data';
 import { RenterSummary } from '@/components/report/RenterSummary';
 import { RiskScore } from '@/components/report/RiskScore';
@@ -6,6 +7,7 @@ import { BehavioralInsights } from '@/components/report/BehavioralInsights';
 import { IncidentTimeline } from '@/components/report/IncidentTimeline';
 import { FraudSignals } from '@/components/report/FraudSignals';
 import { Attachments } from '@/components/report/Attachments';
+import * as React from "react";
 
 // This is a placeholder for the actual data fetching logic
 // which will be implemented after the Stripe payment flow is in place.
