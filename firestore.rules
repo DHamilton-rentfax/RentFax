@@ -1,13 +1,47 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Disputes
-    match /disputes/{disputeId} {
-      allow read, update, delete: if request.auth != null && resource.data.renterId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.renterId == request.auth.uid;
+    
+    function hasAdminRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['ADMIN', 'SUPER_ADMIN'];
     }
 
+    // Renter-specific data (for portal access)
+    match /renters/{renterId} {
+        allow read, update: if request.auth.uid == renterId;
+        allow create: if true;
+    }
+
+    // Incidents can be read by the linked renter or an admin
+    match /incidents/{incidentId} {
+      allow read: if resource.data.renterId == request.auth.uid || hasAdminRole();
+      allow update: if hasAdminRole();
+    }
+
+    // Resolutions can be created/read by the linked renter, but only updated by admin
+    match /resolutions/{resolutionId} {
+      allow read, create: if resource.data.renterId == request.auth.uid;
+      allow update: if hasAdminRole();
+    }
+    
+    // Org-level data is private
+    match /orgs/{orgId} {
+      allow read, write: if request.auth.uid != null && request.auth.token.orgId == orgId;
+
+      // Renters are readable by org members
+      match /renters/{renterId} {
+        allow read: if request.auth.uid != null && request.auth.token.orgId == orgId;
+        allow write: if request.auth.uid != null && request.auth.token.orgId == orgId;
+      }
+
+      // Tamper-proof audit logs
+      match /logs/{logId} {
+        allow read: if request.auth.uid != null && request.auth.token.orgId == orgId;
+        allow create: if request.auth.uid != null;
+        allow update, delete: if false; // Immutable
+      }
+    }
+    
     // Newsletter
     match /newsletter_subscribers/{docId} {
       allow read, write: if true;
