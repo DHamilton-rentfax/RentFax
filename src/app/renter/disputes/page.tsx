@@ -14,7 +14,16 @@ export default function RenterDisputesPage({ searchParams }: { searchParams: { t
   const [subject, setSubject] = useState('');
   const [details, setDetails] = useState('');
   const { toast } = useToast();
-  const [orgId, renterId] = token ? Buffer.from(token, 'base64').toString().split(':') : [null, null];
+  const [orgId, setOrgId] = useState<string | null>(null);
+  const [renterId, setRenterId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (token) {
+        const [oId, rId] = Buffer.from(token, 'base64').toString().split(':');
+        setOrgId(oId);
+        setRenterId(rId);
+    }
+  }, [token]);
 
   useEffect(() => {
     if (!orgId || !renterId) return;
