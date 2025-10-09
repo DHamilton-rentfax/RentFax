@@ -9,6 +9,7 @@ import { Header } from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import { Loader2 } from 'lucide-react';
 import { SidebarNav } from '@/components/layout/sidebar-nav';
+import AiAssistant from '@/components/renter/AiAssistant';
 
 const sidebarNavItems = [
     {
@@ -50,8 +51,8 @@ export default function RenterLayout({ children }: { children: React.ReactNode }
                 {children}
             </main>
         </div>
+        <AiAssistant />
         <Footer />
     </>
   );
 }
-

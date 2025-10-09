@@ -7,6 +7,7 @@ import {
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { sendEmail } from '@/lib/notifications/sendEmail'
 import { sendSMS } from '@/lib/notifications/sendSMS'
+import { detectFraudSignals } from '@/ai/flows/fraud-detector';
 
 export async function createDispute({ description, files }: { description: string, files: FileList | null }) {
   try {
@@ -17,14 +18,14 @@ export async function createDispute({ description, files }: { description: strin
     const fileURLs: string[] = []
     if (files && files.length > 0) {
       for (const file of Array.from(files)) {
-        const storageRef = ref(storage, `disputes/${user.uid}/${Date.now()}_${file.name}`)
+        const storageRef = ref(storage, `disputes/${user.uid}/${file.name}`)
         const snapshot = await uploadBytes(storageRef, file)
         const url = await getDownloadURL(snapshot.ref)
         fileURLs.push(url)
       }
     }
 
-    await addDoc(collection(db, 'disputes'), {
+    const newDispute = {
       renterId: user.uid,
       name: user.displayName || '',
       email: user.email || '',
@@ -32,7 +33,26 @@ export async function createDispute({ description, files }: { description: strin
       files: fileURLs,
       status: 'submitted',
       createdAt: serverTimestamp()
-    })
+    };
+
+    const docRef = await addDoc(collection(db, 'disputes'), newDispute);
+
+    // Run Fraud Detection in the background
+    detectFraudSignals({ renterId: user.uid }).then(fraudResult => {
+      if (fraudResult.signals.length > 0) {
+        console.log(`Fraud signals detected for new dispute ${docRef.id}:`, fraudResult.signals);
+        // In a real app, you would flag this for admin review
+        addDoc(collection(db, 'alerts'), {
+          type: 'fraud_warning',
+          disputeId: docRef.id,
+          reason: `Found ${fraudResult.signals.length} fraud signals.`,
+          signals: fraudResult.signals.map(s => s.code),
+          createdAt: serverTimestamp()
+        });
+      }
+    }).catch(err => {
+      console.error("Error running fraud detection:", err);
+    });
 
     // Notify Renter
     if (user.email) {
