@@ -1,7 +1,8 @@
+
 "use client";
 import { useEffect, useState } from "react";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
-import { db } from "@/lib/firebase-client";
+import { db } from "@/firebase/client";
 
 export default function RenterDisputes() {
   const renterId = localStorage.getItem("renterId");
@@ -9,7 +10,10 @@ export default function RenterDisputes() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!renterId) return;
+    if (!renterId) {
+      setLoading(false);
+      return;
+    }
     const q = query(collection(db, "disputes"), where("renterId", "==", renterId));
     const unsub = onSnapshot(q, (snap) => {
       setDisputes(snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
@@ -49,14 +53,17 @@ export default function RenterDisputes() {
                   {d.status}
                 </span>
               </div>
-               <div className="mt-3 bg-gray-50 rounded-lg p-3">
+                <div className="mt-3 bg-gray-50 rounded-lg p-3">
                   <p className="text-sm text-gray-700">
                     <b>AI Summary:</b> {d.aiSummary || "Pending analysis by RentFAX AI engine."}
                   </p>
                 </div>
-                 <p className="text-xs text-gray-400 mt-2">
-                  Last Updated: {new Date(d.updatedAt.seconds * 1000).toLocaleString()}
-                </p>
+               <button
+                  onClick={() => window.open(`/api/disputes/${d.id}/report`, "_blank")}
+                  className="text-blue-600 hover:underline text-sm mt-3"
+                >
+                  Download Report (PDF)
+                </button>
             </li>
           ))}
         </ul>

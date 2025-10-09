@@ -1,7 +1,9 @@
+
 import { dbAdmin } from "@/lib/firebase-admin";
 import { NextResponse } from "next/server";
 import { sendDisputeNotification } from "@/lib/notifications";
 import { generateDisputeSummary } from "@/lib/ai-summary";
+import { logAuditEvent } from "@/lib/audit-log";
 
 export async function POST(req: Request) {
   try {
@@ -29,8 +31,17 @@ export async function POST(req: Request) {
       aiSummary: summary,
       updatedAt: new Date(),
     });
+    
+    // 3️⃣ Log the audit event
+    await logAuditEvent({
+        disputeId,
+        action: "STATUS_UPDATED",
+        actor: "ADMIN",
+        details: `Status changed to ${status}`,
+    });
 
-    // 3️⃣ Send notification
+
+    // 4️⃣ Send notification
     const renterRef = await dbAdmin.collection("renters").doc(dispute.renterId).get();
     if (renterRef.exists) {
       const renter = renterRef.data()!;
@@ -44,6 +55,12 @@ export async function POST(req: Request) {
           <p>You can log in to your Renter Portal to see details and AI-generated summary.</p>
           <p>– RentFAX Resolution Team</p>
         `,
+      });
+      await logAuditEvent({
+        disputeId,
+        action: "EMAIL_SENT",
+        actor: "SYSTEM",
+        details: `Notification sent to ${renter.email} for status update.`,
       });
     }
 
