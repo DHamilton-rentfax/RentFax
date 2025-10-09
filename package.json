@@ -7,8 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "deploy:staging": "npm run build && firebase deploy --only hosting:staging",
-    "deploy:prod": "npm run build && firebase deploy --only hosting:revamp",
+    "verify": "ts-node scripts/verify-structure.ts",
+    "predeploy": "npm run verify && next build",
+    "deploy": "firebase deploy --only hosting:rentfax-revamp",
     "fix:searchparams": "node --experimental-modules scripts/fix-searchparams.js",
     "restore:searchparams": "node --experimental-modules scripts/restore-searchparams.js",
     "backup:app": "cp -r src/app src/app_backup_$(date +%Y%m%d)"
