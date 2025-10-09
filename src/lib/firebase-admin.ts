@@ -1,6 +1,10 @@
 // Firebase Admin SDK initialization (for server-side)
 import * as admin from "firebase-admin";
 
+if (typeof window !== "undefined") {
+  throw new Error("firebase-admin should not be imported on the client.");
+}
+
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.applicationDefault(),

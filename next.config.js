@@ -6,7 +6,11 @@ const nextConfig = {
     remotePatterns: [{ protocol: 'https', hostname: '**' }]
   },
   eslint: { ignoreDuringBuilds: true },
-  typescript: { ignoreBuildErrors: false }
+  typescript: { ignoreBuildErrors: false },
+  webpack(config) {
+    config.experiments = { ...config.experiments, asyncWebAssembly: true };
+    return config;
+  },
 };
 
 module.exports = nextConfig;

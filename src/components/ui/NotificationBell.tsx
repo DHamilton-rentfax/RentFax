@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { db } from "@/lib/firebase";
+import { db } from "@/lib/firebase-client";
 import { collection, onSnapshot, query, orderBy, updateDoc, doc, where } from "firebase/firestore";
 import { Bell, Check, Trash2 } from "lucide-react";
 import { Button } from "./button";
