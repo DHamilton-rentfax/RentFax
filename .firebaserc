@@ -1,14 +1,7 @@
 {
   "projects": {
-    "default": "rentfax-revamp"
-  },
-  "targets": {
-    "rentfax-revamp": {
-      "hosting": {
-        "revamp": ["rentfax-revamp"],
-        "demo": ["rentfax-demo"],
-        "staging": ["rentfax-staging"]
-      }
-    }
+    "default": "rentfax-revamp",
+    "staging": "rentfax-staging",
+    "demo": "rentfax-demo"
   }
 }
