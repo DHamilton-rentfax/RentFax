@@ -1,9 +1,10 @@
-// ✅ FRONTEND SAFE
+// ✅ FRONTEND SAFE — Firebase Client SDK
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
+// Your public Firebase configuration from .env.local
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
@@ -15,7 +16,8 @@ const firebaseConfig = {
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+export const authClient = getAuth(app);
+export const dbClient = getFirestore(app);
+export const storageClient = getStorage(app);
+
 export default app;

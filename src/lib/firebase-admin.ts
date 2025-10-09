@@ -1,13 +1,14 @@
-// ✅ SERVER ONLY
+// ✅ SERVER ONLY — Firebase Admin SDK
 if (typeof window !== "undefined") {
   throw new Error("🚫 firebase-admin should never be imported on the client!");
 }
 
-import { cert, getApps, initializeApp, getApp } from "firebase-admin/app";
+import { cert, getApps, getApp, initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
 import { getStorage } from "firebase-admin/storage";
 
+// Load service account credentials from environment
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY as string);
 
 const adminApp = !getApps().length
@@ -20,4 +21,3 @@ const adminApp = !getApps().length
 export const authAdmin = getAuth(adminApp);
 export const dbAdmin = getFirestore(adminApp);
 export const storageAdmin = getStorage(adminApp);
-export const admin = adminApp;
