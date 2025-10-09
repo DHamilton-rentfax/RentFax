@@ -5,6 +5,8 @@ import { format } from "date-fns";
 import Image from "next/image";
 import Link from "next/link";
 import { Metadata } from "next";
+import { Suspense } from "react";
+import NewsletterSignup from "@/components/NewsletterSignup";
 
 // Dynamically generate metadata for each blog
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
@@ -61,8 +63,38 @@ async function getRelatedPosts(slug: string) {
   const snap = await q.get();
   return snap.docs
     .map((doc) => ({ id: doc.id, ...doc.data() }))
-    .filter((post) => post.slug !== slug);
+    .filter((post: any) => post.slug !== slug);
 }
+
+// --- AI Summary ---
+async function getAISummary(content: string) {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/summarize`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: content }),
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error("Failed to summarize");
+    const data = await res.json();
+    return data.summary;
+  } catch (e) {
+    console.error("AI summary error:", e);
+    return null;
+  }
+}
+
+export async function AISummary({ text }: { text: string }) {
+  const summary = await getAISummary(text);
+  if (!summary) return null;
+  return (
+    <div className="mt-16 bg-muted/20 p-8 rounded-2xl border">
+      <h2 className="text-2xl font-semibold mb-3">Quick Summary</h2>
+      <p className="text-muted-foreground leading-relaxed">{summary}</p>
+    </div>
+  );
+}
+
 
 export default async function BlogPostPage({ params }: { params: { slug: string } }) {
   const post = await getPost(params.slug);
@@ -99,6 +131,12 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
           className="prose prose-lg dark:prose-invert max-w-none"
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
+
+        <Suspense fallback={<p className="text-muted-foreground">Summarizing post...</p>}>
+          <AISummary text={post.content} />
+        </Suspense>
+
+        <NewsletterSignup />
 
         {/* Tags */}
         {post.tags && post.tags.length > 0 && (
