@@ -1,3 +1,4 @@
+
 "use client";
 import { useState } from "react";
 import PricingCart from "./pricing-cart";
@@ -126,8 +127,8 @@ export default function PricingPage() {
                   <div key={addon.name} className={`p-4 border rounded-xl transition-colors ${selected ? "border-primary bg-primary/5" : "border-muted"}`}>
                     <div className="font-medium mb-2">{addon.name}</div>
                     <div className="flex justify-between items-center">
-                        <Link href={`/docs/addons/${addon.slug}`}>
-                            <a className="text-sm text-primary hover:underline">Learn more →</a>
+                        <Link href={`/docs/addons/${addon.slug}`} className="text-sm text-primary hover:underline">
+                            Learn more →
                         </Link>
                         <button onClick={() => toggleAddOn(addon)} className={`px-3 py-1 text-sm rounded-md ${selected ? 'bg-red-500/10 text-red-400' : 'bg-primary/10 text-primary'}`}>
                             {selected ? 'Remove' : 'Add'}
