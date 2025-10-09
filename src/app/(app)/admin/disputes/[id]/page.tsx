@@ -8,6 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
+import DisputeAISummary from '@/components/admin/DisputeAISummary'
 
 export default function AdminDisputePage() {
   const { id } = useParams()
@@ -70,6 +71,7 @@ export default function AdminDisputePage() {
               </ul>
             </div>
           )}
+          <DisputeAISummary dispute={dispute} />
         </CardContent>
         <CardFooter className="flex items-center gap-2 pt-6 border-t">
           <span className="text-sm font-medium">Set Status:</span>

@@ -1,26 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
+import { aiReportSummarizer } from '@/ai/flows/ai-report-summarizer';
 
 export async function POST(req: Request) {
-  try {
-    const { text } = await req.json();
-
-    if (!text || text.length < 30) {
-      return NextResponse.json({ summary: "Not enough text to summarize." });
+    try {
+        const { dispute } = await req.json();
+        if (!dispute) {
+            return NextResponse.json({ error: 'Dispute data is required.' }, { status: 400 });
+        }
+        const result = await aiReportSummarizer({ dispute });
+        return NextResponse.json(result);
+    } catch (e: any) {
+        console.error('[API Summarize Error]', e);
+        return NextResponse.json({ error: e.message || 'Failed to generate summary.' }, { status: 500 });
     }
-
-    // Use your AI model (Gemini or OpenAI)
-    const prompt = `
-    Summarize this renter dispute clearly and neutrally for an admin record:
-    ---
-    ${text}
-    `;
-
-    // Replace this with your AI client
-    const summary = `AI Summary: ${text.slice(0, 180)}... (sample summary)`; 
-
-    return NextResponse.json({ summary });
-  } catch (error) {
-    console.error("AI summary error:", error);
-    return NextResponse.json({ error: "Failed to summarize" }, { status: 500 });
-  }
 }

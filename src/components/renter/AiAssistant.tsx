@@ -4,6 +4,14 @@ import { useState } from 'react'
 import { Send } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { db, auth } from '@/firebase/client'
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+
+async function saveMessage(role:string,text:string){
+  const user = auth.currentUser
+  if(!user) return
+  await addDoc(collection(db,'chatHistory'),{uid:user.uid,role,text,createdAt:serverTimestamp()})
+}
 
 export default function AiAssistant() {
   const [msg, setMsg] = useState('')
@@ -15,6 +23,7 @@ export default function AiAssistant() {
     setLoading(true);
     const newChat = [...chat, { role:'user', text: msg }];
     setChat(newChat);
+    await saveMessage('user', msg);
     setMsg('');
 
     try {
@@ -25,8 +34,11 @@ export default function AiAssistant() {
       })
       const data = await res.json()
       setChat([...newChat, { role:'ai', text: data.reply }])
+      await saveMessage('ai', data.reply);
     } catch (error) {
-      setChat([...newChat, { role: 'ai', text: 'Sorry, I am having trouble connecting. Please try again.'}])
+      const errorMsg = 'Sorry, I am having trouble connecting. Please try again.';
+      setChat([...newChat, { role: 'ai', text: errorMsg }])
+      await saveMessage('ai', errorMsg);
     } finally {
       setLoading(false);
     }
@@ -38,7 +50,7 @@ export default function AiAssistant() {
         {chat.map((c,i)=>(
           <div key={i} className={`flex ${c.role === 'ai' ? 'justify-start' : 'justify-end'}`}>
             <p className={`p-2 rounded-lg max-w-[90%] ${c.role==='ai'?'bg-muted text-foreground':'bg-primary text-primary-foreground'}`}>
-              {c.text}
+              <strong>{c.role==='ai'?'AI: ':'You: '}</strong>{c.text}
             </p>
           </div>
         ))}
