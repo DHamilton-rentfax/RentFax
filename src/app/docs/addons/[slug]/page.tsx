@@ -1,3 +1,5 @@
+"use client";
+
 import { getAddonBySlug } from "@/lib/addons-data";
 import { addonCategories } from "../navigation";
 import { notFound } from "next/navigation";
