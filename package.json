@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "deploy:staging": "npm run build && firebase deploy --only hosting:staging",
-    "deploy:prod": "npm run build && firebase deploy --only hosting:revamp"
+    "deploy:prod": "npm run build && firebase deploy --only hosting:revamp",
+    "fix:searchparams": "node --experimental-modules scripts/fix-searchparams.js"
   },
   "dependencies": {
     "@genkit-ai/flow": "^0.5.17",
