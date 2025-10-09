@@ -2,11 +2,16 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
+    
+    // --- Helper Function ---
+    function hasAdminRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['ADMIN', 'SUPER_ADMIN'];
+    }
+    
     // --- Renters can only view/update their own profile ---
     match /renters/{renterId} {
       allow read, update: if request.auth != null && request.auth.uid == renterId;
-      allow create: if true;
+      allow create: if request.auth != null && request.auth.uid == renterId;
     }
 
     // --- Incidents ---
@@ -18,13 +23,20 @@ service cloud.firestore {
 
     // --- Resolutions (Renter Resolution Portal) ---
     match /resolutions/{resolutionId} {
-      allow read, update: if (request.auth != null && resource.data.renterId == request.auth.uid) || hasAdminRole();
+      allow read: if resource.data.renterId == request.auth.uid || hasAdminRole();
+      create: if request.auth.uid == request.resource.data.renterId;
+      allow update: if hasAdminRole();
+    }
+    
+    // Disputes
+    match /disputes/{disputeId} {
+      allow read, update, delete: if request.auth != null && resource.data.renterId == request.auth.uid;
       allow create: if request.auth != null && request.resource.data.renterId == request.auth.uid;
     }
 
-    // --- Helper Function ---
-    function hasAdminRole() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['ADMIN', 'SUPER_ADMIN'];
+    // Newsletter
+    match /newsletter_subscribers/{docId} {
+      allow read, write: if true;
     }
   }
 }

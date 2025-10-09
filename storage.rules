@@ -1,16 +1,21 @@
+
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     match /orgs/{orgId}/disputes/{disputeId}/{fileName} {
-        allow read, write: if request.auth != null && request.auth.token.orgId == orgId;
+      allow read, write: if request.auth != null && request.auth.token.orgId == orgId;
     }
     match /renters/{renterId}/documents/{fileName} {
-        allow read, write: if request.auth != null && request.auth.uid == renterId;
+      allow read, write: if request.auth != null && request.auth.uid == renterId;
     }
     match /resolutions/{resId}/{allPaths=**} {
       allow write: if request.auth != null &&
                     get(/databases/$(database)/documents/resolutions/$(resId)).data.renterId == request.auth.uid;
       allow read: if true;
+    }
+     match /renter_verifications/{uid}/{file} {
+      allow write: if request.auth != null && request.auth.uid == uid;
+      allow read: if true; // Or restrict to admins
     }
   }
 }
