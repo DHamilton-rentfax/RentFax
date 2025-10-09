@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDB } from "@/firebase/server";
 import { getStorage } from "firebase-admin/storage";
 
-export async function DELETE(_: NextRequest, { params }: { params: { renterId: string; docId: string } }) {
+export async function DELETE(_: NextRequest, { params }: { params: { id: string; docId: string } }) {
   const orgId = "demo-org"; // TODO-get-from-auth
-  const { renterId, docId } = params;
+  const { id: renterId, docId } = params;
 
   const docRef = adminDB.doc(`orgs/${orgId}/renters/${renterId}/docs/${docId}`);
   const docSnap = await docRef.get();

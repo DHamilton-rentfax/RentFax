@@ -3,9 +3,9 @@ import { dbAdmin } from "@/lib/firebase-admin";
 import { generateDisputePDF } from "@/lib/pdf-report";
 import { NextResponse } from "next/server";
 
-export async function GET(_: Request, { params }: { params: { disputeId: string } }) {
+export async function GET(_: Request, { params }: { params: { id: string } }) {
   try {
-    const doc = await dbAdmin.collection("disputes").doc(params.disputeId).get();
+    const doc = await dbAdmin.collection("disputes").doc(params.id).get();
     if (!doc.exists) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     const dispute = { id: doc.id, ...doc.data() };
@@ -14,7 +14,7 @@ export async function GET(_: Request, { params }: { params: { disputeId: string 
     return new NextResponse(pdfBytes, {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename="${params.disputeId}.pdf"`,
+        "Content-Disposition": `inline; filename="${params.id}.pdf"`,
       },
     });
   } catch (err: any) {
