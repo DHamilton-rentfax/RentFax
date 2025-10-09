@@ -1,75 +1,31 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
-    function isSuperAdmin() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'SUPER_ADMIN';
+    match /users/{id} {
+      allow read: if request.auth != null && (request.auth.uid == id || request.auth.token.role in ['admin','superadmin']);
+      allow write: if request.auth.uid == id;
     }
 
-    function isAdmin() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['ADMIN', 'SUPER_ADMIN'];
+    match /disputes/{id} {
+      allow create: if request.auth != null && request.auth.token.plan in ['pro','enterprise'];
+      allow read, update: if request.auth != null && (
+        request.auth.uid == resource.data.renterId ||
+        request.auth.token.role in ['admin','superadmin']
+      );
     }
 
-    function isEditor() {
-      return get(/databases/$(database)/documents/users/$(request.auth_uid)).data.role in ['EDITOR', 'ADMIN', 'SUPER_ADMIN'];
+    match /notifications/{id} {
+      allow read, update: if request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null;
     }
 
-    // PUBLIC
-    match /blogs/{blogId} {
-      allow read: if true;
-      allow write: if isEditor();
-    }
-    
-    // AUTHENTICATED
-    match /users/{userId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth.uid == userId;
-    }
-
-    match /companies/{companyId} {
-      allow read: if request.auth.token.companyId == companyId;
-      allow write: if request.auth.token.companyId == companyId && request.auth.token.role == 'owner';
-    }
-
-    // ADMIN-ONLY
-    match /disputes/{disputeId} {
-      allow read, write: if isAdmin();
-    }
-
-    match /renters/{renterId} {
-      allow read, write: if isAdmin();
-    }
-
-    match /invites/{inviteId} {
-      allow read, write: if isAdmin();
-    }
-    
     match /systemLogs/{id} {
-      allow read: if request.auth != null && request.auth.token.role in ['admin','superadmin'];
-      allow write: if false;
-    }
-    match /alerts/{id} {
-      allow read: if request.auth != null && request.auth.token.role in ['admin','superadmin'];
-      allow write: if isAdmin();
-    }
-    
-    match /verificationTokens/{id} {
-      allow read, write: if request.auth != null && request.auth.token.role == 'admin';
+      allow read: if request.auth.token.role in ['admin','superadmin'];
     }
 
-    // RENTER-OWNED
-    match /chats/{chatId} {
-      allow read, write: if request.auth != null && (isAdmin() || request.auth.uid == chatId);
-    }
-    
-    match /chatHistory/{id} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.uid;
-    }
-
-    match /subscriptions/{subId} {
-      allow read: if request.auth != null; // more specific rules needed
+    match /{document=**} {
+      allow read, write: if false; // Default deny
     }
   }
 }

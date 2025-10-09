@@ -6,7 +6,7 @@ export async function GET() {
   const disputesSnap = await getCountFromServer(collection(dbAdmin, 'disputes'));
   const usersSnap = await getCountFromServer(collection(dbAdmin, 'users'));
   const logsSnap = await getCountFromServer(collection(dbAdmin, 'systemLogs'));
-  const fraudSnap = await getDocs(query(collection(dbAdmin, 'renters'), where('alert', '==', true)));
+  const fraudSnap = await getDocs(query(collection(dbAdmin, 'alerts'), where('type', '==', 'FRAUD_ALERT')));
 
   return NextResponse.json({
     totalDisputes: disputesSnap.data().count,

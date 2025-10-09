@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react'
 import { getAllUsers } from '@/lib/super-admin/getAllUsers'
 import { updateUserRole } from '@/lib/super-admin/updateUserRole'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { Loader2 } from 'lucide-react'
+import { AnimatedStat } from '@/components/AnimatedStat';
 
 function MetricsWidget() {
   const [stats, setStats] = useState<any>(null)
@@ -15,13 +15,11 @@ function MetricsWidget() {
   }, [])
   if (!stats) return <p>Loading metrics...</p>
   return (
-    <div className="grid grid-cols-3 gap-4 my-6">
-      {Object.entries(stats).map(([k,v])=>(
-        <div key={k} className="bg-white shadow p-4 rounded text-center">
-          <p className="text-xl font-bold">{v as any}</p>
-          <p className="text-sm text-gray-500 capitalize">{k.replace(/([A-Z])/g,' $1')}</p>
-        </div>
-      ))}
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 my-6">
+      <AnimatedStat label="Total Disputes" target={stats.totalDisputes} />
+      <AnimatedStat label="Users" target={stats.totalUsers} />
+      <AnimatedStat label="System Logs" target={stats.totalLogs} />
+      <AnimatedStat label="Fraud Alerts" target={stats.fraudAlerts} />
     </div>
   )
 }
@@ -49,7 +47,7 @@ export default function SuperAdminDashboard() {
   if (loading)
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
       </div>
     )
 
