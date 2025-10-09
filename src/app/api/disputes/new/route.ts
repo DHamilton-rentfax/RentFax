@@ -1,5 +1,5 @@
 
-import { adminDB } from "@/lib/firebase-admin";
+import { adminDB as dbAdmin } from "@/lib/firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing renterId or incidentId" }, { status: 400 });
     }
 
-    const disputeRef = adminDB.collection("disputes").doc();
+    const disputeRef = dbAdmin.collection("disputes").doc();
     await disputeRef.set({
       renterId,
       incidentId,
@@ -25,10 +25,10 @@ export async function POST(req: Request) {
     });
 
     // Link dispute to renter + incident
-    await adminDB.collection("renters").doc(renterId).update({
+    await dbAdmin.collection("renters").doc(renterId).update({
       linkedDisputes: FieldValue.arrayUnion(disputeRef.id),
     });
-    await adminDB.collection("incidents").doc(incidentId).update({
+    await dbAdmin.collection("incidents").doc(incidentId).update({
       relatedDispute: disputeRef.id,
       status: "DISPUTED",
     });
