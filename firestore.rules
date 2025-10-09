@@ -14,6 +14,10 @@ service cloud.firestore {
         request.auth.token.role in ['admin','superadmin']
       );
     }
+    
+    match /chatHistory/{id} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.uid;
+    }
 
     match /notifications/{id} {
       allow read, update: if request.auth.uid == resource.data.userId;
@@ -23,9 +27,18 @@ service cloud.firestore {
     match /systemLogs/{id} {
       allow read: if request.auth.token.role in ['admin','superadmin'];
     }
+    
+    match /alerts/{id} {
+      allow read: if request.auth != null && request.auth.token.role in ['admin','superadmin'];
+    }
+    
+    match /verificationTokens/{id} {
+      allow read, write: if request.auth != null && request.auth.token.role == 'admin';
+    }
 
+    // Default deny all other collections
     match /{document=**} {
-      allow read, write: if false; // Default deny
+      allow read, write: if false;
     }
   }
 }

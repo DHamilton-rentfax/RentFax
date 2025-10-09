@@ -5,6 +5,7 @@
   "hosting": [
     {
       "site": "rentfax-revamp",
+      "public": "out",
       "source": ".",
       "frameworksBackend": {
         "region": "us-central1"
@@ -19,10 +20,17 @@
             }
           ]
         }
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
       ]
     },
     {
       "site": "rentfax-demo",
+      "public": "out",
       "source": ".",
       "frameworksBackend": {
         "region": "us-central1"
@@ -30,6 +38,7 @@
     },
     {
       "site": "rentfax-staging",
+      "public": "out",
       "source": ".",
       "frameworksBackend": {
         "region": "us-central1"
