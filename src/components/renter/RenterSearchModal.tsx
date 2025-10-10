@@ -9,7 +9,7 @@ import 'react-phone-input-2/lib/style.css'
 import countryList from 'react-select-country-list'
 import Select from 'react-select'
 
-export default function RenterSearchModal({ open, setOpen }: { open: boolean, setOpen: (open: boolean) => void }) {
+export default function RenterSearchModal({ open, setOpen }: any) {
   const [form, setForm] = useState({
     name: '',
     email: '',
