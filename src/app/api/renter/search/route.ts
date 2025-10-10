@@ -1,62 +1,47 @@
-import { db } from '@/firebase/client'
-import { collection, getDocs } from 'firebase/firestore'
-import { NextResponse } from 'next/server'
-import normalizePhone from 'libphonenumber-js/max'
-
-// Simple string similarity helper
-function stringSimilarity(a: string, b: string) {
-  if (!a || !b) return 0
-  a = a.toLowerCase()
-  b = b.toLowerCase()
-  let matches = 0
-  for (let i = 0; i < Math.min(a.length, b.length); i++) {
-    if (a[i] === b[i]) matches++
-  }
-  return (matches / Math.max(a.length, b.length)) * 100
-}
+import { db } from '@/firebase/server'; // Using server-side firebase for API routes
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
-  const { name, email, phone, country } = await req.json()
-  const allDocs = await getDocs(collection(db, 'disputes'))
+  try {
+    const { fullName, email, phone, country } = await req.json();
 
-  const normalizedPhone = (() => {
-    try {
-      const parsed = normalizePhone(phone, country)
-      return parsed?.number?.replace(/\D/g, '') || ''
-    } catch {
-      return phone?.replace(/\D/g, '')
+    if (!fullName && !email && !phone) {
+        return NextResponse.json({ success: false, message: 'At least one search parameter (name, email, or phone) is required.' }, { status: 400 });
     }
-  })()
 
-  const matches = allDocs.docs
-    .map((doc) => {
-      const d = doc.data()
-      let score = 0
+    const disputesRef = collection(db, 'disputes');
+    
+    // Build the query dynamically based on provided fields
+    // This is a simplified example. A production app might run multiple queries (by name, by email, etc.) and merge results.
+    const queries = [];
+    if (fullName) {
+        queries.push(where('renterName', '==', fullName));
+    }
+    if (email) {
+        queries.push(where('renterEmail', '==', email));
+    }
+    if (phone) {
+        queries.push(where('renterPhone', '==', phone));
+    }
 
-      // Name matching
-      const nameScore = stringSimilarity(d.renterName, name)
-      if (nameScore > 70) score += nameScore * 0.5
+    const q = query(
+      disputesRef,
+      where('renterCountry', '==', country), // Always filter by country
+      ...queries
+    );
 
-      // Email matching (case-insensitive, partial)
-      if (email && d.renterEmail?.toLowerCase().includes(email.toLowerCase()))
-        score += 30
+    const snap = await getDocs(q);
+    const matches = snap.docs.map((d) => d.data());
 
-      // Phone matching (normalize)
-      const dbPhone = d.renterPhone?.replace(/\D/g, '')
-      if (normalizedPhone && dbPhone && dbPhone.endsWith(normalizedPhone.slice(-6)))
-        score += 40
+    return NextResponse.json({
+      success: true,
+      matches,
+      count: matches.length,
+    });
 
-      // Country check
-      if (d.renterCountry === country) score += 10
-
-      return { ...d, matchScore: Math.min(score, 100) }
-    })
-    .filter((r) => r.matchScore > 40) // show only strong matches
-    .sort((a, b) => b.matchScore - a.matchScore)
-
-  return NextResponse.json({
-    success: true,
-    count: matches.length,
-    matches,
-  })
+  } catch (error: any) {
+    console.error('Renter search failed:', error);
+    return NextResponse.json({ success: false, message: 'An internal server error occurred.' }, { status: 500 });
+  }
 }
