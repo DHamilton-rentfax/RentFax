@@ -1,14 +1,15 @@
+
 'use client'
 
 import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import PhoneInput from 'react-phone-input-2'
 import 'react-phone-input-2/lib/style.css'
 import countryList from 'react-select-country-list'
 import Select from 'react-select'
-import { Loader2 } from 'lucide-react'
+import { Loader2, ArrowRight } from 'lucide-react'
 
 export default function RenterSearchModal({ open, setOpen }: any) {
   const [form, setForm] = useState({
@@ -45,17 +46,40 @@ export default function RenterSearchModal({ open, setOpen }: any) {
       setLoading(false)
     }
   }
+
+  const handleProceedToPayment = async () => {
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: form.email,
+          plan: 'pro',
+        }),
+      })
   
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        alert('Unable to start checkout. Please try again.')
+      }
+    } catch (err) {
+      console.error(err)
+      alert('An error occurred while connecting to Stripe.')
+    }
+  }
+
   const handleClose = () => {
-    setOpen(false);
-    setResults(null);
+    setOpen(false)
+    setResults(null)
     setForm({
       name: '',
       email: '',
       phone: '',
       address: '',
       country: 'US',
-    });
+    })
   }
 
   return (
@@ -64,7 +88,7 @@ export default function RenterSearchModal({ open, setOpen }: any) {
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold">Search Renter Records</DialogTitle>
           <DialogDescription>
-            {results === null ? "Enter renter details to check for existing reports." : `${results.length} matching record(s) found.`}
+            {results === null ? "Enter renter details to check for existing reports." : `Found ${results.length} matching record(s). Proceed to payment to unlock the full reports.`}
           </DialogDescription>
         </DialogHeader>
 
@@ -77,6 +101,7 @@ export default function RenterSearchModal({ open, setOpen }: any) {
             />
             <Input
               placeholder="Email Address"
+              type="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
             />
@@ -87,14 +112,14 @@ export default function RenterSearchModal({ open, setOpen }: any) {
                 setForm({ ...form, phone, country: country.countryCode.toUpperCase() })
               }
               inputStyle={{ width: '100%', height: '40px', fontSize: '14px' }}
-              buttonStyle={{ height: '40px'}}
+              buttonStyle={{ height: '40px' }}
             />
             <Input
               placeholder="Address (include postal code)"
               value={form.address}
               onChange={(e) => setForm({ ...form, address: e.target.value })}
             />
-            <Select
+             <Select
               options={countries}
               value={countries.find((c) => c.value === form.country)}
               onChange={(val: any) => setForm({ ...form, country: val.value })}
@@ -110,28 +135,32 @@ export default function RenterSearchModal({ open, setOpen }: any) {
             </Button>
           </div>
         ) : (
+          <>
           <div className="space-y-3 max-h-[400px] overflow-y-auto">
             {results.length === 0 ? (
-                <p className="text-center text-gray-500 py-8">No strong matches found.</p>
+                <p className="text-center text-gray-500 py-8">No strong matches found. You can still proceed to run a new comprehensive report.</p>
             ) : results.map((m, i) => (
                 <div key={i} className="border p-3 rounded-lg bg-gray-50 mt-2">
-                    <div className="flex justify-between items-center">
-                        <p className="font-semibold">{m.renterName} ({m.renterCountry})</p>
-                        <Button variant="ghost" size="sm">View Details</Button>
-                    </div>
+                    <p className="font-semibold">{m.renterName} ({m.renterCountry})</p>
                     <p className="text-sm text-gray-500">{m.renterEmail}</p>
-                    <div className="flex items-center mt-2">
-                        <div className="h-2 w-full bg-gray-200 rounded-full mr-2">
-                            <div
-                            className="h-2 bg-green-500 rounded-full"
-                            style={{ width: `${m.matchScore}%` }}
-                            ></div>
-                        </div>
-                        <span className="text-xs font-medium">{Math.round(m.matchScore)}%</span>
+                    <div className="flex items-center mt-1">
+                      <div className="h-2 w-full bg-gray-200 rounded-full mr-2">
+                        <div
+                          className="h-2 bg-green-500 rounded-full"
+                          style={{ width: `${Math.round(m.matchScore)}%` }}
+                        ></div>
+                      </div>
+                      <span className="text-xs font-medium">{Math.round(m.matchScore)}% Match</span>
                     </div>
               </div>
             ))}
           </div>
+          <DialogFooter>
+             <Button onClick={handleProceedToPayment} className="w-full">
+                Continue to Payment <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </DialogFooter>
+          </>
         )}
       </DialogContent>
     </Dialog>
