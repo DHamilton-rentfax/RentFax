@@ -2,80 +2,12 @@
 'use client';
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Dialog } from "@headlessui/react";
+import { motion } from "framer-motion";
 import Link from "next/link";
-import { useModal } from "@/context/ModalContext";
-import { loadStripe } from '@stripe/stripe-js';
-
-// NOTE: Make sure to add NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY to your .env.local file
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
-
-const states = [
-  "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN",
-  "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV",
-  "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN",
-  "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
-];
+import RenterSearchModal from "@/components/renter/RenterSearchModal";
 
 export default function HomePage() {
-  const { isModalOpen, closeModal, openModal } = useModal();
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    license: "",
-    state: "",
-    address: "",
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      const response = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          fullName: formData.fullName,
-        }),
-      });
-
-      const { sessionId, error } = await response.json();
-
-      if (error) {
-        console.error("Stripe Checkout Error:", error);
-        alert("An error occurred. Please try again.");
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (sessionId) {
-        const stripe = await stripePromise;
-        if (stripe) {
-          const { error } = await stripe.redirectToCheckout({ sessionId });
-          if (error) {
-            console.error("Stripe Redirect Error:", error.message);
-            alert(`Error redirecting to checkout: ${error.message}`);
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Submission Error:", error);
-      alert("An unexpected error occurred. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900">
@@ -94,7 +26,7 @@ export default function HomePage() {
         </p>
         <div className="mt-10 flex justify-center gap-4">
           <button
-            onClick={openModal}
+            onClick={() => setIsModalOpen(true)}
             className="px-8 py-3 bg-[#1A2540] text-white font-semibold rounded-lg shadow hover:bg-[#2a3660] transition"
           >
             Start Screening
@@ -152,7 +84,7 @@ export default function HomePage() {
             <h3 className="text-xl font-semibold mb-2">Single Report</h3>
             <p className="text-4xl font-bold mb-4">$20</p>
             <p className="text-sm text-gray-600 mb-6">Perfect for individual screenings.</p>
-            <button onClick={openModal} className="w-full py-2 cta-button">
+            <button onClick={() => setIsModalOpen(true)} className="w-full py-2 cta-button">
               Start Now
             </button>
           </div>
@@ -175,48 +107,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <AnimatePresence>
-        {isModalOpen && (
-          <Dialog
-            open={isModalOpen}
-            onClose={() => !isSubmitting && closeModal()}
-            className="fixed inset-0 z-50 flex items-center justify-center modal-overlay"
-          >
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 40 }}
-              className="bg-white rounded-xl shadow-lg p-8 max-w-lg w-full mx-4 modal-content"
-            >
-              <Dialog.Title className="text-2xl font-bold mb-4 text-[#1A2540]">Start Screening</Dialog.Title>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <input name="fullName" onChange={handleChange} required placeholder="Full Name" className="w-full" disabled={isSubmitting} />
-                <input name="email" type="email" onChange={handleChange} required placeholder="Email" className="w-full" disabled={isSubmitting} />
-                <input name="phone" onChange={handleChange} placeholder="Phone Number" className="w-full" disabled={isSubmitting} />
-                <div className="flex gap-2">
-                  <input name="license" onChange={handleChange} placeholder="License #" className="w-2/3" disabled={isSubmitting} />
-                  <select name="state" onChange={handleChange} required className="w-1/3" disabled={isSubmitting}>
-                    <option value="">State</option>
-                    {states.map((s) => (
-                      <option key={s}>{s}</option>
-                    ))}
-                  </select>
-                </div>
-                <input name="address" onChange={handleChange} placeholder="Address (optional)" className="w-full" disabled={isSubmitting} />
-                <button type="submit" className="w-full py-3 bg-[#1A2540] text-white rounded-lg font-semibold hover:bg-[#2a3660] transition disabled:bg-gray-400" disabled={isSubmitting}>
-                  {isSubmitting ? 'Processing...' : 'Continue to Payment'}
-                </button>
-                <p className="text-center text-sm text-gray-500 mt-3">
-                  Already have an account?{" "}
-                  <Link href="/login" className="text-[#D4A017] font-medium hover:underline">
-                    Log in
-                  </Link>
-                </p>
-              </form>
-            </motion.div>
-          </Dialog>
-        )}
-      </AnimatePresence>
+      <RenterSearchModal open={isModalOpen} setOpen={setIsModalOpen} />
     </main>
   );
 }
