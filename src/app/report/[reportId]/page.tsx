@@ -7,6 +7,7 @@ import { BehavioralInsights } from '@/components/report/BehavioralInsights';
 import { IncidentTimeline } from '@/components/report/IncidentTimeline';
 import { FraudSignals } from '@/components/report/FraudSignals';
 import { Attachments } from '@/components/report/Attachments';
+import UnauthorizedDriverForm from '@/components/UnauthorizedDriverForm';
 import * as React from "react";
 
 // This is a placeholder for the actual data fetching logic
@@ -41,6 +42,7 @@ export default async function ReportPage({ params }: { params: { reportId: strin
                 <FraudSignals renter={renter} />
                 <IncidentTimeline incidents={incidents} />
                 <Attachments incidents={incidents} />
+                <UnauthorizedDriverForm reportId={params.reportId} />
             </div>
 
             <footer className="text-center mt-12 text-sm text-gray-500">

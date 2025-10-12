@@ -1,0 +1,1 @@
+import admin from \'firebase-admin\'\n\nif (!admin.apps.length) {\n  const serviceAccount = JSON.parse(\n    process.env.FIREBASE_SERVICE_ACCOUNT_KEY as string\n  )\n  admin.initializeApp({\n    credential: admin.credential.cert(serviceAccount),\n  })\n}\n\nconst firestore = admin.firestore()\nexport { firestore }\n

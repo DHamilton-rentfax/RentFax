@@ -1,23 +1,16 @@
-
-// src/firebase/server.ts
-// IMPORTANT: This file should ONLY be imported in server-side code.
-if (typeof window !== 'undefined') {
-  throw new Error('Firebase Admin SDK can only be used on the server.');
-}
-
-import { initializeApp, getApps, getApp, cert } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
 
-const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
-  ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
-  : undefined;
+const serviceAccount = JSON.parse(
+  process.env.FIREBASE_SERVICE_ACCOUNT_KEY as string
+);
 
 if (!getApps().length) {
   initializeApp({
-    credential: serviceAccount ? cert(serviceAccount) : undefined,
+    credential: cert(serviceAccount),
   });
 }
 
-export const adminAuth = getAuth();
-export const adminDB = getFirestore();
+export const db = getFirestore();
+export const auth = getAuth();

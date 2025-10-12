@@ -1,14 +1,1 @@
-"use client";
-import Link from "next/link";
-export default function RenterDashboardPage() {
-  return (
-    <div className="p-8 max-w-5xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Welcome to Your Renter Dashboard</h1>
-      <p className="text-gray-700 mb-4">View your disputes, incidents, and rental history here. You can also track your reputation and risk score.</p>
-      <div className="space-y-4">
-        <Link href="/renter/disputes" className="block bg-white p-4 rounded-lg shadow hover:shadow-md border">View or File a Dispute →</Link>
-        <Link href="/renter/verify" className="block bg-white p-4 rounded-lg shadow hover:shadow-md border">Verify Your Identity →</Link>
-      </div>
-    </div>
-  );
-}
+'use client'\n\nimport { useEffect, useState } from 'react'\nimport RenterReportList from './components/RenterReportList'\nimport { Loader2 } from 'lucide-react'\n\nexport default function RenterDashboardPage() {\n  const [reports, setReports] = useState<any[]>([])\n  const [loading, setLoading] = useState(true)\n\n  useEffect(() => {\n    const loadReports = async () => {\n      try {\n        const res = await fetch('/api/reports')\n        const data = await res.json()\n        setReports(data.reports || [])\n      } catch (err) {\n        console.error(err)\n      } finally {\n        setLoading(false)\n      }\n    }\n    loadReports()\n  }, [])\n\n  return (\n    <div className="p-6 space-y-6">\n      <h1 className="text-xl font-semibold text-gray-800">My RentFAX Reports</h1>\n      {loading ? (\n        <div className="flex items-center text-gray-500">\n          <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Loading reports...\n        </div>\n      ) : (\n        <RenterReportList data={reports} />\n      )}\n    </div>\n  )\n}\n
