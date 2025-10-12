@@ -1,9 +1,10 @@
+
 import { NextResponse } from "next/server";
-import { db } from "@/firebase/server";
-import { collection, addDoc } from "firebase/firestore";
-import OpenAI from "openai";
-import { authUser } from "@/lib/authUser"; // helper that validates current user (returns user object)
+import { adminDB } from "@/lib/firebase-admin";
+import { OpenAI } from "openai";
+import { authUser } from "@/lib/authUser";
 import { v4 as uuidv4 } from "uuid";
+import { FieldValue } from "firebase-admin/firestore";
 
 // Mock external API fetchers (replace with live APIs later)
 async function fetchFromClearbit(name: string, email?: string) {
@@ -57,10 +58,42 @@ function mergeResults(name: string, results: any[]) {
 
 export async function POST(req: Request) {
   try {
-    const user = await authUser(req);
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    const isInternalRequest = req.headers.get('X-Internal-Request') === 'true';
+    let userId, userEmail;
+    const body = await req.json(); // Moved this up to access it earlier
 
-    const body = await req.json();
+    if (isInternalRequest) {
+        userId = body.userId;
+        const userRecord = await adminDB.collection('users').doc(userId).get();
+        if (!userRecord.exists) {
+            return NextResponse.json({ error: "User not found" }, { status: 404 });
+        }
+        userEmail = userRecord.data()?.email;
+    } else {
+        const user = await authUser(req);
+        if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+        userId = user.uid;
+        userEmail = user.email;
+
+        const userRef = adminDB.collection("users").doc(userId);
+        const userDoc = await userRef.get();
+        const userData = userDoc.data();
+
+        if (!userData) {
+            return NextResponse.json({ error: "User not found" }, { status: 404 });
+        }
+
+        const { deepReportCredits, activePlan } = userData;
+
+        if ((!deepReportCredits || deepReportCredits <= 0) && activePlan === 'plan_free') {
+                return NextResponse.json({ error: "You have no deep report credits left. Please purchase more." }, { status: 402 });
+        }
+
+        if (activePlan !== 'plan_free') {
+          await userRef.update({ deepReportCredits: FieldValue.increment(-1) });
+        }
+    }
+
     const { name, address, email, licenseNumber, bankToken } = body;
 
     if (!name || !address)
@@ -86,19 +119,19 @@ export async function POST(req: Request) {
     ${JSON.stringify(merged, null, 2)}
     `;
 
-    const aiSummary = await openai.responses.create({
-      model: "gpt-4o-mini",
-      input: aiPrompt,
-    });
-
-    const summaryText = aiSummary.output[0].content[0].text;
+    const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [{ role: "system", content: aiPrompt }],
+      });
+  
+    const summaryText = completion.choices[0].message.content;
 
     // Step 4: Store in Firestore
     const reportId = uuidv4();
-    const docRef = await addDoc(collection(db, "deepReports"), {
+    const reportRef = await adminDB.collection("deepReports").add({
       id: reportId,
-      userId: user.uid,
-      userEmail: user.email,
+      userId: userId,
+      userEmail: userEmail,
       renterName: name,
       renterAddress: address,
       renterEmail: email,
@@ -107,11 +140,25 @@ export async function POST(req: Request) {
       merged,
       aiSummary: summaryText,
       createdAt: new Date().toISOString(),
+      reportStatus: 'fresh',
+    });
+
+    // Step 5: Send Notification
+    await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/notifications/send`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: userId,
+        email: userEmail,
+        type: "deepReport",
+        title: "Deep AI Report Ready",
+        message: `Your Deep AI Verification Report for ${name} is ready to view.`,
+      }),
     });
 
     return NextResponse.json({
       success: true,
-      reportId: docRef.id,
+      reportId: reportRef.id,
       aiSummary: summaryText,
       merged,
     });

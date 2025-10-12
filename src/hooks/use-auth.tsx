@@ -1,66 +1,47 @@
+'use client';
 
-"use client";
+import { useState, useEffect } from 'react';
+import { auth, db } from '@/firebase/client';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
 
-import { createContext, useContext, useEffect, useState } from "react";
-import { onAuthStateChanged, User, getIdTokenResult } from "firebase/auth";
-import { auth } from "@/firebase/client";
-
-// Define roles in your system
-export type UserRole = "super_admin" | "admin" | "editor" | "reviewer" | "user" | "rental_client" | "banned" | "content_manager" | null;
-
-interface AuthContextType {
-  user: User | null;
-  claims: any | null;
-  role: UserRole;
-  loading: boolean;
-}
-
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  claims: null,
-  role: null,
-  loading: true,
-});
-
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [claims, setClaims] = useState<any | null>(null);
-  const [role, setRole] = useState<UserRole>(null);
+export function useAuth() {
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
-
       if (firebaseUser) {
-        try {
-          const tokenResult = await getIdTokenResult(firebaseUser);
-          const userClaims = tokenResult.claims;
-          setClaims(userClaims);
-          setRole((userClaims.role as UserRole) || "user");
-        } catch (err) {
-          console.error("Error fetching user claims:", err);
-          setClaims(null);
-          setRole("user"); // Default to basic role on error
+        const ref = doc(db, 'users', firebaseUser.uid);
+        const snap = await getDoc(ref);
+
+        if (snap.exists()) {
+          const data = snap.data();
+          setUser({ ...firebaseUser, ...data });
+        } else {
+          // Default to English for new users
+          await setDoc(ref, {
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            locale: 'en',
+            createdAt: new Date().toISOString()
+          });
+          setUser(firebaseUser);
         }
       } else {
-        setClaims(null);
-        setRole(null);
+        setUser(null);
       }
-
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
-  return (
-    <AuthContext.Provider value={{ user, claims, role, loading }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return { user, loading };
 }
 
-export function useAuth() {
-  return useContext(AuthContext);
+// Utility to update locale in Firestore
+export async function updateUserLocale(uid: string, locale: string) {
+  const ref = doc(db, 'users', uid);
+  await updateDoc(ref, { locale });
 }

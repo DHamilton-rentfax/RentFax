@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { doc, setDoc } from 'firebase/firestore';
-import { db } from '@/firebase/server';
+import { adminDB } from '@/lib/firebase-admin';
 import { authAdmin } from '@/lib/authAdmin';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
@@ -37,8 +36,8 @@ export async function POST(req: Request) {
 
     // Pre-emptively create a record in Firestore
     if (session.id) {
-      const reportRef = doc(db, 'deepReports', session.id);
-      await setDoc(reportRef, {
+      const reportRef = adminDB.collection('deepReports').doc(session.id);
+      await reportRef.set({
         status: 'pending_payment',
         userId: user.uid,
         renterId: renterId,

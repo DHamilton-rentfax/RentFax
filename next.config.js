@@ -1,16 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
   output: 'standalone',
-  images: {
-    remotePatterns: [{ protocol: 'https', hostname: '**' }]
+
+  experimental: {
+    // Leave empty — avoids "invalid option" errors
   },
-  eslint: { ignoreDuringBuilds: true },
-  typescript: { ignoreBuildErrors: false },
-  webpack(config) {
-    config.experiments = { ...config.experiments, asyncWebAssembly: true };
-    return config;
-  },
+
+  // App Router handles i18n via folders and middleware now
 };
 
 module.exports = nextConfig;

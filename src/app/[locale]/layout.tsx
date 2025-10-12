@@ -1,27 +1,38 @@
-import { notFound } from 'next/navigation'
-import { NextIntlClientProvider } from 'next-intl'
+import { NextIntlClientProvider } from 'next-intl';
+import { ReactNode } from 'react';
+import { notFound } from 'next/navigation';
 
-export function generateStaticParams() {
-  return ['en', 'es', 'fr'].map((locale) => ({ locale }))
+// ✅ Async function — needed for locale-based routing
+export async function generateStaticParams() {
+  return [{ locale: 'en' }, { locale: 'es' }];
 }
 
+// ✅ Correct async server component
 export default async function LocaleLayout({
   children,
-  params: { locale },
+  params
 }: {
-  children: React.ReactNode
-  params: { locale: string }
+  children: ReactNode;
+  params: { locale: string };
 }) {
-  let messages
+  const { locale } = params;
+
+  let messages;
   try {
-    messages = (await import(`../../i18n/${locale}.json`)).default
-  } catch (error) {
-    notFound()
+    messages = (await import(`../../messages/${locale}.json`)).default;
+  } catch {
+    notFound();
   }
 
+  if (!messages) notFound();
+
   return (
-    <NextIntlClientProvider locale={locale} messages={messages}>
-      {children}
-    </NextIntlClientProvider>
-  )
+    <html lang={locale}>
+      <body>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          {children}
+        </NextIntlClientProvider>
+      </body>
+    </html>
+  );
 }

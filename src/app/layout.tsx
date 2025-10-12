@@ -1,39 +1,24 @@
-import "../globals.css";
-import { Inter, Space_Grotesk } from "next/font/google";
-import { ThemeProvider } from "@/components/theme-provider";
-import { Toaster } from "sonner";
+import "./globals.css";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-space-grotesk",
-});
+const inter = Inter({ subsets: ["latin"] });
 
-export const metadata = {
-  title: "RentFAX — Screen Renters. Verify Drivers. Prevent Fraud.",
+export const metadata: Metadata = {
+  title: "RentFAX",
   description:
-    "AI-powered tenant and renter verification across property, car, and equipment rentals. Instantly detect fraud, manage disputes, and protect your business with RentFAX.",
+    "AI-powered renter verification and risk intelligence for rental companies and individuals worldwide."
 };
 
-export default function RootLayout({ 
-  children,
-  locale
+export default function RootLayout({
+  children
 }: {
   children: React.ReactNode;
-  locale: string;
 }) {
   return (
-    <html lang={locale} className={`${inter.variable} ${spaceGrotesk.variable}`} suppressHydrationWarning>
-      <body className="min-h-screen bg-background font-sans antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster />
-        </ThemeProvider>
+    <html lang="en">
+      <body className={`${inter.className} bg-gray-50 text-slate-900`}>
+        {children}
       </body>
     </html>
   );

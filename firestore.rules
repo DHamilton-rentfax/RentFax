@@ -2,54 +2,43 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // USER PROFILES
-    match /users/{userId} {
-      allow read, update: if request.auth.uid == userId;
-      allow create: if request.auth != null;
-      allow delete: if false;
+    // Public blogs
+    match /blogs/{blogId} {
+      allow read: if true;
+      allow write: if request.auth.token.role in ['admin', 'editor'];
     }
 
-    // REPORTS
+    // Renter reports and incidents
     match /reports/{reportId} {
       allow read: if request.auth != null;
-      allow create: if request.auth.token.role in ['admin', 'superadmin', 'company'];
-      allow update, delete: if request.auth.token.role in ['admin', 'superadmin'];
+      allow write: if request.auth.token.role in ['admin', 'superadmin'];
     }
 
-    // DEEP REPORTS
-    match /deepReports/{docId} {
-      allow create: if request.auth != null;
-      allow read: if request.auth != null && (
-        resource.data.userId == request.auth.uid ||
-        request.auth.token.role in ['admin', 'superadmin']
-      );
-      allow update: if false;
-      allow delete: if false;
+    // Risk and forecast data
+    match /riskProfiles/{renterId},
+          /riskForecasts/{renterId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.token.role in ['admin','superadmin'];
     }
 
-    // DISPUTES
-    match /disputes/{disputeId} {
-      allow read, create: if request.auth != null;
-      allow update: if request.auth.token.role in ['admin', 'superadmin'];
+    // Partners and enterprise
+    match /enterpriseClients/{id},
+          /partnerCases/{id},
+          /partnerPayouts/{id} {
+      allow read, write: if request.auth.token.role in ['superadmin'];
     }
 
-    // AUDIT LOGS
-    match /auditLogs/{logId} {
-      allow create: if request.auth.token.role in ['admin','superadmin'];
-      allow read: if request.auth.token.role in ['admin', 'superadmin'];
-      allow update, delete: if false;
+    // Compliance
+    match /consents/{userId},
+          /deletionRequests/{id},
+          /auditLogs/{id} {
+      allow read, write: if request.auth.token.role in ['admin','superadmin'];
     }
 
-    // NOTIFICATIONS
-    match /notifications/{notifId} {
-      allow read: if request.auth.token.role in ['admin', 'superadmin'];
-      allow create: if request.auth != null;
-    }
-
-    // UNAUTHORIZED DRIVERS
-    match /unauthorizedDrivers/{id} {
-      allow read, update: if request.auth.token.role in ['admin','superadmin'];
-      allow create: if request.auth != null;
+    // Notifications
+    match /notifications/{id} {
+      allow read: if request.auth.uid == resource.data.userId;
+      allow write: if request.auth != null;
     }
   }
 }

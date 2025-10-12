@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { getFirestore, collection, getDocs, updateDoc, doc, query, where, addDoc } from "firebase/firestore";
-import { authAdmin } from "@/lib/authAdmin"; // middleware helper to validate admin role
-import { db } from "@/firebase/server"; // your server-side firebase admin instance
+import { authAdmin } from "@/lib/authAdmin";
+import { adminDB } from "@/lib/firebase-admin";
 
 // GET /api/admin/unauthorized-drivers?status=pending
 export async function GET(req: Request) {
@@ -11,9 +10,9 @@ export async function GET(req: Request) {
 
   const url = new URL(req.url);
   const status = url.searchParams.get("status");
-  const col = collection(db, "unauthorizedDrivers");
-  const q = status ? query(col, where("status", "==", status)) : col;
-  const snapshot = await getDocs(q);
+  const col = adminDB.collection("unauthorizedDrivers");
+  const q = status ? col.where("status", "==", status) : col;
+  const snapshot = await q.get();
   const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
   return NextResponse.json({ reports: data });
 }
@@ -29,8 +28,13 @@ export async function PATCH(req: Request) {
 
   if (!id || !status) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
 
-  const docRef = doc(db, "unauthorizedDrivers", id);
-  await updateDoc(docRef, {
+  const docRef = adminDB.collection("unauthorizedDrivers").doc(id);
+  const resource = await docRef.get(); // Get the doc to access its data
+  if(!resource.exists) {
+      return NextResponse.json({ error: "Report not found" }, { status: 404 });
+  }
+
+  await docRef.update({
     status,
     adminNote: adminNote || "",
     reviewedBy: user.email,
@@ -38,12 +42,25 @@ export async function PATCH(req: Request) {
   });
 
   // log to auditLogs
-  await addDoc(collection(db, "auditLogs"), {
+  await adminDB.collection("auditLogs").add({
     action: "unauthorizedDriverStatusChange",
     targetId: id,
     newStatus: status,
     admin: user.email,
     timestamp: new Date().toISOString(),
+  });
+
+  // Send notification to the user who created the report
+  await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/notifications/send`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId: resource.data()?.createdBy,
+      email: resource.data()?.createdByEmail,
+      type: "unauthorizedDriver",
+      title: `Unauthorized Driver Report ${status}`,
+      message: `Your unauthorized driver report has been updated to: ${status}.`,
+    }),
   });
 
   return NextResponse.json({ success: true });

@@ -1,17 +1,36 @@
 
-// A mock email service for development
 
-interface EmailOptions {
-  to: string;
-  subject: string;
-  html: string;
+interface FraudClusterAlertData {
+    reason: string;
+    clusterMembers: { id: string; trustScore: number; name: string }[];
+    primaryRenterId: string;
 }
 
-export async function sendEmail(options: EmailOptions) {
-  console.log('Sending email:');
-  console.log(`  To: ${options.to}`);
-  console.log(`  Subject: ${options.subject}`);
-  console.log(`  Body: ${options.html}`);
-  // In a real application, this would use a service like SendGrid or Postmark
-  return Promise.resolve();
+/**
+ * Sends an email alert to the admin about a detected fraud cluster.
+ * In a real application, this would use an email service like SendGrid, AWS SES, etc.
+ */
+export async function sendFraudClusterAlert(data: FraudClusterAlertData) {
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@rentfax.co';
+
+    console.log(`
+        ---= FRAUD CLUSTER ALERT =---
+        To: ${adminEmail}
+        Subject: High-Risk Fraud Cluster Detected
+
+        A potential fraud cluster has been automatically detected.
+
+        Reason: ${data.reason}
+        Primary Renter ID: ${data.primaryRenterId}
+
+        Cluster Members:
+        ${data.clusterMembers.map(m => `- ID: ${m.id}, Name: ${m.name}, Trust Score: ${m.trustScore}`).join('\n')}
+
+        Please investigate this cluster immediately.
+        ---= END OF ALERT =---
+    `);
+
+    // Mock sending email
+    return Promise.resolve();
+
 }

@@ -19,5 +19,5 @@ const adminApp = !getApps().length
   : getApp();
 
 export const authAdmin = getAuth(adminApp);
-export const dbAdmin = getFirestore(adminApp);
+export const adminDB = getFirestore(adminApp);
 export const storageAdmin = getStorage(adminApp);
