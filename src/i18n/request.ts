@@ -9,11 +9,13 @@ export default getRequestConfig(async ({ locale }) => {
   // ✅ Log unsupported locale attempts to Firestore (optional but smart)
   if (!supportedLocales.includes(locale)) {
     try {
-      await setDoc(doc(db, "localeLogs", locale || "unknown"), {
-        attemptedLocale: locale,
-        resolvedTo: chosenLocale,
-        timestamp: new Date().toISOString(),
-      });
+      if (typeof db !== "undefined") {
+        await setDoc(doc(db, "localeLogs", locale || "unknown"), {
+          attemptedLocale: locale,
+          resolvedTo: chosenLocale,
+          timestamp: new Date().toISOString(),
+        });
+      }
     } catch (err) {
       console.warn("Locale log write failed:", err);
     }
