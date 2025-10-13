@@ -1,34 +1,33 @@
-import AboutClientPage from "./AboutClientPage";
-
-export const metadata = {
-  title: "About RentFAX | Our Story and Mission",
-  description:
-    "RentFAX was created after real-world rental losses and fraud experiences. Learn how our mission is building a safer, transparent rental ecosystem for businesses and renters alike.",
-  openGraph: {
-    title: "About RentFAX | Our Story and Mission",
-    description:
-      "Discover why RentFAX was founded — to protect property owners, prevent fraud, and create a safer environment for responsible renters.",
-    url: "https://rentfax.io/about",
-    siteName: "RentFAX",
-    images: [
-      {
-        url: "https://rentfax.io/images/og-about.jpg",
-        width: 1200,
-        height: 630,
-        alt: "About RentFAX - Our Story",
-      },
-    ],
-    locale: "en_US",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Contact RentFAX | Request a Demo or Talk to Sales",
-    description: "Get in touch with the RentFAX team for sales and support.",
-    images: ["https://rentfax.io/images/og-contact.jpg"],
-  },
-};
+"use client";
 
 export default function AboutPage() {
-  return <AboutClientPage />;
+  return (
+    <main className="min-h-screen bg-gray-50 text-gray-800 p-8">
+      <div className="max-w-3xl mx-auto space-y-6">
+        <h1 className="text-4xl font-bold font-headline text-blue-900">
+          About RentFAX
+        </h1>
+
+        <p className="text-lg leading-relaxed">
+          RentFAX is a modern rental intelligence platform designed to bring
+          transparency and accountability to the rental market. Our mission is
+          to empower property owners, renters, and landlords with verified
+          data, AI-driven insights, and a trusted record of rental history.
+        </p>
+
+        <p className="text-lg leading-relaxed">
+          Using AI and real-time data analysis, RentFAX identifies fraud
+          signals, tracks incident reports, and provides clear dispute
+          resolution workflows — ensuring fair treatment and reliable reporting
+          for all parties involved.
+        </p>
+
+        <p className="text-lg leading-relaxed">
+          Whether you’re a property manager or an individual renter, RentFAX
+          gives you access to the data that matters most — because reputation
+          should be verified, not assumed.
+        </p>
+      </div>
+    </main>
+  );
 }
