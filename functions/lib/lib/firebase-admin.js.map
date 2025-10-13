@@ -1,1 +1,0 @@
-{"version":3,"file":"firebase-admin.js","sourceRoot":"","sources":["../../src/lib/firebase-admin.ts"],"names":[],"mappings":";;;;;;;;;;;;;;;;;;;;;;;;;;AAAA,sDAAwC;AAExC,IAAI,KAAK,CAAC,IAAI,CAAC,MAAM,KAAK,CAAC,EAAE;IAC3B,KAAK,CAAC,aAAa,EAAE,CAAC;CACvB;AAEY,QAAA,OAAO,GAAG,KAAK,CAAC,SAAS,EAAE,CAAC"}

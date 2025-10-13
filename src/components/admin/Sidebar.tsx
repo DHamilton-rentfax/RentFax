@@ -11,6 +11,7 @@ import {
   CreditCard,
   Settings,
   MessageSquare,
+  List,
 } from "lucide-react";
 
 const navItems = [
@@ -51,6 +52,11 @@ const navItems = [
     href: "/admin/super-dashboard/chat",
     label: "Live Chat",
     icon: MessageSquare,
+  },
+  {
+    href: "/admin/dashboard/logs",
+    label: "System Logs",
+    icon: List,
   },
   {
     href: "/admin/super-dashboard/settings",
