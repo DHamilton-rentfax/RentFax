@@ -1,18 +1,18 @@
-# Dependencies
-/node_modules
+# Node / Next.js
+node_modules
+.next
+out
+dist
 
-# Build outputs
-/.next/
-/out/
-/build/
-
-# Firebase
-.firebase
-firebase-debug.log
-
-# Other
-.DS_Store
-
-# functions specific
+# Firebase functions builds
 functions/lib
 functions/**/*.map
+firebase-debug.log
+
+# Logs
+*.log
+
+# Local environment
+.env.local
+.env.production
+.env.development
