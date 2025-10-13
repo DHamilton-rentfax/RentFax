@@ -5,7 +5,8 @@ import { getAuth } from "firebase-admin/auth";
 export async function POST(req: Request) {
   try {
     const authHeader = req.headers.get("authorization");
-    if (!authHeader) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!authHeader)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const token = authHeader.split(" ")[1];
     const decoded = await getAuth().verifyIdToken(token);

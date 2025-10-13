@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useRef } from 'react';
-import { db } from '@/firebase/client';
+import { useEffect, useState, useRef } from "react";
+import { db } from "@/firebase/client";
 import {
   collection,
   onSnapshot,
@@ -10,16 +10,16 @@ import {
   orderBy,
   doc,
   updateDoc,
-} from 'firebase/firestore';
-import { useAuth } from '@/hooks/use-auth';
-import { toast } from 'sonner';
+} from "firebase/firestore";
+import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
 
 interface Notification {
   id: string;
   userId: string;
-  priority: 'high' | 'normal' | 'low';
+  priority: "high" | "normal" | "low";
   message: string;
-  createdAt: any; 
+  createdAt: any;
   link?: string;
   read: boolean;
 }
@@ -32,31 +32,32 @@ export function useNotifications() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const playAlertSound = () => {
-    if (typeof window !== 'undefined') {
-        if (!audioRef.current) {
-            audioRef.current = new Audio('/sounds/alert.mp3');
-        }
-        audioRef.current.play().catch((err) => {
-            console.warn('🔇 Sound blocked by browser:', err);
-        });
+    if (typeof window !== "undefined") {
+      if (!audioRef.current) {
+        audioRef.current = new Audio("/sounds/alert.mp3");
+      }
+      audioRef.current.play().catch((err) => {
+        console.warn("🔇 Sound blocked by browser:", err);
+      });
     }
   };
 
-
   useEffect(() => {
     if (!user) {
-        setLoading(false);
-        return;
-    };
+      setLoading(false);
+      return;
+    }
 
     const q = query(
-      collection(db, 'notifications'),
-      where('userId', 'in', [user.uid, 'SUPER_ADMIN']),
-      orderBy('createdAt', 'desc')
+      collection(db, "notifications"),
+      where("userId", "in", [user.uid, "SUPER_ADMIN"]),
+      orderBy("createdAt", "desc"),
     );
 
     const unsub = onSnapshot(q, (snapshot) => {
-      const newNotifications: Notification[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Notification));
+      const newNotifications: Notification[] = snapshot.docs.map(
+        (doc) => ({ id: doc.id, ...doc.data() }) as Notification,
+      );
 
       if (initialLoad.current) {
         setNotifications(newNotifications);
@@ -66,20 +67,28 @@ export function useNotifications() {
       }
 
       snapshot.docChanges().forEach((change) => {
-        if (change.type === 'added') {
-          const newNotif = { id: change.doc.id, ...change.doc.data() } as Notification;
-          
-          if (newNotif.priority && newNotif.priority !== 'low') {
-            if(newNotif.priority === 'high'){
-                playAlertSound();
+        if (change.type === "added") {
+          const newNotif = {
+            id: change.doc.id,
+            ...change.doc.data(),
+          } as Notification;
+
+          if (newNotif.priority && newNotif.priority !== "low") {
+            if (newNotif.priority === "high") {
+              playAlertSound();
             }
 
             toast.info(newNotif.message, {
-              description: newNotif.createdAt ? new Date(newNotif.createdAt.toDate()).toLocaleString() : '',
+              description: newNotif.createdAt
+                ? new Date(newNotif.createdAt.toDate()).toLocaleString()
+                : "",
               action: newNotif.link
-                ? { label: 'View', onClick: () => window.location.href = newNotif.link! }
+                ? {
+                    label: "View",
+                    onClick: () => (window.location.href = newNotif.link!),
+                  }
                 : undefined,
-              duration: newNotif.priority === 'high' ? 8000 : 5000,
+              duration: newNotif.priority === "high" ? 8000 : 5000,
             });
           }
         }
@@ -93,7 +102,7 @@ export function useNotifications() {
 
   const markAsRead = async (notificationId: string) => {
     if (!user) return;
-    const notifRef = doc(db, 'notifications', notificationId);
+    const notifRef = doc(db, "notifications", notificationId);
     await updateDoc(notifRef, { read: true });
   };
 

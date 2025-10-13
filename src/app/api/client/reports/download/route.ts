@@ -7,17 +7,20 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
-    if (!id) return NextResponse.json({ error: "Missing report ID" }, { status: 400 });
+    if (!id)
+      return NextResponse.json({ error: "Missing report ID" }, { status: 400 });
 
     const authHeader = req.headers.get("authorization");
-    if (!authHeader) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!authHeader)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const token = authHeader.split(" ")[1];
     const decoded = await getAuth().verifyIdToken(token);
     const orgId = decoded.orgId;
 
     const doc = await adminDB.collection("reports").doc(id).get();
-    if (!doc.exists) return NextResponse.json({ error: "Report not found" }, { status: 404 });
+    if (!doc.exists)
+      return NextResponse.json({ error: "Report not found" }, { status: 404 });
 
     const data = doc.data()!;
     if (data.orgId !== orgId) {

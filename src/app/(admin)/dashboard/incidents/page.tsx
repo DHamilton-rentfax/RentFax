@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -30,7 +29,10 @@ export default function IncidentsPage() {
                 <td className="p-2">{incident.description}</td>
                 <td className="p-2">{incident.priority}</td>
                 <td className="p-2">
-                  <Link href={`/dashboard/incidents/${incident.id}`} className="text-blue-500 hover:underline">
+                  <Link
+                    href={`/dashboard/incidents/${incident.id}`}
+                    className="text-blue-500 hover:underline"
+                  >
                     View
                   </Link>
                 </td>

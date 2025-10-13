@@ -9,7 +9,13 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"; // As
 import { Button } from "@/components/ui/button"; // Assuming shadcn/ui is used
 import { Menu } from "lucide-react";
 
-const SidebarNav = ({ isMobile = false, onLinkClick }: { isMobile?: boolean, onLinkClick?: () => void }) => {
+const SidebarNav = ({
+  isMobile = false,
+  onLinkClick,
+}: {
+  isMobile?: boolean;
+  onLinkClick?: () => void;
+}) => {
   const pathname = usePathname();
 
   return (
@@ -31,7 +37,7 @@ const SidebarNav = ({ isMobile = false, onLinkClick }: { isMobile?: boolean, onL
                       "block px-3 py-2 rounded-md text-sm transition-colors",
                       active
                         ? "bg-primary/10 text-primary font-semibold"
-                        : "hover:bg-muted hover:text-foreground"
+                        : "hover:bg-muted hover:text-foreground",
                     )}
                   >
                     {item.name}
@@ -46,7 +52,11 @@ const SidebarNav = ({ isMobile = false, onLinkClick }: { isMobile?: boolean, onL
   );
 };
 
-export default function AddOnsLayout({ children }: { children: React.ReactNode }) {
+export default function AddOnsLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [isSheetOpen, setSheetOpen] = useState(false);
 
   return (
@@ -60,19 +70,21 @@ export default function AddOnsLayout({ children }: { children: React.ReactNode }
       <div className="flex-1 flex flex-col">
         {/* Mobile Header */}
         <header className="md:hidden sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur-sm">
-            <div className="flex h-14 items-center px-4">
-                <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
-                  <SheetTrigger asChild>
-                      <Button variant="outline" size="icon">
-                          <Menu className="h-4 w-4" />
-                      </Button>
-                  </SheetTrigger>
-                  <SheetContent side="left" className="w-72 p-6 overflow-y-auto">
-                      <h2 className="font-semibold text-lg mb-4 text-primary">Add-Ons</h2>
-                      <SidebarNav isMobile onLinkClick={() => setSheetOpen(false)} />
-                  </SheetContent>
-                </Sheet>
-            </div>
+          <div className="flex h-14 items-center px-4">
+            <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Menu className="h-4 w-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-72 p-6 overflow-y-auto">
+                <h2 className="font-semibold text-lg mb-4 text-primary">
+                  Add-Ons
+                </h2>
+                <SidebarNav isMobile onLinkClick={() => setSheetOpen(false)} />
+              </SheetContent>
+            </Sheet>
+          </div>
         </header>
 
         {/* Main Content */}

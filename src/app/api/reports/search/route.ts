@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     if (!name && !licenseNumber && !address) {
       return NextResponse.json(
         { error: "Please provide search criteria" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -43,14 +43,13 @@ export async function POST(req: Request) {
     const report = snapshot.docs[0].data();
 
     const sixMonthsAgo = new Date();
-sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
     const reportDate = new Date(report.createdAt);
 
     const reportStatus = reportDate < sixMonthsAgo ? "outdated" : "fresh";
 
     // Add the report status to the report object before sending it
     report.reportStatus = reportStatus;
-
 
     return NextResponse.json({
       found: true,
@@ -61,7 +60,7 @@ sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
     console.error("Error searching for reports:", err);
     return NextResponse.json(
       { error: "Failed to search for reports" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

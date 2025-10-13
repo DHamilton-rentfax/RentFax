@@ -1,5 +1,5 @@
-'use client';
-import { useEffect, useState } from 'react';
+"use client";
+import { useEffect, useState } from "react";
 import {
   collection,
   getDocs,
@@ -7,15 +7,15 @@ import {
   setDoc,
   deleteDoc,
   updateDoc,
-} from 'firebase/firestore';
-import { db } from '@/firebase/client';
-import { useAuth } from '@/hooks/use-auth';
+} from "firebase/firestore";
+import { db } from "@/firebase/client";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function TeamPage() {
   const { user } = useAuth();
   const [members, setMembers] = useState<any[]>([]);
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState('EDITOR');
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState("EDITOR");
   const [loading, setLoading] = useState(false);
   const [loadingMembers, setLoadingMembers] = useState(true);
 
@@ -41,28 +41,28 @@ export default function TeamPage() {
     const newMember = {
       email: inviteEmail,
       role: inviteRole,
-      status: 'INVITED',
-      invitedBy: user?.email || 'system',
+      status: "INVITED",
+      invitedBy: user?.email || "system",
       invitedAt: new Date(),
     };
 
     await setDoc(doc(db, `orgs/${orgId}/members/${uid}`), newMember);
 
-    setMembers([ ...members, { id: uid, ...newMember}]);
-    setInviteEmail('');
+    setMembers([...members, { id: uid, ...newMember }]);
+    setInviteEmail("");
     setLoading(false);
   }
 
   async function removeMember(id: string) {
     if (!orgId) return;
     await deleteDoc(doc(db, `orgs/${orgId}/members/${id}`));
-    setMembers(members.filter(m => m.id !== id));
+    setMembers(members.filter((m) => m.id !== id));
   }
 
   async function changeRole(id: string, newRole: string) {
     if (!orgId) return;
     await updateDoc(doc(db, `orgs/${orgId}/members/${id}`), { role: newRole });
-    setMembers(members.map(m => m.id === id ? { ...m, role: newRole } : m));
+    setMembers(members.map((m) => (m.id === id ? { ...m, role: newRole } : m)));
   }
 
   return (
@@ -92,7 +92,7 @@ export default function TeamPage() {
             disabled={loading}
             className="bg-blue-600 text-white px-4 py-2 rounded"
           >
-            {loading ? 'Inviting...' : 'Invite'}
+            {loading ? "Inviting..." : "Invite"}
           </button>
         </div>
       </div>
@@ -110,36 +110,44 @@ export default function TeamPage() {
           </thead>
           <tbody>
             {loadingMembers ? (
-                <tr><td colSpan={4} className="p-4 text-center">Loading members...</td></tr>
-            ) : members.map((m) => (
-              <tr key={m.id} className="border-t">
-                <td className="p-2">{m.email}</td>
-                <td className="p-2">
-                  <select
-                    value={m.role}
-                    onChange={(e) => changeRole(m.id, e.target.value)}
-                    className="border px-2 py-1"
-                    disabled={m.role === 'OWNER'}
-                  >
-                    <option value="OWNER" disabled>Owner</option>
-                    <option value="ADMIN">Admin</option>
-                    <option value="EDITOR">Editor</option>
-                    <option value="VIEWER">Viewer</option>
-                  </select>
-                </td>
-                <td className="p-2">{m.status}</td>
-                <td className="p-2">
-                  {m.role !== 'OWNER' && (
-                    <button
-                      onClick={() => removeMember(m.id)}
-                      className="text-red-600 hover:underline"
-                    >
-                      Remove
-                    </button>
-                  )}
+              <tr>
+                <td colSpan={4} className="p-4 text-center">
+                  Loading members...
                 </td>
               </tr>
-            ))}
+            ) : (
+              members.map((m) => (
+                <tr key={m.id} className="border-t">
+                  <td className="p-2">{m.email}</td>
+                  <td className="p-2">
+                    <select
+                      value={m.role}
+                      onChange={(e) => changeRole(m.id, e.target.value)}
+                      className="border px-2 py-1"
+                      disabled={m.role === "OWNER"}
+                    >
+                      <option value="OWNER" disabled>
+                        Owner
+                      </option>
+                      <option value="ADMIN">Admin</option>
+                      <option value="EDITOR">Editor</option>
+                      <option value="VIEWER">Viewer</option>
+                    </select>
+                  </td>
+                  <td className="p-2">{m.status}</td>
+                  <td className="p-2">
+                    {m.role !== "OWNER" && (
+                      <button
+                        onClick={() => removeMember(m.id)}
+                        className="text-red-600 hover:underline"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

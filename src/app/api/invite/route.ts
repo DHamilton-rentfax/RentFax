@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import { dbAdmin as adminDb } from "@/lib/firebase-admin";
 import { v4 as uuidv4 } from "uuid";
@@ -20,7 +19,10 @@ export async function POST(req: Request) {
       const teamSnap = await teamRef.get();
 
       if (!teamSnap.exists) {
-        return NextResponse.json({ success: false, error: "Team not found" }, { status: 404 });
+        return NextResponse.json(
+          { success: false, error: "Team not found" },
+          { status: 404 },
+        );
       }
 
       const team = teamSnap.data();
@@ -31,7 +33,13 @@ export async function POST(req: Request) {
       const currentMembers = membersSnap.size;
 
       if (currentMembers >= limit) {
-        return NextResponse.json({ success: false, error: `Team has reached its ${limit}-seat limit.` }, { status: 403 });
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Team has reached its ${limit}-seat limit.`,
+          },
+          { status: 403 },
+        );
       }
     }
 
@@ -47,7 +55,7 @@ export async function POST(req: Request) {
       invitedBy,
       status: "pending",
       createdAt: new Date().toISOString(),
-      expiresAt: expiresAt.toISOString()
+      expiresAt: expiresAt.toISOString(),
     });
 
     // Log the invite action for auditing
@@ -57,7 +65,7 @@ export async function POST(req: Request) {
       invitee: email,
       role,
       teamId,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     });
 
     console.log(`📨 Invite email sent to ${email} for team ${teamId}`);
@@ -65,6 +73,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, inviteId });
   } catch (err) {
     console.error("Error creating invite", err);
-    return NextResponse.json({ success: false, error: "Failed to create invite" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: "Failed to create invite" },
+      { status: 500 },
+    );
   }
 }

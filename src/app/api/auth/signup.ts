@@ -1,7 +1,9 @@
 import { dbAdmin, authAdmin } from "@/lib/firebase-admin";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2024-06-20" });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2024-06-20",
+});
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -11,12 +13,15 @@ export async function POST(req: Request) {
   const userRecord = await authAdmin.createUser({ email, password });
 
   // 2. Create Firestore user record
-  await dbAdmin.collection("users").doc(userRecord.uid).set({
-    email,
-    role: "VIEWER",
-    source: demo ? "DEMO" : "SIGNUP",
-    createdAt: new Date(),
-  });
+  await dbAdmin
+    .collection("users")
+    .doc(userRecord.uid)
+    .set({
+      email,
+      role: "VIEWER",
+      source: demo ? "DEMO" : "SIGNUP",
+      createdAt: new Date(),
+    });
 
   // 3. If demo user, auto-create Stripe trial subscription
   if (demo) {
@@ -42,12 +47,15 @@ export async function POST(req: Request) {
       },
     });
 
-    await dbAdmin.collection("users").doc(userRecord.uid).update({
-      stripeCustomerId: customer.id,
-      plan: demo === "RENTER" ? "RENTER_TRIAL" : "COMPANY_TRIAL",
-      trialEnds: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-      demoConversion: true,
-    });
+    await dbAdmin
+      .collection("users")
+      .doc(userRecord.uid)
+      .update({
+        stripeCustomerId: customer.id,
+        plan: demo === "RENTER" ? "RENTER_TRIAL" : "COMPANY_TRIAL",
+        trialEnds: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+        demoConversion: true,
+      });
   }
 
   return new Response(JSON.stringify({ success: true }));

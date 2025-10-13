@@ -2,7 +2,11 @@
 import { useState } from "react";
 import { ShoppingCart } from "lucide-react";
 
-export default function PricingCart({ selectedPlan, selectedAddOns, onCheckoutComplete }: any) {
+export default function PricingCart({
+  selectedPlan,
+  selectedAddOns,
+  onCheckoutComplete,
+}: any) {
   const [open, setOpen] = useState(false);
   const totalItems = (selectedPlan ? 1 : 0) + selectedAddOns.length;
 
@@ -12,7 +16,7 @@ export default function PricingCart({ selectedPlan, selectedAddOns, onCheckoutCo
       if (selectedPlan?.id)
         cartItems.push({ priceId: selectedPlan.id, quantity: 1 });
       selectedAddOns.forEach((a: any) =>
-        cartItems.push({ priceId: a.priceId, quantity: 1 })
+        cartItems.push({ priceId: a.priceId, quantity: 1 }),
       );
 
       const res = await fetch("/api/checkout", {
@@ -27,8 +31,8 @@ export default function PricingCart({ selectedPlan, selectedAddOns, onCheckoutCo
       if (data.url) {
         window.location.href = data.url;
         // Optionally call onCheckoutComplete if the redirect is successful
-        if(onCheckoutComplete) {
-            onCheckoutComplete();
+        if (onCheckoutComplete) {
+          onCheckoutComplete();
         }
       } else {
         alert("Failed to start checkout.");
@@ -61,7 +65,9 @@ export default function PricingCart({ selectedPlan, selectedAddOns, onCheckoutCo
           {selectedPlan ? (
             <div className="mb-4 border-b pb-2">
               <div className="font-semibold">{selectedPlan.name}</div>
-              <div className="text-sm text-muted-foreground">{selectedPlan.price}</div>
+              <div className="text-sm text-muted-foreground">
+                {selectedPlan.price}
+              </div>
             </div>
           ) : (
             <p className="text-muted-foreground mb-4">No plan selected.</p>

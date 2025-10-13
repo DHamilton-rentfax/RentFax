@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import { adminDB } from "@/lib/firebase-admin";
 
@@ -6,35 +5,34 @@ const PARTNER_API_KEY = process.env.PARTNER_API_KEY;
 
 // A simple auth check for demonstration purposes
 function isAuthorized(request: Request): boolean {
-    const apiKey = request.headers.get('x-api-key');
-    return apiKey === PARTNER_API_KEY;
+  const apiKey = request.headers.get("x-api-key");
+  return apiKey === PARTNER_API_KEY;
 }
 
 async function reanalyzeRenterRisk(renterId: string, requestUrl: string) {
-    const riskEngineUrl = new URL("/api/ai/risk-engine", requestUrl).toString();
+  const riskEngineUrl = new URL("/api/ai/risk-engine", requestUrl).toString();
 
-    try {
-        const response = await fetch(riskEngineUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ renterId }),
-        });
+  try {
+    const response = await fetch(riskEngineUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ renterId }),
+    });
 
-        if (!response.ok) {
-            const errorBody = await response.json();
-            console.error("Failed to trigger risk re-analysis:", errorBody);
-            // Even if re-analysis fails, we don't want to block the partner feedback
-            // So we just log the error and continue.
-        }
-
-        return await response.json();
-
-    } catch (error) {
-        console.error("Error calling risk engine API:", error);
-        return null;
+    if (!response.ok) {
+      const errorBody = await response.json();
+      console.error("Failed to trigger risk re-analysis:", errorBody);
+      // Even if re-analysis fails, we don't want to block the partner feedback
+      // So we just log the error and continue.
     }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error calling risk engine API:", error);
+    return null;
+  }
 }
 
 export async function POST(req: Request) {
@@ -47,8 +45,11 @@ export async function POST(req: Request) {
 
     if (!renterId || !outcome || !partnerId) {
       return NextResponse.json(
-        { error: "Missing required fields: renterId, outcome, and partnerId are required." },
-        { status: 400 }
+        {
+          error:
+            "Missing required fields: renterId, outcome, and partnerId are required.",
+        },
+        { status: 400 },
       );
     }
 
@@ -57,9 +58,9 @@ export async function POST(req: Request) {
       renterId,
       partnerId,
       outcome, // e.g., 'confirmed_fraud', 'eviction', 'payment_default'
-      details: details || '',
+      details: details || "",
       createdAt: new Date().toISOString(),
-      source: 'PartnerAPI',
+      source: "PartnerAPI",
     });
 
     // 2. Trigger the AI Risk Engine to re-analyze the renter
@@ -71,12 +72,11 @@ export async function POST(req: Request) {
       message: "Feedback received and renter risk profile is being updated.",
       feedbackId: feedbackRef.id,
     });
-
   } catch (err: any) {
     console.error("Error in partner feedback endpoint:", err);
     return NextResponse.json(
       { error: "Failed to process partner feedback.", details: err.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

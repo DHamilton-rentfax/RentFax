@@ -1,6 +1,11 @@
-
 import { db } from "@/firebase/server";
-import { collection, addDoc, doc, updateDoc, increment } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  doc,
+  updateDoc,
+  increment,
+} from "firebase/firestore";
 import Stripe from "stripe";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -25,16 +30,21 @@ export async function POST(req: Request) {
     const snap = await getDoc(clientRef);
     const client = snap.data();
     if (client?.stripeSubscriptionId) {
-      await stripe.subscriptionItems.createUsageRecord(client.stripeSubscriptionId, {
-        quantity: 1,
-        timestamp: Math.floor(Date.now() / 1000),
-        action: "increment",
-      });
+      await stripe.subscriptionItems.createUsageRecord(
+        client.stripeSubscriptionId,
+        {
+          quantity: 1,
+          timestamp: Math.floor(Date.now() / 1000),
+          action: "increment",
+        },
+      );
     }
 
     return new Response(JSON.stringify({ success: true }), { status: 200 });
   } catch (err) {
     console.error("Usage logging failed:", err);
-    return new Response(JSON.stringify({ error: "Failed to log usage" }), { status: 500 });
+    return new Response(JSON.stringify({ error: "Failed to log usage" }), {
+      status: 500,
+    });
   }
 }

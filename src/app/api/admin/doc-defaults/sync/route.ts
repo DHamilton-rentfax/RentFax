@@ -14,12 +14,14 @@ export async function POST() {
     const orgId = org.id;
     const col = adminDB.collection(`orgs/${orgId}/docCategories`);
     const existingSnap = await col.get();
-    const existingNames = existingSnap.docs.map(d => d.get("name"));
-    const missing = DEFAULT_CATEGORIES.filter(c => !existingNames.includes(c));
+    const existingNames = existingSnap.docs.map((d) => d.get("name"));
+    const missing = DEFAULT_CATEGORIES.filter(
+      (c) => !existingNames.includes(c),
+    );
 
     if (missing.length > 0) {
       const batch = adminDB.batch();
-      missing.forEach(name => {
+      missing.forEach((name) => {
         const ref = col.doc();
         batch.set(ref, { name, createdAt: Date.now() });
       });
@@ -42,5 +44,8 @@ export async function POST() {
     }
   }
 
-  return NextResponse.json({ ok: true, message: "Defaults synced to all orgs" });
+  return NextResponse.json({
+    ok: true,
+    message: "Defaults synced to all orgs",
+  });
 }

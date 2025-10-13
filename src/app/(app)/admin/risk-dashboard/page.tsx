@@ -1,4 +1,3 @@
-
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -24,8 +23,12 @@ export function AlertPanel() {
 
   return (
     <div className="border rounded-lg bg-white p-3 shadow-sm">
-      <h3 className="font-semibold text-slate-900 mb-2">Fraud & Partner Alerts</h3>
-      {alerts.length === 0 && <p className="text-slate-500 text-sm">No alerts</p>}
+      <h3 className="font-semibold text-slate-900 mb-2">
+        Fraud & Partner Alerts
+      </h3>
+      {alerts.length === 0 && (
+        <p className="text-slate-500 text-sm">No alerts</p>
+      )}
       <ul className="space-y-2 max-h-80 overflow-y-auto">
         {alerts.map((a) => (
           <li key={a.id} className="text-sm">
@@ -43,7 +46,9 @@ export function AlertPanel() {
 export default function RiskDashboard() {
   const [profiles, setProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "high" | "medium" | "low">("all");
+  const [filter, setFilter] = useState<"all" | "high" | "medium" | "low">(
+    "all",
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -78,7 +83,9 @@ export default function RiskDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-slate-800">AI Risk Dashboard</h1>
+            <h1 className="text-2xl font-bold text-slate-800">
+              AI Risk Dashboard
+            </h1>
             <CSVLink
               data={csvData}
               filename={`RentFAX_Risk_Export_${new Date().toISOString()}.csv`}
@@ -89,21 +96,23 @@ export default function RiskDashboard() {
           </div>
 
           <div className="flex gap-2">
-            {['all', 'high', 'medium', 'low'].map((f) => (
+            {["all", "high", "medium", "low"].map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f as any)}
                 className={`px-4 py-2 rounded ${
-                  filter === f ? "bg-slate-800 text-white" : "bg-slate-200 text-slate-700"
+                  filter === f
+                    ? "bg-slate-800 text-white"
+                    : "bg-slate-200 text-slate-700"
                 }`}
               >
                 {f === "all"
                   ? "All"
                   : f === "high"
-                  ? "High Risk"
-                  : f === "medium"
-                  ? "Medium"
-                  : "Low Risk"}
+                    ? "High Risk"
+                    : f === "medium"
+                      ? "Medium"
+                      : "Low Risk"}
               </button>
             ))}
           </div>
@@ -116,8 +125,8 @@ export default function RiskDashboard() {
                   p.score < 50
                     ? "border-red-400 bg-red-50"
                     : p.score < 80
-                    ? "border-yellow-400 bg-yellow-50"
-                    : "border-green-400 bg-green-50"
+                      ? "border-yellow-400 bg-yellow-50"
+                      : "border-green-400 bg-green-50"
                 }`}
               >
                 <div className="flex justify-between items-center mb-2">
@@ -127,8 +136,8 @@ export default function RiskDashboard() {
                       p.score < 50
                         ? "bg-red-600 text-white"
                         : p.score < 80
-                        ? "bg-yellow-600 text-white"
-                        : "bg-green-600 text-white"
+                          ? "bg-yellow-600 text-white"
+                          : "bg-green-600 text-white"
                     }`}
                   >
                     Score: {p.score}
@@ -145,7 +154,10 @@ export default function RiskDashboard() {
                 </p>
 
                 <div className="flex justify-end mt-2">
-                  <Link href={`/admin/risk-network/${p.renterId}`} className="text-sm bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium px-3 py-1 rounded-md">
+                  <Link
+                    href={`/admin/risk-network/${p.renterId}`}
+                    className="text-sm bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium px-3 py-1 rounded-md"
+                  >
                     View Network
                   </Link>
                 </div>

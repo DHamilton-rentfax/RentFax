@@ -2,11 +2,12 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "module": "commonjs",
-    "moduleResolution": "node", // Override to be compatible with commonjs
+    "moduleResolution": "node",
     "noEmit": false,
     "outDir": "../dist"
   },
   "include": [
     "./**/*.ts"
-  ]
+  ],
+  "exclude": []
 }

@@ -35,13 +35,22 @@ export default function IntegrationsPage() {
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-bold">Integrations</h1>
-      <button onClick={sendToCollections} className="px-4 py-2 bg-red-500 text-white rounded">
+      <button
+        onClick={sendToCollections}
+        className="px-4 py-2 bg-red-500 text-white rounded"
+      >
         Send to Collections
       </button>
-      <button onClick={checkInsurance} className="px-4 py-2 bg-blue-500 text-white rounded">
+      <button
+        onClick={checkInsurance}
+        className="px-4 py-2 bg-blue-500 text-white rounded"
+      >
         Check Insurance
       </button>
-      <button onClick={searchRecords} className="px-4 py-2 bg-green-500 text-white rounded">
+      <button
+        onClick={searchRecords}
+        className="px-4 py-2 bg-green-500 text-white rounded"
+      >
         Search Public Records
       </button>
       {msg && <p className="mt-4">{msg}</p>}

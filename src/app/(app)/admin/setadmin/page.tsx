@@ -1,4 +1,3 @@
-
 "use client";
 import { setUserClaims } from "@/app/auth/actions";
 import { useEffect, useState } from "react";
@@ -11,7 +10,11 @@ export default function SetAdminPage() {
     async function setAdminRole() {
       try {
         const uid = "l39fRV85YXckhBp5ItkUTRHCdmn2";
-        const result = await setUserClaims({ uid, role: "admin", companyId: "SYSTEM" });
+        const result = await setUserClaims({
+          uid,
+          role: "admin",
+          companyId: "SYSTEM",
+        });
         setResult(result);
       } catch (e: any) {
         setError(e.message);

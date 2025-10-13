@@ -14,7 +14,7 @@ export function useAdminSettings() {
     if (!user) {
       setLoading(false);
       return;
-    };
+    }
     const ref = doc(db, "settings", user.uid);
     getDoc(ref).then((snap) => {
       if (snap.exists()) {

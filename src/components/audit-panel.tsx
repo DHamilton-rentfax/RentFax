@@ -1,12 +1,32 @@
-'use client';
-import { useEffect, useState } from 'react';
-import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { useAuth } from '@/hooks/use-auth';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { format } from 'date-fns';
+"use client";
+import { useEffect, useState } from "react";
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  limit,
+  getDocs,
+} from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { useAuth } from "@/hooks/use-auth";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { format } from "date-fns";
 
 export default function AuditPanel({ targetPath }: { targetPath?: string }) {
   const { claims } = useAuth();
@@ -20,20 +40,20 @@ export default function AuditPanel({ targetPath }: { targetPath?: string }) {
 
     (async () => {
       setLoading(true);
-      const base = collection(db, 'auditLogs');
+      const base = collection(db, "auditLogs");
       const parts: any[] = [
-        where('companyId', '==', companyId),
-        orderBy('at', 'desc'),
-        limit(20)
+        where("companyId", "==", companyId),
+        orderBy("at", "desc"),
+        limit(20),
       ];
-      
+
       if (targetPath) {
-        parts.unshift(where('targetPath', '==', targetPath));
+        parts.unshift(where("targetPath", "==", targetPath));
       }
 
       const q = query(base, ...parts);
       const snap = await getDocs(q);
-      setRows(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      setRows(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
       setLoading(false);
     })();
   }, [companyId, targetPath]);
@@ -43,7 +63,9 @@ export default function AuditPanel({ targetPath }: { targetPath?: string }) {
       <CardHeader>
         <CardTitle>Audit Trail</CardTitle>
         <CardDescription>
-            {targetPath ? `Recent changes for ${targetPath}` : 'Recent changes across the company'}
+          {targetPath
+            ? `Recent changes for ${targetPath}`
+            : "Recent changes across the company"}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -58,27 +80,53 @@ export default function AuditPanel({ targetPath }: { targetPath?: string }) {
           </TableHeader>
           <TableBody>
             {loading ? (
-                Array.from({length: 3}).map((_, i) => (
-                    <TableRow key={i}>
-                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                        <TableCell><Skeleton className="h-5 w-20" /></TableCell>
-                        {!targetPath && <TableCell><Skeleton className="h-5 w-28" /></TableCell>}
-                    </TableRow>
-                ))
-            ) : rows.length === 0 ? (
-                <TableRow>
-                    <TableCell colSpan={targetPath ? 3 : 4} className="text-center text-muted-foreground">
-                        No audit history found.
+              Array.from({ length: 3 }).map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell>
+                    <Skeleton className="h-5 w-32" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-5 w-24" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-5 w-20" />
+                  </TableCell>
+                  {!targetPath && (
+                    <TableCell>
+                      <Skeleton className="h-5 w-28" />
                     </TableCell>
+                  )}
                 </TableRow>
+              ))
+            ) : rows.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={targetPath ? 3 : 4}
+                  className="text-center text-muted-foreground"
+                >
+                  No audit history found.
+                </TableCell>
+              </TableRow>
             ) : (
-              rows.map(r => (
+              rows.map((r) => (
                 <TableRow key={r.id}>
-                  <TableCell>{r.at?.toDate ? format(r.at.toDate(), 'PP p') : ''}</TableCell>
-                  <TableCell className="font-mono text-xs">{r.actorUid}</TableCell>
-                  <TableCell>{r.action} <span className="text-muted-foreground">({r.actorRole})</span></TableCell>
-                  {!targetPath && <TableCell className="font-mono text-xs truncate max-w-xs">{r.targetPath}</TableCell>}
+                  <TableCell>
+                    {r.at?.toDate ? format(r.at.toDate(), "PP p") : ""}
+                  </TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {r.actorUid}
+                  </TableCell>
+                  <TableCell>
+                    {r.action}{" "}
+                    <span className="text-muted-foreground">
+                      ({r.actorRole})
+                    </span>
+                  </TableCell>
+                  {!targetPath && (
+                    <TableCell className="font-mono text-xs truncate max-w-xs">
+                      {r.targetPath}
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             )}

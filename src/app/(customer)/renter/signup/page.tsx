@@ -1,4 +1,3 @@
-
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -17,13 +16,18 @@ export default function RenterSignupPage() {
     govIdLast4: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const userCred = await createUserWithEmailAndPassword(auth, form.email, form.password);
+      const userCred = await createUserWithEmailAndPassword(
+        auth,
+        form.email,
+        form.password,
+      );
       const uid = userCred.user.uid;
 
       await setDoc(doc(db, "renters", uid), {
@@ -62,10 +66,14 @@ export default function RenterSignupPage() {
         onSubmit={handleSignup}
         className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md space-y-6 border border-gray-100"
       >
-        <h1 className="text-2xl font-bold text-gray-800 text-center">Create Your Renter Account</h1>
+        <h1 className="text-2xl font-bold text-gray-800 text-center">
+          Create Your Renter Account
+        </h1>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Full Name</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Full Name
+          </label>
           <input
             type="text"
             name="fullName"
@@ -77,7 +85,9 @@ export default function RenterSignupPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Date of Birth
+          </label>
           <input
             type="date"
             name="dateOfBirth"
@@ -89,7 +99,9 @@ export default function RenterSignupPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Last 4 of Gov ID</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Last 4 of Gov ID
+          </label>
           <input
             type="text"
             name="govIdLast4"
@@ -102,7 +114,9 @@ export default function RenterSignupPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Email</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Email
+          </label>
           <input
             type="email"
             name="email"
@@ -114,7 +128,9 @@ export default function RenterSignupPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Password</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Password
+          </label>
           <input
             type="password"
             name="password"

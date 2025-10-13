@@ -1,4 +1,3 @@
-
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 
 export async function generateDisputePDF(dispute: any): Promise<Uint8Array> {
@@ -6,7 +5,14 @@ export async function generateDisputePDF(dispute: any): Promise<Uint8Array> {
   const page = pdfDoc.addPage([600, 800]);
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-  const { renterStatement, adminNotes, resolutionOutcome, aiSummary, status, createdAt } = dispute;
+  const {
+    renterStatement,
+    adminNotes,
+    resolutionOutcome,
+    aiSummary,
+    status,
+    createdAt,
+  } = dispute;
 
   const text = `
   Renter Dispute Report — RentFAX

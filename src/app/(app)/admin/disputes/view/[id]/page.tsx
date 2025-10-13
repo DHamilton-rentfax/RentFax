@@ -1,35 +1,35 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import { getDisputeById } from '@/app/actions/get-dispute-by-id';
-import { updateDisputeStatus } from '@/app/actions/update-dispute-status';
-import { IncidentCard } from '@/components/IncidentCard';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Dispute } from '@/types/dispute';
+import React, { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { getDisputeById } from "@/app/actions/get-dispute-by-id";
+import { updateDisputeStatus } from "@/app/actions/update-dispute-status";
+import { IncidentCard } from "@/components/IncidentCard";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Dispute } from "@/types/dispute";
 
 export default function AdminDisputePage() {
   const { id } = useParams();
   const [dispute, setDispute] = useState<Dispute | null>(null);
-  const [status, setStatus] = useState('');
-  const [note, setNote] = useState('');
+  const [status, setStatus] = useState("");
+  const [note, setNote] = useState("");
 
   useEffect(() => {
     if (id) {
       getDisputeById(id as string).then((data) => {
         setDispute(data);
-        setStatus(data?.status || '');
-        setNote(data?.adminNote || '');
+        setStatus(data?.status || "");
+        setNote(data?.adminNote || "");
       });
     }
   }, [id]);
 
   const handleUpdate = async () => {
     if (!dispute) return;
-    await updateDisputeStatus(dispute.id, status, note, 'admin');
-    alert('Dispute updated.');
+    await updateDisputeStatus(dispute.id, status, note, "admin");
+    alert("Dispute updated.");
   };
 
   if (!dispute) return <div className="p-6">Loading dispute...</div>;
@@ -54,7 +54,11 @@ export default function AdminDisputePage() {
           <ul className="list-disc ml-6 mt-2 space-y-1">
             {dispute.evidence.map((url, i) => (
               <li key={i}>
-                <a href={url} target="_blank" className="text-blue-600 underline">
+                <a
+                  href={url}
+                  target="_blank"
+                  className="text-blue-600 underline"
+                >
                   View Evidence {i + 1}
                 </a>
               </li>
@@ -65,7 +69,11 @@ export default function AdminDisputePage() {
 
       <div className="mt-6 space-y-3">
         <label className="block font-medium">Admin Notes</label>
-        <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={4} />
+        <Textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          rows={4}
+        />
         <div className="flex flex-col gap-2 mt-2">
           <label>Status</label>
           <select

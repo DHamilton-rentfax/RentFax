@@ -72,9 +72,7 @@ export default function ReportHistoryPage() {
                 <p className="text-sm text-gray-600">
                   Revenue: ${r.revenue.toFixed(2)}
                 </p>
-                <p className="text-sm text-gray-600">
-                  Events: {r.events}
-                </p>
+                <p className="text-sm text-gray-600">Events: {r.events}</p>
                 <p className="text-xs text-gray-400 mt-2">
                   Generated {new Date(r.createdAt).toLocaleString()}
                 </p>
@@ -82,7 +80,9 @@ export default function ReportHistoryPage() {
               <a
                 onClick={async (e) => {
                   e.preventDefault();
-                  const token = await window.firebase.auth().currentUser.getIdToken();
+                  const token = await window.firebase
+                    .auth()
+                    .currentUser.getIdToken();
                   const res = await fetch(`/api/reports/download?id=${r.id}`, {
                     headers: { Authorization: `Bearer ${token}` },
                   });

@@ -1,4 +1,3 @@
-
 "use client";
 import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
@@ -17,7 +16,7 @@ export default function SearchPage() {
     }
     const q = query(collection(db, "renters"), where("email", "==", email));
     const snap = await getDocs(q);
-    setResults(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    setResults(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
   }
 
   return (
@@ -29,12 +28,15 @@ export default function SearchPage() {
         onChange={(e) => setEmail(e.target.value)}
         className="border p-2"
       />
-      <button onClick={handleSearch} className="ml-2 bg-blue-600 text-white px-4 py-2 rounded">
+      <button
+        onClick={handleSearch}
+        className="ml-2 bg-blue-600 text-white px-4 py-2 rounded"
+      >
         Search
       </button>
 
       <ul className="mt-4">
-        {results.map(r => (
+        {results.map((r) => (
           <li key={r.id} className="border p-2 mb-2">
             {r.name} ({r.email})
           </li>

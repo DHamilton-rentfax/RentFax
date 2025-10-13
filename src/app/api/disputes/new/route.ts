@@ -1,14 +1,21 @@
-
 import { adminDB as dbAdmin } from "@/lib/firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { renterId, incidentId, renterStatement, evidenceUrls = [] } = await req.json();
+    const {
+      renterId,
+      incidentId,
+      renterStatement,
+      evidenceUrls = [],
+    } = await req.json();
 
     if (!renterId || !incidentId) {
-      return NextResponse.json({ error: "Missing renterId or incidentId" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing renterId or incidentId" },
+        { status: 400 },
+      );
     }
 
     const disputeRef = dbAdmin.collection("disputes").doc();
@@ -25,9 +32,12 @@ export async function POST(req: Request) {
     });
 
     // Link dispute to renter + incident
-    await dbAdmin.collection("renters").doc(renterId).update({
-      linkedDisputes: FieldValue.arrayUnion(disputeRef.id),
-    });
+    await dbAdmin
+      .collection("renters")
+      .doc(renterId)
+      .update({
+        linkedDisputes: FieldValue.arrayUnion(disputeRef.id),
+      });
     await dbAdmin.collection("incidents").doc(incidentId).update({
       relatedDispute: disputeRef.id,
       status: "DISPUTED",

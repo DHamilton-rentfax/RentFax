@@ -4,7 +4,8 @@ import { adminAuth, adminDB } from "@/lib/firebase-admin";
 export async function GET(req: Request) {
   try {
     const authHeader = req.headers.get("authorization");
-    if (!authHeader) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!authHeader)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const token = authHeader.split(" ")[1];
     const decoded = await adminAuth.verifyIdToken(token);
@@ -15,15 +16,15 @@ export async function GET(req: Request) {
 
     const snapshot = await adminDB.collection("companies").get();
     const orgs = snapshot.docs.map((doc) => {
-        const data = doc.data();
-        return {
-            id: doc.id,
-            name: data.name,
-            plan: data.plan,
-            addons: data.addons || [],
-            reportCredits: data.reportCredits || 0,
-            updatedAt: data.updatedAt?.toMillis() || data.createdAt?.toMillis(),
-        }
+      const data = doc.data();
+      return {
+        id: doc.id,
+        name: data.name,
+        plan: data.plan,
+        addons: data.addons || [],
+        reportCredits: data.reportCredits || 0,
+        updatedAt: data.updatedAt?.toMillis() || data.createdAt?.toMillis(),
+      };
     });
 
     return NextResponse.json({ orgs });

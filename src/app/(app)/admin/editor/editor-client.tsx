@@ -1,7 +1,7 @@
-'use client';
-import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { db } from '@/firebase/client';
+"use client";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { db } from "@/firebase/client";
 import {
   collection,
   addDoc,
@@ -10,29 +10,29 @@ import {
   getDocs,
   query,
   where,
-} from 'firebase/firestore';
+} from "firebase/firestore";
 
 export default function BlogEditorPage() {
   const router = useRouter();
   const params = useSearchParams();
-  const editSlug = params.get('edit');
+  const editSlug = params.get("edit");
   const isEditing = !!editSlug;
 
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [slug, setSlug] = useState('');
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [slug, setSlug] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!editSlug) return;
     async function loadBlog() {
-      const q = query(collection(db, 'blogs'), where('slug', '==', editSlug));
+      const q = query(collection(db, "blogs"), where("slug", "==", editSlug));
       const snap = await getDocs(q);
       if (!snap.empty) {
         const data = snap.docs[0].data();
-        setTitle(data.title || '');
-        setContent(data.content || '');
-        setSlug(data.slug || '');
+        setTitle(data.title || "");
+        setContent(data.content || "");
+        setSlug(data.slug || "");
       }
     }
     loadBlog();
@@ -41,10 +41,10 @@ export default function BlogEditorPage() {
   async function handleSave() {
     setLoading(true);
     if (isEditing) {
-      const q = query(collection(db, 'blogs'), where('slug', '==', editSlug));
+      const q = query(collection(db, "blogs"), where("slug", "==", editSlug));
       const snap = await getDocs(q);
       if (!snap.empty) {
-        await updateDoc(doc(db, 'blogs', snap.docs[0].id), {
+        await updateDoc(doc(db, "blogs", snap.docs[0].id), {
           title,
           slug,
           content,
@@ -52,7 +52,7 @@ export default function BlogEditorPage() {
         });
       }
     } else {
-      await addDoc(collection(db, 'blogs'), {
+      await addDoc(collection(db, "blogs"), {
         title,
         slug,
         content,
@@ -61,19 +61,21 @@ export default function BlogEditorPage() {
         createdAt: new Date(),
       });
     }
-    router.push('/admin/blogs');
+    router.push("/admin/blogs");
   }
 
   return (
     <div className="max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">{isEditing ? 'Edit Post' : 'New Blog Post'}</h1>
+      <h1 className="text-2xl font-bold mb-4">
+        {isEditing ? "Edit Post" : "New Blog Post"}
+      </h1>
       <input
         className="w-full border p-2 mb-2"
         placeholder="Title"
         value={title}
         onChange={(e) => {
           setTitle(e.target.value);
-          setSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'));
+          setSlug(e.target.value.toLowerCase().replace(/\s+/g, "-"));
         }}
       />
       <input
@@ -93,7 +95,7 @@ export default function BlogEditorPage() {
         className="mt-4 bg-blue-600 text-white px-4 py-2 rounded"
         disabled={loading}
       >
-        {loading ? 'Saving...' : isEditing ? 'Update Post' : 'Create Post'}
+        {loading ? "Saving..." : isEditing ? "Update Post" : "Create Post"}
       </button>
     </div>
   );

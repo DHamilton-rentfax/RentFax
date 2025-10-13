@@ -1,4 +1,3 @@
-
 import { adminDB as db } from "@/firebase/server";
 import { NextResponse } from "next/server";
 
@@ -15,11 +14,12 @@ export async function POST(req: Request) {
 
     const renter = renterSnap.data();
     if (!renter) throw new Error("Renter data not found");
-    
+
     const { fullName, dateOfBirth, govIdLast4 } = renter;
 
     // --- Match incidents ---
-    const incidentQuery = await db.collection("incidents")
+    const incidentQuery = await db
+      .collection("incidents")
       .where("renterName", "==", fullName)
       .get();
 

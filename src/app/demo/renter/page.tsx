@@ -34,10 +34,18 @@ export default function DemoRenterPage() {
       <h2 className="text-xl font-semibold mt-6">Incident & Dispute History</h2>
       {disputes.map((d) => (
         <div key={d.id} className="p-4 border rounded bg-gray-50">
-          <p><strong>ID:</strong> {d.id}</p>
-          <p><strong>Status:</strong> {d.status}</p>
-          <p><strong>Amount:</strong> ${d.amount}</p>
-          <p><strong>Company:</strong> {d.companyId}</p>
+          <p>
+            <strong>ID:</strong> {d.id}
+          </p>
+          <p>
+            <strong>Status:</strong> {d.status}
+          </p>
+          <p>
+            <strong>Amount:</strong> ${d.amount}
+          </p>
+          <p>
+            <strong>Company:</strong> {d.companyId}
+          </p>
         </div>
       ))}
 

@@ -11,7 +11,11 @@ export async function POST(req: Request) {
     const token = req.headers.get("authorization")?.split(" ")[1];
     const decoded = await getAuth().verifyIdToken(token!);
 
-    const inviteRef = adminDB.collection("orgs").doc(orgId).collection("invites").doc(inviteId);
+    const inviteRef = adminDB
+      .collection("orgs")
+      .doc(orgId)
+      .collection("invites")
+      .doc(inviteId);
     const inviteDoc = await inviteRef.get();
 
     if (!inviteDoc.exists) {
@@ -20,7 +24,10 @@ export async function POST(req: Request) {
 
     const invite = inviteDoc.data();
     if (!["expired", "pending"].includes(invite?.status)) {
-      return NextResponse.json({ error: "Invite already accepted" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invite already accepted" },
+        { status: 400 },
+      );
     }
 
     // Extend invite 7 more days
@@ -47,12 +54,12 @@ export async function POST(req: Request) {
     });
 
     await adminDB.collection("auditLogs").add({
-        type: "INVITE_RESENT",
-        actorUid: decoded.uid,
-        targetEmail: invite.email,
-        orgId,
-        role: invite.role,
-        timestamp: Date.now(),
+      type: "INVITE_RESENT",
+      actorUid: decoded.uid,
+      targetEmail: invite.email,
+      orgId,
+      role: invite.role,
+      timestamp: Date.now(),
     });
 
     return NextResponse.json({ success: true });

@@ -1,6 +1,6 @@
-import { Card, CardContent } from '@/components/ui/card';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Star } from 'lucide-react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Star } from "lucide-react";
 
 type TestimonialCardProps = {
   quote: string;
@@ -27,12 +27,16 @@ export default function TestimonialCard({
             <Star key={i} className="w-5 h-5 text-yellow-400 fill-yellow-400" />
           ))}
         </div>
-        <blockquote className="text-foreground flex-grow">
-          "{quote}"
-        </blockquote>
+        <blockquote className="text-foreground flex-grow">"{quote}"</blockquote>
         <div className="flex items-center mt-6">
           <Avatar>
-            {imageUrl && <AvatarImage src={imageUrl} alt={name} data-ai-hint={dataAiHint || 'person'} />}
+            {imageUrl && (
+              <AvatarImage
+                src={imageUrl}
+                alt={name}
+                data-ai-hint={dataAiHint || "person"}
+              />
+            )}
             <AvatarFallback className="bg-primary text-primary-foreground font-bold">
               {avatar}
             </AvatarFallback>

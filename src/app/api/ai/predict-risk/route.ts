@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import { db } from "@/firebase/server";
 import { collection, query, where, getDocs } from "firebase/firestore";
@@ -7,18 +6,35 @@ import OpenAI from "openai";
 export async function POST(req: Request) {
   try {
     const { renterId } = await req.json();
-    if (!renterId) return NextResponse.json({ error: "Missing renterId" }, { status: 400 });
+    if (!renterId)
+      return NextResponse.json({ error: "Missing renterId" }, { status: 400 });
 
-    const q = query(collection(db, "riskProfiles"), where("renterId", "==", renterId));
+    const q = query(
+      collection(db, "riskProfiles"),
+      where("renterId", "==", renterId),
+    );
     const snap = await getDocs(q);
-    if (snap.empty) return NextResponse.json({ error: "No risk profile found" }, { status: 404 });
+    if (snap.empty)
+      return NextResponse.json(
+        { error: "No risk profile found" },
+        { status: 404 },
+      );
 
     const profile = snap.docs[0].data();
 
     // Fetch related historical data
-    const disputes = await getDocs(query(collection(db, "disputes"), where("renterId", "==", renterId)));
-    const incidents = await getDocs(query(collection(db, "incidents"), where("renterId", "==", renterId)));
-    const unauthorized = await getDocs(query(collection(db, "unauthorizedDrivers"), where("linkedRenterId", "==", renterId)));
+    const disputes = await getDocs(
+      query(collection(db, "disputes"), where("renterId", "==", renterId)),
+    );
+    const incidents = await getDocs(
+      query(collection(db, "incidents"), where("renterId", "==", renterId)),
+    );
+    const unauthorized = await getDocs(
+      query(
+        collection(db, "unauthorizedDrivers"),
+        where("linkedRenterId", "==", renterId),
+      ),
+    );
 
     const dataSummary = {
       score: profile.score,
@@ -43,8 +59,8 @@ export async function POST(req: Request) {
 
     const ai = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: 'user', content: prompt }],
-      response_format: { type: 'json_object' }
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" },
     });
 
     const resultText = ai.choices[0].message.content || "{}";

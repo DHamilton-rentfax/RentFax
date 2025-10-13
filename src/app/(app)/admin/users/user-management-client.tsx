@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 interface User {
   uid: string;
@@ -10,11 +10,11 @@ interface User {
 
 export default function UserManagementClient() {
   const [users, setUsers] = useState<User[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const fetchUsers = async () => {
-      const res = await fetch('/api/users');
+      const res = await fetch("/api/users");
       if (res.ok) {
         const data = await res.json();
         setUsers(data);
@@ -25,7 +25,7 @@ export default function UserManagementClient() {
   }, []);
 
   const filteredUsers = users.filter((user) =>
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    user.email.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (

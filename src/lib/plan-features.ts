@@ -1,9 +1,9 @@
-export type Plan = 'starter' | 'pro' | 'enterprise';
-export type CompanyStatus = 'active' | 'grace' | 'locked';
+export type Plan = "starter" | "pro" | "enterprise";
+export type CompanyStatus = "active" | "grace" | "locked";
 
 export function nextStatus(isPaid: boolean, wasActive: boolean): CompanyStatus {
-  if (isPaid) return 'active';
-  return wasActive ? 'grace' : 'locked';
+  if (isPaid) return "active";
+  return wasActive ? "grace" : "locked";
 }
 
 // Feature flags per plan (adjust to your app)

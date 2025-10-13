@@ -1,4 +1,3 @@
-
 "use client";
 import { useEffect, useState } from "react";
 import { db } from "@/firebase/client";
@@ -11,7 +10,10 @@ function AuditLog() {
 
   useEffect(() => {
     async function fetchLogs() {
-      const q = query(collection(db, "auditLogs"), orderBy("timestamp", "desc"));
+      const q = query(
+        collection(db, "auditLogs"),
+        orderBy("timestamp", "desc"),
+      );
       const snap = await getDocs(q);
       const logData: any[] = [];
       snap.forEach((doc) => logData.push({ id: doc.id, ...doc.data() }));
@@ -45,7 +47,9 @@ function AuditLog() {
                   <td className="p-2">{log.changedBy}</td>
                   <td className="p-2">{log.targetUser}</td>
                   <td className="p-2 font-semibold">{log.newRole}</td>
-                  <td className="p-2">{new Date(log.timestamp).toLocaleString()}</td>
+                  <td className="p-2">
+                    {new Date(log.timestamp).toLocaleString()}
+                  </td>
                 </tr>
               ))}
             </tbody>

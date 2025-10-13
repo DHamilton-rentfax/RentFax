@@ -1,17 +1,29 @@
+"use server";
 
-'use server';
+import { adminDB } from "@/firebase/server";
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  Timestamp,
+} from "firebase/firestore";
+import { randomBytes } from "crypto";
+import { sendEmail } from "@/lib/notifications/sendEmail";
+import { sendSMS } from "@/lib/notifications/sendSMS";
 
-import { adminDB } from '@/firebase/server';
-import { collection, addDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
-import { randomBytes } from 'crypto';
-import { sendEmail } from '@/lib/notifications/sendEmail';
-import { sendSMS } from '@/lib/notifications/sendSMS';
-
-export async function createVerificationToken({ name, email, phone }: {name: string, email: string, phone?: string}) {
-  const token = randomBytes(24).toString('hex');
+export async function createVerificationToken({
+  name,
+  email,
+  phone,
+}: {
+  name: string;
+  email: string;
+  phone?: string;
+}) {
+  const token = randomBytes(24).toString("hex");
   const expiresAt = Timestamp.fromMillis(Date.now() + 24 * 60 * 60 * 1000); // 24 h
 
-  await addDoc(collection(adminDB, 'verificationTokens'), {
+  await addDoc(collection(adminDB, "verificationTokens"), {
     token,
     renterEmail: email,
     renterName: name,
@@ -24,7 +36,7 @@ export async function createVerificationToken({ name, email, phone }: {name: str
 
   await sendEmail({
     to: email,
-    subject: 'Verify your RentFAX account',
+    subject: "Verify your RentFAX account",
     html: `<p>Hello ${name},</p>
            <p>Click the link below to verify your account:</p>
            <p><a href="${verifyUrl}">${verifyUrl}</a></p>

@@ -30,7 +30,10 @@ export default function AdminDisputesPage() {
                 <td className="p-2">{dispute.subject}</td>
                 <td className="p-2">{dispute.status}</td>
                 <td className="p-2">
-                  <Link href={`/admin/disputes/${dispute.id}`} className="text-blue-500 hover:underline">
+                  <Link
+                    href={`/admin/disputes/${dispute.id}`}
+                    className="text-blue-500 hover:underline"
+                  >
                     View
                   </Link>
                 </td>

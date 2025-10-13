@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import { dbAdmin as adminDB } from "@/lib/firebase-admin";
 import { getAuth } from "firebase-admin/auth";
@@ -12,11 +11,15 @@ export async function GET(req: Request) {
     const orgId = searchParams.get("orgId");
     const format = searchParams.get("format");
     if (!orgId || !format) {
-      return NextResponse.json({ error: "Missing orgId or format" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing orgId or format" },
+        { status: 400 },
+      );
     }
 
     const authHeader = req.headers.get("authorization");
-    if (!authHeader) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!authHeader)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const token = authHeader.split(" ")[1];
     const decoded = await getAuth().verifyIdToken(token);
@@ -25,7 +28,8 @@ export async function GET(req: Request) {
     }
 
     const orgDoc = await adminDB.collection("companies").doc(orgId).get();
-    if (!orgDoc.exists) return NextResponse.json({ error: "Org not found" }, { status: 404 });
+    if (!orgDoc.exists)
+      return NextResponse.json({ error: "Org not found" }, { status: 404 });
     const orgData = orgDoc.data()!;
 
     const snap = await adminDB
@@ -44,7 +48,11 @@ export async function GET(req: Request) {
       const e = doc.data();
       if (e.event === "report_previewed") previewed++;
       if (e.event === "report_downloaded") downloaded++;
-      rows.push({ date: new Date(e.ts).toLocaleString(), event: e.event, userId: e.userId });
+      rows.push({
+        date: new Date(e.ts).toLocaleString(),
+        event: e.event,
+        userId: e.userId,
+      });
     });
 
     if (format === "pdf") {
@@ -64,7 +72,11 @@ export async function GET(req: Request) {
 
       pdf.setFontSize(12);
       pdf.text(`Plan: ${orgData.plan}`, 14, 35);
-      pdf.text(`Add-ons: ${(orgData.addons || []).join(", ") || "None"}`, 14, 45);
+      pdf.text(
+        `Add-ons: ${(orgData.addons || []).join(", ") || "None"}`,
+        14,
+        45,
+      );
       pdf.text(`Owner: ${orgData.adminEmail || "N/A"}`, 14, 55);
 
       // --- Summary KPIs ---
@@ -87,7 +99,7 @@ export async function GET(req: Request) {
           : "Insight: Downloads dominate, suggesting stakeholder-level report distribution.",
         14,
         140,
-        { maxWidth: 180 }
+        { maxWidth: 180 },
       );
 
       // --- Activity Log ---
@@ -100,7 +112,7 @@ export async function GET(req: Request) {
         pdf.text(
           `${i + 1}. ${r.date} – ${r.event} – ${r.userId || "unknown"}`,
           14,
-          40 + i * 8
+          40 + i * 8,
         );
       });
 
@@ -112,7 +124,7 @@ export async function GET(req: Request) {
         pdf.text(
           `RentFAX © ${new Date().getFullYear()} | www.rentfax.ai | support@rentfax.ai | Confidential`,
           14,
-          285
+          285,
         );
       }
 
@@ -123,8 +135,12 @@ export async function GET(req: Request) {
           "Content-Disposition": `attachment; filename=org_${orgId}_engagement.pdf`,
         },
       });
-    } else if (format === 'csv') {
-      const csv = ["Date,Event,UserID"].concat(rows.map((r) => `${r.date},${r.event},${r.userId || 'unknown'}`)).join("\n");
+    } else if (format === "csv") {
+      const csv = ["Date,Event,UserID"]
+        .concat(
+          rows.map((r) => `${r.date},${r.event},${r.userId || "unknown"}`),
+        )
+        .join("\n");
       return new NextResponse(csv, {
         headers: {
           "Content-Type": "text/csv",

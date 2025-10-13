@@ -97,10 +97,15 @@ export default function ClientReportsPage() {
               <div className="flex gap-3 mt-4">
                 <button
                   onClick={async () => {
-                    const token = await window.firebase.auth().currentUser.getIdToken();
-                    const res = await fetch(`/api/client/reports/download?id=${r.id}`, {
-                      headers: { Authorization: `Bearer ${token}` },
-                    });
+                    const token = await window.firebase
+                      .auth()
+                      .currentUser.getIdToken();
+                    const res = await fetch(
+                      `/api/client/reports/download?id=${r.id}`,
+                      {
+                        headers: { Authorization: `Bearer ${token}` },
+                      },
+                    );
                     const data = await res.json();
                     if (data.url) {
                       await logEvent("report_previewed", r.id);
@@ -116,10 +121,15 @@ export default function ClientReportsPage() {
 
                 <button
                   onClick={async () => {
-                    const token = await window.firebase.auth().currentUser.getIdToken();
-                    const res = await fetch(`/api/client/reports/download?id=${r.id}`, {
-                      headers: { Authorization: `Bearer ${token}` },
-                    });
+                    const token = await window.firebase
+                      .auth()
+                      .currentUser.getIdToken();
+                    const res = await fetch(
+                      `/api/client/reports/download?id=${r.id}`,
+                      {
+                        headers: { Authorization: `Bearer ${token}` },
+                      },
+                    );
                     const data = await res.json();
                     if (data.url) {
                       await logEvent("report_downloaded", r.id);

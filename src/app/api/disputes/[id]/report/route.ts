@@ -1,4 +1,3 @@
-
 import { dbAdmin } from "@/lib/firebase-admin";
 import { generateDisputePDF } from "@/lib/pdf-report";
 import { NextResponse } from "next/server";
@@ -6,7 +5,8 @@ import { NextResponse } from "next/server";
 export async function GET(_: Request, { params }: { params: { id: string } }) {
   try {
     const doc = await dbAdmin.collection("disputes").doc(params.id).get();
-    if (!doc.exists) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (!doc.exists)
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     const dispute = { id: doc.id, ...doc.data() };
     const pdfBytes = await generateDisputePDF(dispute);

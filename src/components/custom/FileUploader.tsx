@@ -1,7 +1,6 @@
+"use client";
 
-'use client';
-
-import { useState } from 'react';
+import { useState } from "react";
 
 interface FileUploaderProps {
   onUploadComplete: (urls: string[]) => void;
@@ -14,8 +13,10 @@ export function FileUploader({ onUploadComplete }: FileUploaderProps) {
     if (e.target.files) {
       setIsUploading(true);
       // Simulate file upload
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const uploadedUrls = Array.from(e.target.files).map(file => URL.createObjectURL(file));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const uploadedUrls = Array.from(e.target.files).map((file) =>
+        URL.createObjectURL(file),
+      );
       onUploadComplete(uploadedUrls);
       setIsUploading(false);
     }

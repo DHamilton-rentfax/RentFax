@@ -12,8 +12,13 @@ export async function GET(req: NextRequest) {
   try {
     requireApiKey(req);
     const orgId = req.nextUrl.searchParams.get("orgId")!;
-    const renters = await adminDB.collection(`orgs/${orgId}/renters`).limit(50).get();
-    return NextResponse.json(renters.docs.map(d => ({ id: d.id, ...d.data() })));
+    const renters = await adminDB
+      .collection(`orgs/${orgId}/renters`)
+      .limit(50)
+      .get();
+    return NextResponse.json(
+      renters.docs.map((d) => ({ id: d.id, ...d.data() })),
+    );
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 401 });
   }

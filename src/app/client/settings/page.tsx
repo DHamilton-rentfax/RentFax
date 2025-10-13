@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState } from "react";
 
@@ -17,13 +17,20 @@ export default function ClientSettingsPage() {
     <div>
       <h1 className="text-2xl font-bold mb-4">Settings</h1>
       <label className="block mb-2">Digest Frequency</label>
-      <select value={digest} onChange={e => setDigest(e.target.value)} className="border p-2 rounded">
+      <select
+        value={digest}
+        onChange={(e) => setDigest(e.target.value)}
+        className="border p-2 rounded"
+      >
         <option value="weekly">Weekly</option>
         <option value="monthly">Monthly</option>
         <option value="none">None</option>
       </select>
       <div className="mt-4">
-        <button onClick={save} className="bg-green-600 text-white px-4 py-2 rounded">
+        <button
+          onClick={save}
+          className="bg-green-600 text-white px-4 py-2 rounded"
+        >
           Save
         </button>
       </div>

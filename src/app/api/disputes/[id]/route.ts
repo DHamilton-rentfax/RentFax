@@ -9,7 +9,10 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
       .orderBy("createdAt", "desc")
       .get();
 
-    const disputes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const disputes = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
     return NextResponse.json({ disputes });
   } catch (err: any) {
     console.error("Error fetching disputes:", err);

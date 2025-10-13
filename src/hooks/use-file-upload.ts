@@ -18,7 +18,7 @@ export const useFileUpload = () => {
         async () => {
           const url = await getDownloadURL(task.snapshot.ref);
           resolve(url);
-        }
+        },
       );
     });
   };

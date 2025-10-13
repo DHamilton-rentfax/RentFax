@@ -23,14 +23,22 @@ export default function DemoCompanyPage() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       <h1 className="text-3xl font-bold">🏢 Company Demo Dashboard</h1>
-      <p className="text-gray-600">This is a sample landlord/property manager view.</p>
+      <p className="text-gray-600">
+        This is a sample landlord/property manager view.
+      </p>
 
       <h2 className="text-xl font-semibold mt-6">Uploaded Renters</h2>
       {renters.map((r) => (
         <div key={r.id} className="p-4 border rounded bg-gray-50">
-          <p><strong>ID:</strong> {r.id}</p>
-          <p><strong>Email:</strong> {r.email}</p>
-          <p><strong>Fraud Risk:</strong> {r.alert ? "⚠️ High" : "✅ Clean"}</p>
+          <p>
+            <strong>ID:</strong> {r.id}
+          </p>
+          <p>
+            <strong>Email:</strong> {r.email}
+          </p>
+          <p>
+            <strong>Fraud Risk:</strong> {r.alert ? "⚠️ High" : "✅ Clean"}
+          </p>
         </div>
       ))}
 

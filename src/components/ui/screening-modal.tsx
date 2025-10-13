@@ -54,7 +54,7 @@ export function ScreeningModal({
                 className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#E6B422] outline-none"
                 required
               />
-            )
+            ),
           )}
           <button
             type="submit"

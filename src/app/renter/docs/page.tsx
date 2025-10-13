@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -14,12 +13,16 @@ export default function RenterDocsPage() {
 
   useEffect(() => {
     if (!token) return;
-    fetch(`/api/renter/docs?token=${token}`).then(r => r.json()).then(setDocs);
+    fetch(`/api/renter/docs?token=${token}`)
+      .then((r) => r.json())
+      .then(setDocs);
   }, [token]);
 
   async function viewDoc(docId: string) {
     if (!token) return;
-    const res = await fetch(`/api/renter/docs/${docId}/download?token=${token}`);
+    const res = await fetch(
+      `/api/renter/docs/${docId}/download?token=${token}`,
+    );
     const data = await res.json();
     if (data.url) window.open(data.url, "_blank");
   }
@@ -28,10 +31,15 @@ export default function RenterDocsPage() {
     <div>
       <h1 className="text-2xl font-bold mb-4">Shared Documents</h1>
       <div className="space-y-3">
-        {docs.map(d => (
-          <div key={d.id} className="border p-3 rounded bg-white flex justify-between">
+        {docs.map((d) => (
+          <div
+            key={d.id}
+            className="border p-3 rounded bg-white flex justify-between"
+          >
             <div>
-              <p><b>{d.name}</b> ({d.category})</p>
+              <p>
+                <b>{d.name}</b> ({d.category})
+              </p>
             </div>
             <button
               onClick={() => viewDoc(d.id)}

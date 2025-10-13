@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import { db } from "@/firebase/server";
 import { collection, addDoc, doc, updateDoc, getDoc } from "firebase/firestore";
@@ -23,13 +22,19 @@ export async function POST(req: Request) {
   try {
     const partner = await validatePartner(req);
     if (!partner)
-      return NextResponse.json({ error: "Invalid partner key" }, { status: 403 });
+      return NextResponse.json(
+        { error: "Invalid partner key" },
+        { status: 403 },
+      );
 
     const body = await req.json();
     const { renterId, outcome, amount, notes } = body;
 
     if (!renterId || !outcome)
-      return NextResponse.json({ error: "Missing renterId or outcome" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing renterId or outcome" },
+        { status: 400 },
+      );
 
     // 1️⃣ record partner submission
     const record = await addDoc(collection(db, "partnerCases"), {

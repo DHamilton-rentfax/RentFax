@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -15,7 +14,9 @@ export default function RenterMessagesPage() {
 
   useEffect(() => {
     if (!token) return;
-    fetch(`/api/renter/messages?token=${token}`).then(r => r.json()).then(setMessages);
+    fetch(`/api/renter/messages?token=${token}`)
+      .then((r) => r.json())
+      .then(setMessages);
   }, [token]);
 
   async function send() {
@@ -24,7 +25,9 @@ export default function RenterMessagesPage() {
       method: "POST",
       body: JSON.stringify({ token, text }),
     });
-    const updated = await fetch(`/api/renter/messages?token=${token}`).then(r => r.json());
+    const updated = await fetch(`/api/renter/messages?token=${token}`).then(
+      (r) => r.json(),
+    );
     setMessages(updated);
     setText("");
   }
@@ -33,21 +36,28 @@ export default function RenterMessagesPage() {
     <div>
       <h1 className="text-2xl font-bold mb-4">Messages</h1>
       <div className="space-y-2 mb-4">
-        {messages.map(m => (
+        {messages.map((m) => (
           <div key={m.id} className="p-2 border rounded bg-white">
-            <p><b>{m.from}</b>: {m.text}</p>
-            <p className="text-xs text-gray-500">{new Date(m.createdAt).toLocaleTimeString()}</p>
+            <p>
+              <b>{m.from}</b>: {m.text}
+            </p>
+            <p className="text-xs text-gray-500">
+              {new Date(m.createdAt).toLocaleTimeString()}
+            </p>
           </div>
         ))}
       </div>
       <div className="flex gap-2">
         <input
           value={text}
-          onChange={e => setText(e.target.value)}
+          onChange={(e) => setText(e.target.value)}
           placeholder="Write a message"
           className="border p-2 rounded flex-1"
         />
-        <button onClick={send} className="bg-blue-600 text-white px-4 py-2 rounded">
+        <button
+          onClick={send}
+          className="bg-blue-600 text-white px-4 py-2 rounded"
+        >
           Send
         </button>
       </div>

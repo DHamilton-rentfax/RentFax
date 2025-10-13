@@ -1,21 +1,21 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { writeBatch, doc } from 'firebase/firestore';
-import Link from 'next/link';
-import { useNotifications } from '@/hooks/use-notifications';
-import { db } from '@/firebase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from "react";
+import { writeBatch, doc } from "firebase/firestore";
+import Link from "next/link";
+import { useNotifications } from "@/hooks/use-notifications";
+import { db } from "@/firebase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function NotificationsPage() {
   const { notifications, loading, markAsRead } = useNotifications();
-  const [filter, setFilter] = useState('ALL');
+  const [filter, setFilter] = useState("ALL");
 
   async function markAllAsRead() {
     const batch = writeBatch(db);
     notifications.forEach((n) => {
       if (!n.read) {
-        const notifRef = doc(db, 'notifications', n.id);
+        const notifRef = doc(db, "notifications", n.id);
         batch.update(notifRef, { read: true });
       }
     });
@@ -23,33 +23,41 @@ export default function NotificationsPage() {
   }
 
   function exportCSV() {
-    const headers = ['ID', 'Message', 'Type', 'Priority', 'Read', 'Link', 'Created At'];
+    const headers = [
+      "ID",
+      "Message",
+      "Type",
+      "Priority",
+      "Read",
+      "Link",
+      "Created At",
+    ];
     const rows = filtered.map((n) => [
       n.id,
       `"${n.message.replace(/"/g, '""')}"`,
       n.type,
-      n.priority || 'normal',
-      n.read ? 'Yes' : 'No',
-      n.link || '',
+      n.priority || "normal",
+      n.read ? "Yes" : "No",
+      n.link || "",
       new Date(n.createdAt).toISOString(),
     ]);
-    const csv = [headers, ...rows].map((row) => row.join(',')).join('\n');
+    const csv = [headers, ...rows].map((row) => row.join(",")).join("\n");
 
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = 'notifications.csv';
+    a.download = "notifications.csv";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
   }
 
   const filtered = notifications.filter((n) => {
-    if (filter === 'ALL') return true;
-    if (filter === 'PRIORITY_HIGH') return n.priority === 'high';
-    if (filter === 'PRIORITY_NORMAL') return n.priority === 'normal';
-    if (filter === 'PRIORITY_LOW') return n.priority === 'low';
+    if (filter === "ALL") return true;
+    if (filter === "PRIORITY_HIGH") return n.priority === "high";
+    if (filter === "PRIORITY_NORMAL") return n.priority === "normal";
+    if (filter === "PRIORITY_LOW") return n.priority === "low";
     return n.type === filter;
   });
 
@@ -74,17 +82,23 @@ export default function NotificationsPage() {
           <optgroup label="By Type">
             {notificationTypes.map((type) => (
               <option key={type} value={type}>
-                {type.replace(/_/g, ' ').toLowerCase()}
+                {type.replace(/_/g, " ").toLowerCase()}
               </option>
             ))}
           </optgroup>
         </select>
 
         <div className="space-x-2">
-          <button onClick={markAllAsRead} className="... rounded-md text-sm font-medium">
+          <button
+            onClick={markAllAsRead}
+            className="... rounded-md text-sm font-medium"
+          >
             Mark All Read
           </button>
-          <button onClick={exportCSV} className="... rounded-md text-sm font-medium">
+          <button
+            onClick={exportCSV}
+            className="... rounded-md text-sm font-medium"
+          >
             Export CSV
           </button>
         </div>
@@ -98,21 +112,34 @@ export default function NotificationsPage() {
           {loading ? (
             <p className="text-gray-500 text-center py-10">Loading...</p>
           ) : filtered.length === 0 ? (
-            <p className="text-gray-500 text-center py-10">No notifications found.</p>
+            <p className="text-gray-500 text-center py-10">
+              No notifications found.
+            </p>
           ) : (
             <ul className="divide-y divide-gray-200">
               {filtered.map((n) => (
-                <li key={n.id} className={`... p-4 transition-colors ${
-                    n.read ? 'bg-gray-50 text-gray-500' : 'font-semibold bg-white'
-                  }`}>
-                  <Link href={n.link || '#'} className="flex-grow pr-4">
+                <li
+                  key={n.id}
+                  className={`... p-4 transition-colors ${
+                    n.read
+                      ? "bg-gray-50 text-gray-500"
+                      : "font-semibold bg-white"
+                  }`}
+                >
+                  <Link href={n.link || "#"} className="flex-grow pr-4">
                     <p>{n.message}</p>
-                    <p className={`text-xs ${n.read ? 'text-gray-400' : 'text-gray-500'} font-normal`}>
-                      {new Date(n.createdAt).toLocaleString()} - Priority: {n.priority || 'normal'}
+                    <p
+                      className={`text-xs ${n.read ? "text-gray-400" : "text-gray-500"} font-normal`}
+                    >
+                      {new Date(n.createdAt).toLocaleString()} - Priority:{" "}
+                      {n.priority || "normal"}
                     </p>
                   </Link>
                   {!n.read && (
-                    <button onClick={() => markAsRead(n.id)} className="... rounded-full whitespace-nowrap">
+                    <button
+                      onClick={() => markAsRead(n.id)}
+                      className="... rounded-full whitespace-nowrap"
+                    >
                       Mark Read
                     </button>
                   )}

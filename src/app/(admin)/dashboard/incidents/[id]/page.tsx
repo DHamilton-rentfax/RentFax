@@ -1,12 +1,11 @@
+"use client";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase-client";
+import { useAuth } from "@/hooks/use-auth";
 
-'use client';
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { useAuth } from '@/hooks/use-auth';
-
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -14,14 +13,14 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, User, Car, DollarSign, CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
-import FeatureGate from '@/components/feature-gate';
-import IncidentAssistPanel from '@/components/incident-assist-panel';
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
+import { ArrowLeft, User, Car, DollarSign, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import FeatureGate from "@/components/feature-gate";
+import IncidentAssistPanel from "@/components/incident-assist-panel";
 
 export default function IncidentDetailPage() {
   const params = useParams();
@@ -34,12 +33,16 @@ export default function IncidentDetailPage() {
 
   useEffect(() => {
     if (!id) return;
-    const unsub = onSnapshot(doc(db, 'incidents', id), (doc) => {
+    const unsub = onSnapshot(doc(db, "incidents", id), (doc) => {
       if (doc.exists()) {
         setIncident({ id: doc.id, ...doc.data() });
       } else {
-        toast({ title: 'Error', description: 'Incident not found.', variant: 'destructive' });
-        router.push('/dashboard/incidents');
+        toast({
+          title: "Error",
+          description: "Incident not found.",
+          variant: "destructive",
+        });
+        router.push("/dashboard/incidents");
       }
       setLoading(false);
     });
@@ -61,7 +64,7 @@ export default function IncidentDetailPage() {
   if (!incident) {
     return null;
   }
-  
+
   return (
     <div className="p-4 md:p-10">
       <Button variant="outline" onClick={() => router.back()} className="mb-4">
@@ -72,37 +75,57 @@ export default function IncidentDetailPage() {
         <div className="md:col-span-1 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="capitalize">{incident.type} Incident</CardTitle>
+              <CardTitle className="capitalize">
+                {incident.type} Incident
+              </CardTitle>
               <CardDescription>ID: {incident.id}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <p className="text-sm font-medium">Severity</p>
-                <Badge variant={incident.severity === 'severe' ? 'destructive' : 'secondary'}>{incident.severity}</Badge>
+                <Badge
+                  variant={
+                    incident.severity === "severe" ? "destructive" : "secondary"
+                  }
+                >
+                  {incident.severity}
+                </Badge>
               </div>
               <div>
-                <p className="text-sm font-medium flex items-center gap-2"><CalendarIcon className="w-4 h-4" /> Date</p>
-                <p className="text-muted-foreground">
-                  {format(incident.createdAt.toDate(), 'PPP')}
+                <p className="text-sm font-medium flex items-center gap-2">
+                  <CalendarIcon className="w-4 h-4" /> Date
                 </p>
-              </div>
-               <div>
-                <p className="text-sm font-medium flex items-center gap-2"><DollarSign className="w-4 h-4" /> Amount</p>
                 <p className="text-muted-foreground">
-                  ${incident.amount || 0}
+                  {format(incident.createdAt.toDate(), "PPP")}
                 </p>
               </div>
               <div>
-                <p className="text-sm font-medium flex items-center gap-2"><User className="w-4 h-4" /> Renter ID</p>
-                <p className="text-muted-foreground font-mono text-xs">{incident.renterId}</p>
+                <p className="text-sm font-medium flex items-center gap-2">
+                  <DollarSign className="w-4 h-4" /> Amount
+                </p>
+                <p className="text-muted-foreground">${incident.amount || 0}</p>
               </div>
-               <div>
-                <p className="text-sm font-medium flex items-center gap-2"><Car className="w-4 h-4" /> Rental ID</p>
-                <p className="text-muted-foreground font-mono text-xs">{incident.rentalId || 'N/A'}</p>
+              <div>
+                <p className="text-sm font-medium flex items-center gap-2">
+                  <User className="w-4 h-4" /> Renter ID
+                </p>
+                <p className="text-muted-foreground font-mono text-xs">
+                  {incident.renterId}
+                </p>
               </div>
-               <div>
+              <div>
+                <p className="text-sm font-medium flex items-center gap-2">
+                  <Car className="w-4 h-4" /> Rental ID
+                </p>
+                <p className="text-muted-foreground font-mono text-xs">
+                  {incident.rentalId || "N/A"}
+                </p>
+              </div>
+              <div>
                 <p className="text-sm font-medium">Notes</p>
-                <p className="text-muted-foreground text-sm">{incident.notes || 'No notes provided.'}</p>
+                <p className="text-muted-foreground text-sm">
+                  {incident.notes || "No notes provided."}
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -110,9 +133,9 @@ export default function IncidentDetailPage() {
 
         {/* Right Column - AI Assist */}
         <div className="md:col-span-2">
-            <FeatureGate name="ai_assistant">
-                <IncidentAssistPanel incidentId={id} />
-            </FeatureGate>
+          <FeatureGate name="ai_assistant">
+            <IncidentAssistPanel incidentId={id} />
+          </FeatureGate>
         </div>
       </div>
     </div>

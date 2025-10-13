@@ -20,7 +20,10 @@ export default async function sitemap() {
   // Dynamic blog posts
   let blogRoutes: { url: string; lastModified: Date }[] = [];
   try {
-    const snap = await adminDB.collection("blogs").where("published", "==", true).get();
+    const snap = await adminDB
+      .collection("blogs")
+      .where("published", "==", true)
+      .get();
     blogRoutes = snap.docs.map((doc) => ({
       url: `${baseUrl}/blog/${doc.data().slug || doc.id}`,
       lastModified: doc.data().createdAt?.toDate() || new Date(),

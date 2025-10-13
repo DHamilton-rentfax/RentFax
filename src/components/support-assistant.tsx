@@ -1,18 +1,24 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Send, Lightbulb } from 'lucide-react';
-import { getSupport } from '@/app/support/actions';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2, Send, Lightbulb } from "lucide-react";
+import { getSupport } from "@/app/support/actions";
 
 const formSchema = z.object({
-  query: z.string().min(10, 'Please enter a query of at least 10 characters.'),
+  query: z.string().min(10, "Please enter a query of at least 10 characters."),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -24,7 +30,7 @@ export default function SupportAssistant() {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { query: '' },
+    defaultValues: { query: "" },
   });
 
   const onSubmit = async (data: FormValues) => {
@@ -35,7 +41,7 @@ export default function SupportAssistant() {
       const response = await getSupport({ query: data.query });
       setAiResponse(response.relevantResource);
     } catch (e) {
-      setError('An error occurred. Please try again.');
+      setError("An error occurred. Please try again.");
       console.error(e);
     } finally {
       setIsLoading(false);
@@ -52,7 +58,10 @@ export default function SupportAssistant() {
             render={({ field }) => (
               <FormItem className="flex-grow">
                 <FormControl>
-                  <Input placeholder="e.g., How do I check rental history?" {...field} />
+                  <Input
+                    placeholder="e.g., How do I check rental history?"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage className="mt-1" />
               </FormItem>
@@ -72,14 +81,16 @@ export default function SupportAssistant() {
         <Card className="bg-secondary">
           <CardHeader className="flex flex-row items-center gap-2 pb-2">
             <Lightbulb className="h-5 w-5 text-accent" />
-            <CardTitle className="text-lg font-headline">Suggested Resource</CardTitle>
+            <CardTitle className="text-lg font-headline">
+              Suggested Resource
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p>{aiResponse}</p>
           </CardContent>
         </Card>
       )}
-       {error && (
+      {error && (
         <Card className="bg-destructive/10 border-destructive">
           <CardHeader>
             <CardTitle className="text-destructive text-lg">Error</CardTitle>

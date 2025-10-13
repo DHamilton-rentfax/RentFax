@@ -8,7 +8,10 @@ export async function GET(req: Request) {
   const disputeId = searchParams.get("disputeId");
 
   try {
-    let q: FirebaseFirestore.Query = dbAdmin.collection("auditLogs").orderBy("timestamp", "desc").limit(limit);
+    let q: FirebaseFirestore.Query = dbAdmin
+      .collection("auditLogs")
+      .orderBy("timestamp", "desc")
+      .limit(limit);
 
     if (action) q = q.where("action", "==", action);
     if (disputeId) q = q.where("disputeId", "==", disputeId);

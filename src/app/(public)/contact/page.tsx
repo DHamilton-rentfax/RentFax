@@ -30,5 +30,5 @@ export const metadata = {
 };
 
 export default function ContactPage() {
-    return <ContactClientPage />;
+  return <ContactClientPage />;
 }

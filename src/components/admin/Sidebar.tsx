@@ -1,22 +1,62 @@
-
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Users, Building2, FileText, AlertTriangle, CreditCard, Settings, MessageSquare } from "lucide-react";
+import {
+  Bell,
+  Users,
+  Building2,
+  FileText,
+  AlertTriangle,
+  CreditCard,
+  Settings,
+  MessageSquare,
+} from "lucide-react";
 
 const navItems = [
   { href: "/admin/super-dashboard", label: "Overview", icon: FileText },
   { href: "/admin/super-dashboard/users", label: "Users & Roles", icon: Users },
-  { href: "/admin/super-dashboard/companies", label: "Companies", icon: Building2 },
-  { href: "/admin/super-dashboard/incidents", label: "Incidents", icon: AlertTriangle },
-  { href: "/admin/super-dashboard/disputes", label: "Disputes", icon: FileText },
+  {
+    href: "/admin/super-dashboard/companies",
+    label: "Companies",
+    icon: Building2,
+  },
+  {
+    href: "/admin/super-dashboard/incidents",
+    label: "Incidents",
+    icon: AlertTriangle,
+  },
+  {
+    href: "/admin/super-dashboard/disputes",
+    label: "Disputes",
+    icon: FileText,
+  },
   { href: "/admin/super-dashboard/blogs", label: "Blogs", icon: FileText },
-  { href: "/admin/super-dashboard/fraud", label: "Fraud Monitor", icon: AlertTriangle },
-  { href: "/admin/super-dashboard/billing", label: "Billing", icon: CreditCard },
-  { href: "/admin/super-dashboard/notifications", label: "Notifications", icon: Bell },
-  { href: "/admin/super-dashboard/chat", label: "Live Chat", icon: MessageSquare },
-  { href: "/admin/super-dashboard/settings", label: "Settings", icon: Settings },
+  {
+    href: "/admin/super-dashboard/fraud",
+    label: "Fraud Monitor",
+    icon: AlertTriangle,
+  },
+  {
+    href: "/admin/super-dashboard/billing",
+    label: "Billing",
+    icon: CreditCard,
+  },
+  {
+    href: "/admin/super-dashboard/notifications",
+    label: "Notifications",
+    icon: Bell,
+  },
+  {
+    href: "/admin/super-dashboard/chat",
+    label: "Live Chat",
+    icon: MessageSquare,
+  },
+  {
+    href: "/admin/super-dashboard/settings",
+    label: "Settings",
+    icon: Settings,
+  },
 ];
 
 export function Sidebar() {

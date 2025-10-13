@@ -23,15 +23,15 @@ async function sendExport(emails: string[], logs: any[]) {
   const csv = [header, ...rows].map((row) => row.join(",")).join("\n");
 
   const mailOptions = {
-    from: 'your-email@example.com',
+    from: "your-email@example.com",
     to: emails.join(", "),
-    subject: 'Scheduled Audit Log Export',
-    text: 'Attached is the scheduled audit log export.',
+    subject: "Scheduled Audit Log Export",
+    text: "Attached is the scheduled audit log export.",
     attachments: [
       {
-        filename: 'audit-logs.csv',
+        filename: "audit-logs.csv",
         content: csv,
-        contentType: 'text/csv',
+        contentType: "text/csv",
       },
     ],
   };
@@ -40,7 +40,10 @@ async function sendExport(emails: string[], logs: any[]) {
 }
 
 async function runScheduledExport(id: string, schedule: any) {
-  const snapshot = await db.collection("auditLogs").orderBy("timestamp", "desc").get();
+  const snapshot = await db
+    .collection("auditLogs")
+    .orderBy("timestamp", "desc")
+    .get();
   const logs = snapshot.docs.map((doc) => doc.data());
 
   await sendExport(schedule.emails, logs);
@@ -51,12 +54,14 @@ async function runScheduledExport(id: string, schedule: any) {
 }
 
 // Schedule existing jobs on startup
-db.collection("scheduledExports").get().then((snapshot) => {
-  snapshot.forEach((doc) => {
-    const schedule = doc.data();
-    cron.schedule(schedule.cron, () => runScheduledExport(doc.id, schedule));
+db.collection("scheduledExports")
+  .get()
+  .then((snapshot) => {
+    snapshot.forEach((doc) => {
+      const schedule = doc.data();
+      cron.schedule(schedule.cron, () => runScheduledExport(doc.id, schedule));
+    });
   });
-});
 
 export async function POST(req: Request) {
   try {
@@ -70,7 +75,10 @@ export async function POST(req: Request) {
     const { cron: cronExpression, emails } = await req.json();
 
     if (!cron.validate(cronExpression)) {
-      return NextResponse.json({ error: "Invalid cron expression" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid cron expression" },
+        { status: 400 },
+      );
     }
 
     const docRef = await db.collection("scheduledExports").add({
@@ -79,7 +87,9 @@ export async function POST(req: Request) {
       lastRun: null,
     });
 
-    cron.schedule(cronExpression, () => runScheduledExport(docRef.id, { cron: cronExpression, emails }));
+    cron.schedule(cronExpression, () =>
+      runScheduledExport(docRef.id, { cron: cronExpression, emails }),
+    );
 
     return NextResponse.json({ id: docRef.id });
   } catch (err: any) {

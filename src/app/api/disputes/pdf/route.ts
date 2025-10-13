@@ -11,7 +11,10 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Missing uid" }, { status: 400 });
   }
 
-  const q = query(collection(dbAdmin, "disputes"), where("renterId", "==", uid));
+  const q = query(
+    collection(dbAdmin, "disputes"),
+    where("renterId", "==", uid),
+  );
   const snapshot = await getDocs(q);
   const disputes = snapshot.docs.map((d) => d.data());
 
@@ -31,11 +34,26 @@ export async function GET(req: Request) {
 
   for (const d of disputes) {
     y -= 40;
-    page.drawText(`Incident ID: ${d.incidentId || "N/A"}`, { x: 50, y, size: 12, font });
+    page.drawText(`Incident ID: ${d.incidentId || "N/A"}`, {
+      x: 50,
+      y,
+      size: 12,
+      font,
+    });
     y -= 15;
-    page.drawText(`Status: ${d.status || "Open"}`, { x: 50, y, size: 12, font });
+    page.drawText(`Status: ${d.status || "Open"}`, {
+      x: 50,
+      y,
+      size: 12,
+      font,
+    });
     y -= 15;
-    page.drawText(`Description: ${d.description.slice(0, 100)}...`, { x: 50, y, size: 10, font });
+    page.drawText(`Description: ${d.description.slice(0, 100)}...`, {
+      x: 50,
+      y,
+      size: 10,
+      font,
+    });
   }
 
   const pdfBytes = await pdfDoc.save();

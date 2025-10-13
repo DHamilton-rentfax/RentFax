@@ -1,4 +1,3 @@
-
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
 import { db } from "@/firebase/server";

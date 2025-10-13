@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useAuth } from '@/hooks/use-auth';
-import { useRouter } from 'next/navigation';
-import { Skeleton } from './ui/skeleton';
+import { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
+import { Skeleton } from "./ui/skeleton";
 
 export default function Protected({
   children,
@@ -20,13 +20,13 @@ export default function Protected({
     if (loading) return; // Wait for auth state to be determined
 
     if (!user) {
-      router.replace('/login');
+      router.replace("/login");
       return;
     }
 
     const userRole = claims?.role;
     if (roles && roles.length > 0 && (!userRole || !roles.includes(userRole))) {
-      router.replace('/unauthorized');
+      router.replace("/unauthorized");
     } else {
       setIsAllowed(true);
     }

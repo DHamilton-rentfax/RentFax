@@ -1,6 +1,6 @@
-'use server';
+"use server";
 
-import { adminDB } from '@/firebase/server';
+import { adminDB } from "@/firebase/server";
 
 export async function getRenterIncidents(renterId: string) {
   if (!renterId) {
@@ -10,7 +10,7 @@ export async function getRenterIncidents(renterId: string) {
   try {
     const incidentsSnap = await adminDB
       .collection(`renters/${renterId}/incidents`)
-      .orderBy('createdAt', 'desc')
+      .orderBy("createdAt", "desc")
       .get();
 
     if (incidentsSnap.empty) {
@@ -19,7 +19,7 @@ export async function getRenterIncidents(renterId: string) {
 
     // Using a for...of loop to handle async operations inside map correctly if needed in future
     // and to ensure serializable data is returned.
-    const incidents = incidentsSnap.docs.map(doc => {
+    const incidents = incidentsSnap.docs.map((doc) => {
       const data = doc.data();
       return {
         id: doc.id,
@@ -31,7 +31,7 @@ export async function getRenterIncidents(renterId: string) {
 
     return incidents;
   } catch (error) {
-    console.error('Error fetching renter incidents:', error);
+    console.error("Error fetching renter incidents:", error);
     // Return an empty array or throw an error, depending on desired client-side handling
     return [];
   }

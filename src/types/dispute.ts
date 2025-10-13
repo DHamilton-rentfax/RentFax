@@ -1,4 +1,4 @@
-import { Incident } from './incident';
+import { Incident } from "./incident";
 
 export type Dispute = {
   id: string;
@@ -8,7 +8,7 @@ export type Dispute = {
   evidence: string[];
   createdAt: string;
   updatedAt: string;
-  status: 'PENDING' | 'UNDER_REVIEW' | 'RESOLVED' | 'REJECTED';
+  status: "PENDING" | "UNDER_REVIEW" | "RESOLVED" | "REJECTED";
   adminNote?: string;
   renter: {
     id: string;

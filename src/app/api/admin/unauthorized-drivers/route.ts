@@ -26,12 +26,13 @@ export async function PATCH(req: Request) {
   const body = await req.json();
   const { id, status, adminNote } = body;
 
-  if (!id || !status) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+  if (!id || !status)
+    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
 
   const docRef = adminDB.collection("unauthorizedDrivers").doc(id);
   const resource = await docRef.get(); // Get the doc to access its data
-  if(!resource.exists) {
-      return NextResponse.json({ error: "Report not found" }, { status: 404 });
+  if (!resource.exists) {
+    return NextResponse.json({ error: "Report not found" }, { status: 404 });
   }
 
   await docRef.update({

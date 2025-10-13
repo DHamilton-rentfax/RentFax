@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -15,10 +14,12 @@ export default function RenterHistoryPage() {
 
   useEffect(() => {
     if (!token) return;
-    fetch(`/api/renter/history?token=${token}`).then(r => r.json()).then(setIncidents);
+    fetch(`/api/renter/history?token=${token}`)
+      .then((r) => r.json())
+      .then(setIncidents);
   }, [token]);
 
-  const handleExport = (format: 'csv' | 'pdf') => {
+  const handleExport = (format: "csv" | "pdf") => {
     window.open(`/api/renter/disputes/export?format=${format}`);
   };
 
@@ -27,16 +28,20 @@ export default function RenterHistoryPage() {
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">My History</h1>
         <div className="space-x-2">
-          <Button onClick={() => handleExport('csv')}>Export as CSV</Button>
-          <Button onClick={() => handleExport('pdf')}>Export as PDF</Button>
+          <Button onClick={() => handleExport("csv")}>Export as CSV</Button>
+          <Button onClick={() => handleExport("pdf")}>Export as PDF</Button>
         </div>
       </div>
       <div className="space-y-2">
-        {incidents.map(i => (
+        {incidents.map((i) => (
           <div key={i.id} className="border p-3 rounded bg-white">
-            <p><b>{i.type}</b></p>
+            <p>
+              <b>{i.type}</b>
+            </p>
             <p>{i.notes}</p>
-            <p className="text-sm text-gray-500">On {new Date(i.createdAt).toLocaleDateString()}</p>
+            <p className="text-sm text-gray-500">
+              On {new Date(i.createdAt).toLocaleDateString()}
+            </p>
           </div>
         ))}
       </div>

@@ -1,35 +1,41 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import AnalyticsCard from '@/components/admin/AnalyticsCard'
-import LineChartComp from '@/components/admin/Charts/LineChart'
-import PieChartComp from '@/components/admin/Charts/PieChart'
-import BarChartComp from '@/components/admin/Charts/BarChart'
+import { useEffect, useState } from "react";
+import AnalyticsCard from "@/components/admin/AnalyticsCard";
+import LineChartComp from "@/components/admin/Charts/LineChart";
+import PieChartComp from "@/components/admin/Charts/PieChart";
+import BarChartComp from "@/components/admin/Charts/BarChart";
 
 export default function AdminAnalyticsPage() {
-  const [stats, setStats] = useState<any>(null)
+  const [stats, setStats] = useState<any>(null);
 
   useEffect(() => {
-    fetch('/api/admin/metrics').then(r => r.json()).then(setStats)
-  }, [])
+    fetch("/api/admin/metrics")
+      .then((r) => r.json())
+      .then(setStats);
+  }, []);
 
   const disputeTrend = [
-    { date: 'Mon', count: 4 }, { date: 'Tue', count: 6 },
-    { date: 'Wed', count: 3 }, { date: 'Thu', count: 8 }, { date: 'Fri', count: 5 },
-  ]
+    { date: "Mon", count: 4 },
+    { date: "Tue", count: 6 },
+    { date: "Wed", count: 3 },
+    { date: "Thu", count: 8 },
+    { date: "Fri", count: 5 },
+  ];
   const userRoles = [
-    { label: 'Renters', value: 120 },
-    { label: 'Companies', value: 40 },
-    { label: 'Admins', value: 8 },
-    { label: 'Super Admins', value: 1 },
-  ]
+    { label: "Renters", value: 120 },
+    { label: "Companies", value: 40 },
+    { label: "Admins", value: 8 },
+    { label: "Super Admins", value: 1 },
+  ];
   const revenueData = [
-    { label: 'Pro', revenue: 3200 },
-    { label: 'Starter', revenue: 900 },
-    { label: 'Free', revenue: 0 },
-  ]
+    { label: "Pro", revenue: 3200 },
+    { label: "Starter", revenue: 900 },
+    { label: "Free", revenue: 0 },
+  ];
 
-  if (!stats) return <p className="p-10 text-center text-gray-600">Loading metrics...</p>
+  if (!stats)
+    return <p className="p-10 text-center text-gray-600">Loading metrics...</p>;
 
   return (
     <div className="min-h-screen bg-gray-50 px-6 py-10 space-y-8">
@@ -58,5 +64,5 @@ export default function AdminAnalyticsPage() {
         </div>
       </section>
     </div>
-  )
+  );
 }

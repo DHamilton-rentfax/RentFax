@@ -1,17 +1,22 @@
-
-'use client';
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { useAuth } from '@/hooks/use-auth';
+"use client";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+} from "firebase/firestore";
+import { db } from "@/lib/firebase-client";
+import { useAuth } from "@/hooks/use-auth";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -19,10 +24,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { format } from 'date-fns';
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
 
 export default function DisputesPage() {
   const { claims } = useAuth();
@@ -33,9 +38,9 @@ export default function DisputesPage() {
     if (!claims?.companyId) return;
 
     const q = query(
-      collection(db, 'disputes'),
-      where('companyId', '==', claims.companyId),
-      orderBy('createdAt', 'desc')
+      collection(db, "disputes"),
+      where("companyId", "==", claims.companyId),
+      orderBy("createdAt", "desc"),
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -75,11 +80,21 @@ export default function DisputesPage() {
               {loading
                 ? Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
-                      <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-6 w-20" /></TableCell>
-                      <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-                      <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                      <TableCell>
+                        <Skeleton className="h-5 w-24" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-5 w-24" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-20" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-5 w-32" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-5 w-32" />
+                      </TableCell>
                     </TableRow>
                   ))
                 : disputes.map((dispute) => (
@@ -97,16 +112,20 @@ export default function DisputesPage() {
                         <Badge>{dispute.status}</Badge>
                       </TableCell>
                       <TableCell>
-                        {dispute.createdAt ? format(dispute.createdAt.toDate(), 'PPP') : 'N/A'}
+                        {dispute.createdAt
+                          ? format(dispute.createdAt.toDate(), "PPP")
+                          : "N/A"}
                       </TableCell>
                       <TableCell>
-                         {dispute.slaDueAt ? format(dispute.slaDueAt.toDate(), 'PPP') : 'N/A'}
+                        {dispute.slaDueAt
+                          ? format(dispute.slaDueAt.toDate(), "PPP")
+                          : "N/A"}
                       </TableCell>
                     </TableRow>
                   ))}
             </TableBody>
           </Table>
-           {!loading && disputes.length === 0 && (
+          {!loading && disputes.length === 0 && (
             <div className="text-center p-8 text-muted-foreground">
               No disputes found.
             </div>

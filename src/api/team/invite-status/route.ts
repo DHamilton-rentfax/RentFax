@@ -8,7 +8,11 @@ export async function POST(req: Request) {
     const token = req.headers.get("authorization")?.split(" ")[1];
     const decoded = await getAuth().verifyIdToken(token!);
 
-    const inviteRef = adminDB.collection("orgs").doc(orgId).collection("invites").doc(inviteId);
+    const inviteRef = adminDB
+      .collection("orgs")
+      .doc(orgId)
+      .collection("invites")
+      .doc(inviteId);
     const inviteDoc = await inviteRef.get();
 
     if (!inviteDoc.exists) {

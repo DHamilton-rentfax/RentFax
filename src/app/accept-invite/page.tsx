@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -14,8 +13,8 @@ export default function AcceptInvitePage() {
       body: JSON.stringify({
         inviteId,
         userId: "authedUser123", // replace with real UID from useAuth
-        email: "authedEmail@test.com"
-      })
+        email: "authedEmail@test.com",
+      }),
     });
     const data = await res.json();
     setLoading(false);

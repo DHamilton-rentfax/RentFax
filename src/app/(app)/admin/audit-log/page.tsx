@@ -14,7 +14,7 @@ export default function AuditLogPage() {
       try {
         const res = await fetch(url);
         if (!res.ok) {
-          throw new Error('Failed to fetch audit logs');
+          throw new Error("Failed to fetch audit logs");
         }
         const data = await res.json();
         setLogs(data.logs || []);
@@ -31,15 +31,16 @@ export default function AuditLogPage() {
   const exportCSV = () => {
     const csv = [
       ["Action", "Actor", "Details", "Timestamp", "Dispute ID"].join(","),
-      ...logs.map(
-        (l) =>
-          [
-            l.action,
-            l.actor,
-            `"${l.details}"`,
-            l.timestamp ? new Date(l.timestamp._seconds * 1000).toISOString() : '',
-            l.disputeId,
-          ].join(",")
+      ...logs.map((l) =>
+        [
+          l.action,
+          l.actor,
+          `"${l.details}"`,
+          l.timestamp
+            ? new Date(l.timestamp._seconds * 1000).toISOString()
+            : "",
+          l.disputeId,
+        ].join(","),
       ),
     ].join("\n");
 
@@ -59,7 +60,7 @@ export default function AuditLogPage() {
       !search ||
       (l.details && l.details.toLowerCase().includes(search.toLowerCase())) ||
       (l.action && l.action.toLowerCase().includes(search.toLowerCase())) ||
-      (l.actor && l.actor.toLowerCase().includes(search.toLowerCase()))
+      (l.actor && l.actor.toLowerCase().includes(search.toLowerCase())),
   );
 
   return (
@@ -110,7 +111,9 @@ export default function AuditLogPage() {
             {filtered.map((log) => (
               <tr key={log.id} className="border-t hover:bg-gray-50">
                 <td className="px-4 py-2">
-                  {log.timestamp ? new Date(log.timestamp._seconds * 1000).toLocaleString() : ''}
+                  {log.timestamp
+                    ? new Date(log.timestamp._seconds * 1000).toLocaleString()
+                    : ""}
                 </td>
                 <td className="px-4 py-2">{log.action}</td>
                 <td className="px-4 py-2">{log.actor}</td>

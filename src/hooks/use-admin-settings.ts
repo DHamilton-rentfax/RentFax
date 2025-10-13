@@ -25,7 +25,7 @@ export function useAdminSettings() {
         setSettings({
           ...data,
           lastUpdated: data.lastUpdated
-            ? (data.lastUpdated as any).toDate?.() ?? new Date()
+            ? ((data.lastUpdated as any).toDate?.() ?? new Date())
             : new Date(),
         });
       }

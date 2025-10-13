@@ -1,17 +1,19 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { getCompanySettings } from '@/app/auth/actions';
-import { AlertTriangle } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
+import { useEffect, useState } from "react";
+import { getCompanySettings } from "@/app/auth/actions";
+import { AlertTriangle } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function BannerMessage() {
-  const [msg, setMsg] = useState('');
+  const [msg, setMsg] = useState("");
   const { claims } = useAuth();
 
   useEffect(() => {
     if (claims?.companyId) {
-        getCompanySettings().then(settings => setMsg(settings?.bannerMessage || ''));
+      getCompanySettings().then((settings) =>
+        setMsg(settings?.bannerMessage || ""),
+      );
     }
   }, [claims]);
 

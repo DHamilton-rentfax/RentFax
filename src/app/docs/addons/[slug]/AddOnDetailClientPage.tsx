@@ -87,7 +87,9 @@ export default function AddOnDetailClientPage({
               >
                 <ArrowLeft className="w-4 h-4" /> {prevAddon.name}
               </Link>
-            ) : <div />}
+            ) : (
+              <div />
+            )}
 
             {nextAddon && (
               <Link
@@ -115,7 +117,7 @@ export default function AddOnDetailClientPage({
           </section>
         </div>
       </div>
-      
+
       <MobileCta addon={addon} />
     </motion.div>
   );

@@ -7,7 +7,8 @@ import { jsPDF } from "jspdf";
 export async function POST(req: Request) {
   try {
     const authHeader = req.headers.get("authorization");
-    if (!authHeader) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!authHeader)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const token = authHeader.split(" ")[1];
     const decoded = await getAuth().verifyIdToken(token);
@@ -39,13 +40,21 @@ export async function POST(req: Request) {
     pdf.text("RentFAX Ad-Hoc Investor Report", 14, 20);
 
     pdf.setFontSize(12);
-    pdf.text(`Period: ${startDate.toLocaleDateString()} - ${new Date().toLocaleDateString()}`, 14, 35);
+    pdf.text(
+      `Period: ${startDate.toLocaleDateString()} - ${new Date().toLocaleDateString()}`,
+      14,
+      35,
+    );
     pdf.text(`Total Revenue: $${totalRevenue.toFixed(2)}`, 14, 45);
     pdf.text(`Events Logged: ${eventsSnap.size}`, 14, 55);
 
     eventsSnap.docs.slice(0, 15).forEach((doc, i) => {
       const e = doc.data();
-      pdf.text(`${i + 1}. ${e.event} (${new Date(e.ts).toLocaleDateString()})`, 14, 70 + i * 8);
+      pdf.text(
+        `${i + 1}. ${e.event} (${new Date(e.ts).toLocaleDateString()})`,
+        14,
+        70 + i * 8,
+      );
     });
 
     const pdfBuffer = pdf.output("arraybuffer");

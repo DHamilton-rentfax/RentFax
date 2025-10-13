@@ -1,5 +1,4 @@
-
-'use client';
+"use client";
 import { useEffect, useState } from "react";
 import { db } from "@/firebase/client";
 import { doc, getDoc } from "firebase/firestore";
@@ -35,7 +34,11 @@ export default function RenterProfile({ params }: { params: { id: string } }) {
         <p>Email: {renter.email}</p>
         <h2 className="mt-4 text-lg font-semibold">Fraud Signals</h2>
         <ul>
-          {signals.length === 0 ? <li>None</li> : signals.map((s, i) => <li key={i}>{s}</li>)}
+          {signals.length === 0 ? (
+            <li>None</li>
+          ) : (
+            signals.map((s, i) => <li key={i}>{s}</li>)
+          )}
         </ul>
       </div>
     </div>

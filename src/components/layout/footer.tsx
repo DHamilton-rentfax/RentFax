@@ -1,31 +1,31 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { Building2 } from 'lucide-react';
-import ChatNowButton from './ChatNowButton';
+import Link from "next/link";
+import { Building2 } from "lucide-react";
+import ChatNowButton from "./ChatNowButton";
 
 const footerLinks = {
   product: [
-    { name: 'Pricing', href: '/pricing' },
-    { name: 'How it Works', href: '/how-it-works' },
-    { name: 'Success Stories', href: '/success-stories' },
-    { name: 'Disputes', href: '/renter/disputes' },
+    { name: "Pricing", href: "/pricing" },
+    { name: "How it Works", href: "/how-it-works" },
+    { name: "Success Stories", href: "/success-stories" },
+    { name: "Disputes", href: "/renter/disputes" },
   ],
   company: [
-    { name: 'About', href: '/about' },
-    { name: 'Careers', href: '/careers' },
-    { name: 'Blog', href: '/blog' },
-    { name: 'Contact', href: '/contact' },
+    { name: "About", href: "/about" },
+    { name: "Careers", href: "/careers" },
+    { name: "Blog", href: "/blog" },
+    { name: "Contact", href: "/contact" },
   ],
   resources: [
-    { name: 'Docs', href: '/docs' },
-    { name: 'Help Center', href: '/help' },
-    { name: 'Rules', href: '/rules' },
-    { name: 'Security', href: '/legal/security' },
+    { name: "Docs", href: "/docs" },
+    { name: "Help Center", href: "/help" },
+    { name: "Rules", href: "/rules" },
+    { name: "Security", href: "/legal/security" },
   ],
   legal: [
-    { name: 'Terms of Service', href: '/terms' },
-    { name: 'Privacy Policy', href: '/privacy' },
+    { name: "Terms of Service", href: "/terms" },
+    { name: "Privacy Policy", href: "/privacy" },
   ],
 };
 
@@ -38,7 +38,9 @@ export default function Footer() {
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
               <Building2 className="h-6 w-6 text-primary" />
-              <span className="font-headline text-xl font-bold text-black">RentFAX</span>
+              <span className="font-headline text-xl font-bold text-black">
+                RentFAX
+              </span>
             </div>
             <p className="text-sm text-gray-600">
               Smarter Risk. Safer Rentals.
@@ -49,9 +51,12 @@ export default function Footer() {
           <div>
             <h3 className="font-semibold mb-3 text-black">Product</h3>
             <ul className="space-y-2">
-              {footerLinks.product.map(link => (
+              {footerLinks.product.map((link) => (
                 <li key={link.name}>
-                  <Link href={link.href} className="text-sm text-gray-600 hover:text-black">
+                  <Link
+                    href={link.href}
+                    className="text-sm text-gray-600 hover:text-black"
+                  >
                     {link.name}
                   </Link>
                 </li>
@@ -61,9 +66,12 @@ export default function Footer() {
           <div>
             <h3 className="font-semibold mb-3 text-black">Company</h3>
             <ul className="space-y-2">
-              {footerLinks.company.map(link => (
+              {footerLinks.company.map((link) => (
                 <li key={link.name}>
-                  <Link href={link.href} className="text-sm text-gray-600 hover:text-black">
+                  <Link
+                    href={link.href}
+                    className="text-sm text-gray-600 hover:text-black"
+                  >
                     {link.name}
                   </Link>
                 </li>
@@ -73,9 +81,12 @@ export default function Footer() {
           <div>
             <h3 className="font-semibold mb-3 text-black">Resources</h3>
             <ul className="space-y-2">
-              {footerLinks.resources.map(link => (
+              {footerLinks.resources.map((link) => (
                 <li key={link.name}>
-                  <Link href={link.href} className="text-sm text-gray-600 hover:text-black">
+                  <Link
+                    href={link.href}
+                    className="text-sm text-gray-600 hover:text-black"
+                  >
                     {link.name}
                   </Link>
                 </li>
@@ -85,9 +96,12 @@ export default function Footer() {
           <div>
             <h3 className="font-semibold mb-3 text-black">Legal</h3>
             <ul className="space-y-2">
-              {footerLinks.legal.map(link => (
+              {footerLinks.legal.map((link) => (
                 <li key={link.name}>
-                  <Link href={link.href} className="text-sm text-gray-600 hover:text-black">
+                  <Link
+                    href={link.href}
+                    className="text-sm text-gray-600 hover:text-black"
+                  >
                     {link.name}
                   </Link>
                 </li>
@@ -98,7 +112,7 @@ export default function Footer() {
 
         {/* Bottom bar */}
         <div className="mt-8 pt-6 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
-           <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600">
             &copy; {new Date().getFullYear()} RentFAX, Inc. All rights reserved.
           </p>
           <ChatNowButton />

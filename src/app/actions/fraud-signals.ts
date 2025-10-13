@@ -1,12 +1,12 @@
-'use server';
+"use server";
 
-import { adminDB } from '@/firebase/server';
-import { FieldValue } from 'firebase-admin/firestore';
+import { adminDB } from "@/firebase/server";
+import { FieldValue } from "firebase-admin/firestore";
 
 const disposableEmailProviders = [
-  'mailinator.com',
-  'temp-mail.org',
-  '10minutemail.com',
+  "mailinator.com",
+  "temp-mail.org",
+  "10minutemail.com",
 ];
 
 // Helper to find documents with the same field value
@@ -19,7 +19,7 @@ async function findDuplicates(
   if (!value) return [];
   const snapshot = await adminDB
     .collection(collectionName)
-    .where(field, '==', value)
+    .where(field, "==", value)
     .get();
   return snapshot.docs
     .filter((doc) => doc.id !== excludeId)
@@ -42,7 +42,7 @@ async function updateFraudSummary(renterId: string, signals: any[]) {
     score,
     alert,
     signals,
-    status: 'unreviewed', // Default status
+    status: "unreviewed", // Default status
     updatedAt: FieldValue.serverTimestamp(),
   };
 
@@ -56,7 +56,7 @@ async function updateFraudSummary(renterId: string, signals: any[]) {
 
 export async function getFraudSignals(uid: string) {
   if (!uid) {
-    throw new Error('User ID is required');
+    throw new Error("User ID is required");
   }
 
   // Assuming 'users' collection holds renter data for fraud checking
@@ -64,7 +64,7 @@ export async function getFraudSignals(uid: string) {
   const userData = userDoc.data();
 
   if (!userData) {
-    return { error: 'User not found' };
+    return { error: "User not found" };
   }
 
   const signals = [];
@@ -72,40 +72,52 @@ export async function getFraudSignals(uid: string) {
   // 1. Disposable Email Check
   if (
     userData.email &&
-    disposableEmailProviders.some((provider) => userData.email.endsWith(provider))
+    disposableEmailProviders.some((provider) =>
+      userData.email.endsWith(provider),
+    )
   ) {
     signals.push({
-      type: 'disposable_email',
+      type: "disposable_email",
       confidence: 0.8,
-      explanation: 'Email is from a known disposable provider.',
+      explanation: "Email is from a known disposable provider.",
     });
   }
 
   // 2. Cross-Renter Duplicate Checks
-  const duplicateEmails = await findDuplicates('users', 'email', userData.email, uid);
+  const duplicateEmails = await findDuplicates(
+    "users",
+    "email",
+    userData.email,
+    uid,
+  );
   if (duplicateEmails.length > 0) {
     signals.push({
-      type: 'duplicate_email',
+      type: "duplicate_email",
       confidence: 0.9,
       explanation: `Email used by ${duplicateEmails.length} other renter(s).`,
       related: duplicateEmails.map((u) => u.id),
     });
   }
 
-  const duplicatePhones = await findDuplicates('users', 'phone', userData.phone, uid);
+  const duplicatePhones = await findDuplicates(
+    "users",
+    "phone",
+    userData.phone,
+    uid,
+  );
   if (duplicatePhones.length > 0) {
     signals.push({
-      type: 'duplicate_phone',
+      type: "duplicate_phone",
       confidence: 0.85,
       explanation: `Phone number used by ${duplicatePhones.length} other renter(s).`,
       related: duplicatePhones.map((u) => u.id),
     });
   }
 
-  const duplicateSSNs = await findDuplicates('users', 'ssn', userData.ssn, uid);
+  const duplicateSSNs = await findDuplicates("users", "ssn", userData.ssn, uid);
   if (duplicateSSNs.length > 0) {
     signals.push({
-      type: 'duplicate_ssn',
+      type: "duplicate_ssn",
       confidence: 1.0,
       explanation: `SSN used by ${duplicateSSNs.length} other renter(s).`,
       related: duplicateSSNs.map((u) => u.id),
@@ -113,14 +125,14 @@ export async function getFraudSignals(uid: string) {
   }
 
   const duplicateAddresses = await findDuplicates(
-    'users',
-    'address',
+    "users",
+    "address",
     userData.address,
     uid,
   );
   if (duplicateAddresses.length > 0) {
     signals.push({
-      type: 'duplicate_address',
+      type: "duplicate_address",
       confidence: 0.6,
       explanation: `Address used by ${duplicateAddresses.length} other renter(s).`,
       related: duplicateAddresses.map((u) => u.id),
@@ -129,14 +141,14 @@ export async function getFraudSignals(uid: string) {
 
   // 3. IP Address Risk & Velocity
   const duplicateIPs = await findDuplicates(
-    'users',
-    'lastLoginIp',
+    "users",
+    "lastLoginIp",
     userData.lastLoginIp,
     uid,
   );
   if (duplicateIPs.length > 0) {
     signals.push({
-      type: 'duplicate_ip',
+      type: "duplicate_ip",
       confidence: 0.7,
       explanation: `IP address used by ${duplicateIPs.length} other renter(s).`,
       related: duplicateIPs.map((u) => u.id),
@@ -160,7 +172,7 @@ export async function getFraudSignals(uid: string) {
 
       if (recentAccounts.length > 0) {
         signals.push({
-          type: 'velocity_creation_on_ip',
+          type: "velocity_creation_on_ip",
           confidence: 0.75,
           explanation: `${recentAccounts.length} other account(s) were created on this IP within 24 hours.`,
           related: recentAccounts.map((u: any) => u.id),

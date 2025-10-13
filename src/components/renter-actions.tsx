@@ -1,6 +1,6 @@
-'use client';
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+"use client";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,11 +16,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, PlusCircle } from 'lucide-react';
-import RenterForm from './renter-form';
-import { Renter } from '@/ai/flows/renters';
-import Link from 'next/link';
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, PlusCircle } from "lucide-react";
+import RenterForm from "./renter-form";
+import { Renter } from "@/ai/flows/renters";
+import Link from "next/link";
 
 interface RenterActionsProps {
   renter?: Renter;
@@ -49,26 +49,30 @@ export default function RenterActions({ renter, isIcon }: RenterActionsProps) {
   );
 
   const dialogTrigger = <DialogTrigger asChild>{triggerButton}</DialogTrigger>;
-  const dropdownTrigger = <DropdownMenuTrigger asChild>{triggerButton}</DropdownMenuTrigger>;
+  const dropdownTrigger = (
+    <DropdownMenuTrigger asChild>{triggerButton}</DropdownMenuTrigger>
+  );
 
   return renter ? (
-     <DropdownMenu>
+    <DropdownMenu>
       {dropdownTrigger}
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>Actions</DropdownMenuLabel>
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Edit</DropdownMenuItem>
-            </DialogTrigger>
-             <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Edit Renter</DialogTitle>
-                    <DialogDescription>
-                        Update the details for {renter.name}.
-                    </DialogDescription>
-                </DialogHeader>
-                <RenterForm renter={renter} onSave={() => setOpen(false)} />
-            </DialogContent>
+          <DialogTrigger asChild>
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              Edit
+            </DropdownMenuItem>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Renter</DialogTitle>
+              <DialogDescription>
+                Update the details for {renter.name}.
+              </DialogDescription>
+            </DialogHeader>
+            <RenterForm renter={renter} onSave={() => setOpen(false)} />
+          </DialogContent>
         </Dialog>
         <Link href={`/renters/${renter.id}`}>
           <DropdownMenuItem>View Profile</DropdownMenuItem>

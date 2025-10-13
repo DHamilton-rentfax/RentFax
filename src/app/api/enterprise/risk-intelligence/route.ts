@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import { db } from "@/firebase/server";
 import { doc, getDoc } from "firebase/firestore";
@@ -21,7 +20,10 @@ export async function POST(req: Request) {
   try {
     const client = await validateEnterpriseKey();
     if (!client)
-      return NextResponse.json({ error: "Invalid or inactive enterprise key" }, { status: 403 });
+      return NextResponse.json(
+        { error: "Invalid or inactive enterprise key" },
+        { status: 403 },
+      );
 
     const body = await req.json();
     const { renterId } = body;
@@ -31,7 +33,10 @@ export async function POST(req: Request) {
 
     const snap = await getDoc(doc(db, "riskProfiles", renterId));
     if (!snap.exists())
-      return NextResponse.json({ message: "No risk profile found for this renter" }, { status: 404 });
+      return NextResponse.json(
+        { message: "No risk profile found for this renter" },
+        { status: 404 },
+      );
 
     const data = snap.data();
 
@@ -56,6 +61,9 @@ export async function POST(req: Request) {
     });
   } catch (err) {
     console.error("Enterprise risk intelligence error:", err);
-    return NextResponse.json({ error: "Failed to retrieve data" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to retrieve data" },
+      { status: 500 },
+    );
   }
 }

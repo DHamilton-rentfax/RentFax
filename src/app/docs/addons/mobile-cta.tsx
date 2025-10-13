@@ -15,7 +15,9 @@ export default function MobileCta({ addon }: { addon: Addon }) {
       <div className="max-w-md mx-auto flex items-center justify-between gap-4">
         <div>
           <h4 className="font-semibold text-sm">{addon.name}</h4>
-          <p className="text-xs text-muted-foreground">Add this to your plan.</p>
+          <p className="text-xs text-muted-foreground">
+            Add this to your plan.
+          </p>
         </div>
         <Link
           href={`/pricing?selected=${addon.priceId}`}

@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { authAdmin, dbAdmin } from "@/lib/firebase-admin";
@@ -11,20 +10,30 @@ export async function POST(req: Request) {
   try {
     const { addonId } = await req.json();
     const authHeader = req.headers.get("authorization");
-    if (!authHeader) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!authHeader)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const token = authHeader.split(" ")[1];
     const decoded = await authAdmin.verifyIdToken(token);
-    
+
     const companyId = (decoded as any).companyId;
     if (!companyId) {
-        return NextResponse.json({ error: "User not associated with a company." }, { status: 400 });
+      return NextResponse.json(
+        { error: "User not associated with a company." },
+        { status: 400 },
+      );
     }
 
-    const companyDoc = await dbAdmin.collection('companies').doc(companyId).get();
+    const companyDoc = await dbAdmin
+      .collection("companies")
+      .doc(companyId)
+      .get();
     const stripeCustomerId = companyDoc.data()?.stripe?.customer;
     if (!stripeCustomerId) {
-        return NextResponse.json({ error: "No Stripe customer found for this company." }, { status: 400 });
+      return NextResponse.json(
+        { error: "No Stripe customer found for this company." },
+        { status: 400 },
+      );
     }
 
     const billingCycle = "monthly"; // default (or detect user preference)

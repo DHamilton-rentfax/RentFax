@@ -12,7 +12,14 @@ type FraudScoreSummaryProps = {
   onFlagAsFraud: () => void;
 };
 
-export const FraudScoreSummaryCard = ({ score, signals, status, lastUpdated, onMarkAsReviewed, onFlagAsFraud }: FraudScoreSummaryProps) => {
+export const FraudScoreSummaryCard = ({
+  score,
+  signals,
+  status,
+  lastUpdated,
+  onMarkAsReviewed,
+  onFlagAsFraud,
+}: FraudScoreSummaryProps) => {
   const getScoreColor = (score: number) => {
     if (score > 75) return "bg-red-500";
     if (score > 50) return "bg-yellow-500";
@@ -28,18 +35,36 @@ export const FraudScoreSummaryCard = ({ score, signals, status, lastUpdated, onM
         <div>
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm font-medium">Risk Score</span>
-            <Badge variant={score > 75 ? "destructive" : score > 50 ? "secondary" : "default"}>{score}</Badge>
+            <Badge
+              variant={
+                score > 75
+                  ? "destructive"
+                  : score > 50
+                    ? "secondary"
+                    : "default"
+              }
+            >
+              {score}
+            </Badge>
           </div>
           <Progress value={score} className={getScoreColor(score)} />
         </div>
         <div className="text-sm">
-          <p><strong>{signals}</strong> fraud signals detected.</p>
-          <p>Status: <strong>{status}</strong></p>
+          <p>
+            <strong>{signals}</strong> fraud signals detected.
+          </p>
+          <p>
+            Status: <strong>{status}</strong>
+          </p>
           <p className="text-xs text-gray-500">Last updated: {lastUpdated}</p>
         </div>
         <div className="flex gap-2">
-            <Button onClick={onMarkAsReviewed} variant="outline" size="sm">Mark as Reviewed</Button>
-            <Button onClick={onFlagAsFraud} variant="destructive" size="sm">Flag as Fraud</Button>
+          <Button onClick={onMarkAsReviewed} variant="outline" size="sm">
+            Mark as Reviewed
+          </Button>
+          <Button onClick={onFlagAsFraud} variant="destructive" size="sm">
+            Flag as Fraud
+          </Button>
         </div>
       </CardContent>
     </Card>

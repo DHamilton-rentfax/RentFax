@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Toaster } from "@/components/ui/toaster";
@@ -14,12 +13,12 @@ export default function PublicLayout({
 }) {
   return (
     <AuthProvider>
-        <ModalProvider>
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </ModalProvider>
-        <Toaster />
+      <ModalProvider>
+        <Header />
+        <main className="flex-1">{children}</main>
+        <Footer />
+      </ModalProvider>
+      <Toaster />
     </AuthProvider>
   );
 }

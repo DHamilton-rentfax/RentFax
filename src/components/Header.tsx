@@ -17,12 +17,24 @@ export default function Header() {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-8 text-gray-700 font-medium">
-          <Link href="/" className="hover:text-emerald-600">Home</Link>
-          <Link href="/how-it-works" className="hover:text-emerald-600">How It Works</Link>
-          <Link href="/pricing" className="hover:text-emerald-600">Pricing</Link>
-          <Link href="/blog" className="hover:text-emerald-600">Blog</Link>
-          <Link href="/docs" className="hover:text-emerald-600">Docs</Link>
-          <Link href="/contact" className="hover:text-emerald-600">Contact</Link>
+          <Link href="/" className="hover:text-emerald-600">
+            Home
+          </Link>
+          <Link href="/how-it-works" className="hover:text-emerald-600">
+            How It Works
+          </Link>
+          <Link href="/pricing" className="hover:text-emerald-600">
+            Pricing
+          </Link>
+          <Link href="/blog" className="hover:text-emerald-600">
+            Blog
+          </Link>
+          <Link href="/docs" className="hover:text-emerald-600">
+            Docs
+          </Link>
+          <Link href="/contact" className="hover:text-emerald-600">
+            Contact
+          </Link>
         </nav>
 
         {/* CTA */}
@@ -48,12 +60,24 @@ export default function Header() {
       {mobileOpen && (
         <div className="md:hidden bg-white border-t border-gray-200">
           <nav className="flex flex-col px-6 py-4 gap-4 text-gray-700 font-medium">
-            <Link href="/" onClick={() => setMobileOpen(false)}>Home</Link>
-            <Link href="/how-it-works" onClick={() => setMobileOpen(false)}>How It Works</Link>
-            <Link href="/pricing" onClick={() => setMobileOpen(false)}>Pricing</Link>
-            <Link href="/blog" onClick={() => setMobileOpen(false)}>Blog</Link>
-            <Link href="/docs" onClick={() => setMobileOpen(false)}>Docs</Link>
-            <Link href="/contact" onClick={() => setMobileOpen(false)}>Contact</Link>
+            <Link href="/" onClick={() => setMobileOpen(false)}>
+              Home
+            </Link>
+            <Link href="/how-it-works" onClick={() => setMobileOpen(false)}>
+              How It Works
+            </Link>
+            <Link href="/pricing" onClick={() => setMobileOpen(false)}>
+              Pricing
+            </Link>
+            <Link href="/blog" onClick={() => setMobileOpen(false)}>
+              Blog
+            </Link>
+            <Link href="/docs" onClick={() => setMobileOpen(false)}>
+              Docs
+            </Link>
+            <Link href="/contact" onClick={() => setMobileOpen(false)}>
+              Contact
+            </Link>
             <Link
               href="/signup"
               className="mt-4 px-5 py-2 rounded-lg bg-emerald-600 text-white font-semibold text-center hover:bg-emerald-700 transition"

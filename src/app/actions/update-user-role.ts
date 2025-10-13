@@ -1,11 +1,14 @@
-
 "use server";
 
 import { getAuth } from "firebase-admin/auth";
 import { adminDB as adminDb } from "@/lib/firebase-admin";
 import { logAuditEvent } from "./log-audit";
 
-export async function updateUserRole(userId: string, newRole: string, adminEmail: string) {
+export async function updateUserRole(
+  userId: string,
+  newRole: string,
+  adminEmail: string,
+) {
   try {
     const auth = getAuth();
     const userDocRef = adminDb.collection("users").doc(userId);
@@ -20,7 +23,7 @@ export async function updateUserRole(userId: string, newRole: string, adminEmail
       role: newRole,
       updatedAt: new Date().toISOString(),
     });
-    
+
     // Invalidate user's token to force a refresh on the client
     await auth.revokeRefreshTokens(userId);
 

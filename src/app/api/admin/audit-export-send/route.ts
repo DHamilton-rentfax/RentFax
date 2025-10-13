@@ -16,9 +16,15 @@ export async function POST(req: Request) {
 
     const { startDate, endDate } = await req.json();
 
-    const settingsDoc = await db.collection("settings").doc("auditExports").get();
+    const settingsDoc = await db
+      .collection("settings")
+      .doc("auditExports")
+      .get();
     if (!settingsDoc.exists || !settingsDoc.data()?.enabled) {
-      return NextResponse.json({ error: "Exports not enabled" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Exports not enabled" },
+        { status: 400 },
+      );
     }
 
     const { recipients } = settingsDoc.data()!;

@@ -1,14 +1,8 @@
-
 "use client";
 import { useEffect, useState, FormEvent } from "react";
 import { auth, db, storage } from "@/firebase/client";
 import { onAuthStateChanged, User } from "firebase/auth";
-import {
-  doc,
-  getDoc,
-  updateDoc,
-  serverTimestamp,
-} from "firebase/firestore";
+import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export default function RenterSettingsPage() {
@@ -66,7 +60,10 @@ export default function RenterSettingsPage() {
     if (!idFile || !user) return;
     setUploading(true);
     try {
-      const storageRef = ref(storage, `renter_verifications/${user.uid}/${idFile.name}`);
+      const storageRef = ref(
+        storage,
+        `renter_verifications/${user.uid}/${idFile.name}`,
+      );
       await uploadBytes(storageRef, idFile);
       const downloadUrl = await getDownloadURL(storageRef);
 
@@ -95,9 +92,12 @@ export default function RenterSettingsPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-6 flex justify-center">
       <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-2xl">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Account Settings</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          Account Settings
+        </h1>
         <p className="text-gray-600 mb-6">
-          Manage your personal information and verify your identity to ensure your rental record is accurate.
+          Manage your personal information and verify your identity to ensure
+          your rental record is accurate.
         </p>
 
         <form onSubmit={handleUpdateProfile} className="space-y-5">
@@ -157,7 +157,8 @@ export default function RenterSettingsPage() {
             Identity Verification
           </h2>
           <p className="text-gray-600 mb-4">
-            Upload a government ID, lease agreement, or utility bill to verify your identity.
+            Upload a government ID, lease agreement, or utility bill to verify
+            your identity.
           </p>
 
           {renter?.verificationFileUrl && (
@@ -199,8 +200,8 @@ export default function RenterSettingsPage() {
                 renter?.verificationStatus === "verified"
                   ? "text-green-600"
                   : renter?.verificationStatus === "pending"
-                  ? "text-yellow-600"
-                  : "text-gray-600"
+                    ? "text-yellow-600"
+                    : "text-gray-600"
               }`}
             >
               {renter?.verificationStatus || "Not Submitted"}

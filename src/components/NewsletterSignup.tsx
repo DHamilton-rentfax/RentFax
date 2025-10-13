@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -10,7 +9,9 @@ import { CheckCircle2 } from "lucide-react";
 
 export default function NewsletterSignup() {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +33,8 @@ export default function NewsletterSignup() {
     <div className="mt-20 bg-muted/30 border rounded-2xl shadow-sm p-8 text-center">
       <h3 className="text-2xl font-semibold mb-2">Stay Updated</h3>
       <p className="text-muted-foreground mb-6">
-        Get the latest RentFAX insights, renter safety news, and product updates.
+        Get the latest RentFAX insights, renter safety news, and product
+        updates.
       </p>
       {status === "success" ? (
         <div className="flex flex-col items-center gap-3">
@@ -62,7 +64,9 @@ export default function NewsletterSignup() {
         </form>
       )}
       {status === "error" && (
-        <p className="text-red-500 mt-3">Something went wrong. Please try again.</p>
+        <p className="text-red-500 mt-3">
+          Something went wrong. Please try again.
+        </p>
       )}
     </div>
   );

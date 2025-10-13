@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { authUser } from "@/lib/authUser";
@@ -46,6 +45,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ sessionId: session.id });
   } catch (error: any) {
     console.error("Error creating checkout session:", error);
-    return NextResponse.json({ error: "Failed to create checkout session" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create checkout session" },
+      { status: 500 },
+    );
   }
 }

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useRouter, usePathname } from 'next/navigation';
-import { useAuth, updateUserLocale } from '@/hooks/use-auth';
+import { useRouter, usePathname } from "next/navigation";
+import { useAuth, updateUserLocale } from "@/hooks/use-auth";
 
 export function LocaleSwitcher() {
   const router = useRouter();
@@ -15,7 +15,7 @@ export function LocaleSwitcher() {
       await updateUserLocale(user.uid, newLocale);
     }
 
-    router.push(`/${newLocale}${path.replace(/^\/(en|es)/, '')}`);
+    router.push(`/${newLocale}${path.replace(/^\/(en|es)/, "")}`);
   };
 
   return (

@@ -1,39 +1,38 @@
+"use server";
 
-'use server';
-
-import { dbAdmin } from '@/lib/firebase-admin';
+import { dbAdmin } from "@/lib/firebase-admin";
 
 export interface Incident {
-    id: string;
-    renterId: string;
-    type: string;
-    status: string;
-    description: string;
-    createdAt: string;
-    evidence?: string[];
+  id: string;
+  renterId: string;
+  type: string;
+  status: string;
+  description: string;
+  createdAt: string;
+  evidence?: string[];
 }
 
 export const getIncidentById = async (id: string): Promise<Incident | null> => {
-    try {
-        const incidentDoc = await dbAdmin.collection('incidents').doc(id).get();
+  try {
+    const incidentDoc = await dbAdmin.collection("incidents").doc(id).get();
 
-        if (!incidentDoc.exists) {
-            return null;
-        }
-
-        const incidentData = incidentDoc.data()!;
-
-        return {
-            id: incidentDoc.id,
-            renterId: incidentData.renterId,
-            type: incidentData.type,
-            status: incidentData.status,
-            description: incidentData.description,
-            createdAt: incidentData.createdAt,
-            evidence: incidentData.evidence || [],
-        } as Incident;
-    } catch (error) {
-        console.error('Error fetching incident by ID:', error);
-        return null;
+    if (!incidentDoc.exists) {
+      return null;
     }
+
+    const incidentData = incidentDoc.data()!;
+
+    return {
+      id: incidentDoc.id,
+      renterId: incidentData.renterId,
+      type: incidentData.type,
+      status: incidentData.status,
+      description: incidentData.description,
+      createdAt: incidentData.createdAt,
+      evidence: incidentData.evidence || [],
+    } as Incident;
+  } catch (error) {
+    console.error("Error fetching incident by ID:", error);
+    return null;
+  }
 };

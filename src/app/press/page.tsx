@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 const mentions = [
   {
@@ -22,7 +22,9 @@ export default function PressPage() {
   return (
     <div className="bg-white min-h-screen">
       <div className="max-w-5xl mx-auto px-6 py-24">
-        <h1 className="text-5xl font-extrabold text-gray-900 text-center">Press & Media</h1>
+        <h1 className="text-5xl font-extrabold text-gray-900 text-center">
+          Press & Media
+        </h1>
         <p className="mt-4 text-lg text-gray-600 text-center">
           Read what the media and industry are saying about RentFAX.
         </p>

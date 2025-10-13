@@ -1,11 +1,8 @@
-
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { auth, db } from "@/firebase/client";
-import {
-  onAuthStateChanged,
-} from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 import {
   doc,
   getDoc,
@@ -43,7 +40,7 @@ export default function StartResolutionPage() {
         if (renter.linkedIncidents?.length) {
           const incQuery = query(
             collection(db, "incidents"),
-            where("__name__", "in", renter.linkedIncidents.slice(0, 10))
+            where("__name__", "in", renter.linkedIncidents.slice(0, 10)),
           );
           const incSnap = await getDocs(incQuery);
           setIncidents(incSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
@@ -99,7 +96,8 @@ export default function StartResolutionPage() {
           Start a New Resolution
         </h1>
         <p className="text-gray-600 mb-8">
-          Submit your statement to clarify or challenge an incident reported about you.
+          Submit your statement to clarify or challenge an incident reported
+          about you.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">

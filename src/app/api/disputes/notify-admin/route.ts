@@ -30,6 +30,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error sending admin notification:", error);
-    return NextResponse.json({ error: "Failed to send notification" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to send notification" },
+      { status: 500 },
+    );
   }
 }

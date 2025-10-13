@@ -8,7 +8,11 @@ export async function POST(req: Request) {
     const token = req.headers.get("authorization")?.split(" ")[1];
     const decoded = await getAuth().verifyIdToken(token!);
 
-    const inviteRef = adminDB.collection("orgs").doc(orgId).collection("invites").doc(inviteId);
+    const inviteRef = adminDB
+      .collection("orgs")
+      .doc(orgId)
+      .collection("invites")
+      .doc(inviteId);
     const inviteDoc = await inviteRef.get();
 
     if (!inviteDoc.exists) {
@@ -17,7 +21,10 @@ export async function POST(req: Request) {
 
     const invite = inviteDoc.data();
     if (invite?.status !== "pending") {
-      return NextResponse.json({ error: "Invite already accepted or expired" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invite already accepted or expired" },
+        { status: 400 },
+      );
     }
 
     if (Date.now() > invite.expiresAt) {
@@ -35,14 +42,23 @@ export async function POST(req: Request) {
     }
 
     // Add member to org
-    await adminDB.collection("orgs").doc(orgId).collection("members").doc(decoded.uid).set({
-      role: invite.role,
-      email: decoded.email,
-      joinedAt: Date.now(),
-    });
+    await adminDB
+      .collection("orgs")
+      .doc(orgId)
+      .collection("members")
+      .doc(decoded.uid)
+      .set({
+        role: invite.role,
+        email: decoded.email,
+        joinedAt: Date.now(),
+      });
 
     // Mark invite as accepted
-    await inviteRef.update({ status: "accepted", acceptedBy: decoded.uid, acceptedAt: Date.now() });
+    await inviteRef.update({
+      status: "accepted",
+      acceptedBy: decoded.uid,
+      acceptedAt: Date.now(),
+    });
 
     // Audit log
     await adminDB.collection("auditLogs").add({

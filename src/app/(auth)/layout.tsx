@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/use-auth";
 
@@ -9,8 +8,8 @@ export default function AuthLayout({
 }) {
   return (
     <AuthProvider>
-        {children}
-        <Toaster />
+      {children}
+      <Toaster />
     </AuthProvider>
   );
 }

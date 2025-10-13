@@ -16,16 +16,19 @@ export async function GET() {
     const prefs = user.get("notificationPrefs") || {};
     if (!prefs.digest?.enabled) continue;
 
-    const notifSnap = await db.collection(`users/${user.id}/notifications`)
+    const notifSnap = await db
+      .collection(`users/${user.id}/notifications`)
       .where("read", "==", false)
       .get();
 
     if (notifSnap.empty) continue;
 
-    const lines = notifSnap.docs.map(d => `- ${d.get("title")}: ${d.get("body")}`);
+    const lines = notifSnap.docs.map(
+      (d) => `- ${d.get("title")}: ${d.get("body")}`,
+    );
     const emailBody = `
       <p>Here’s your ${prefs.digest.frequency} RentFAX digest:</p>
-      <ul>${lines.map(l => `<li>${l}</li>`).join("")}</ul>
+      <ul>${lines.map((l) => `<li>${l}</li>`).join("")}</ul>
     `;
 
     try {

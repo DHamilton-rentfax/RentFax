@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { dbAdmin as db } from "@/lib/firebase-admin";
 
 /**
- * Track referrals: 
+ * Track referrals:
  * 1. /api/affiliates?code=XYZ is hit
  * 2. Save to Firestore + cookie
  */
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
-  if (!code) return NextResponse.json({ error: "Missing code" }, { status: 400 });
+  if (!code)
+    return NextResponse.json({ error: "Missing code" }, { status: 400 });
 
   const ref = await db.collection("affiliates").doc(code).get();
   if (!ref.exists) {

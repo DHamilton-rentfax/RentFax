@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -8,7 +7,11 @@ import { FileText, AlertTriangle, Users } from "lucide-react";
 const navItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: FileText },
   { href: "/admin/dashboard/disputes", label: "Disputes", icon: FileText },
-  { href: "/admin/dashboard/fraud", label: "Fraud Monitor", icon: AlertTriangle },
+  {
+    href: "/admin/dashboard/fraud",
+    label: "Fraud Monitor",
+    icon: AlertTriangle,
+  },
   { href: "/admin/dashboard/invites", label: "Team Invites", icon: Users },
   { href: "/admin/dashboard/blogs", label: "Blogs", icon: FileText },
 ];

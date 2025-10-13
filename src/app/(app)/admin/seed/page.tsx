@@ -1,4 +1,4 @@
-import SeedActions from '@/components/actions/SeedActions';
+import SeedActions from "@/components/actions/SeedActions";
 
 export default function SeedPage() {
   return (

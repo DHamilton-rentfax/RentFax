@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import { db } from "@/firebase/server";
 import { doc, setDoc, getDoc } from "firebase/firestore";
@@ -26,6 +25,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("Consent API error:", err);
-    return NextResponse.json({ error: "Failed to save consent" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to save consent" },
+      { status: 500 },
+    );
   }
 }

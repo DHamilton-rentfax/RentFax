@@ -1,11 +1,12 @@
-
-import sgMail from '@sendgrid/mail';
+import sgMail from "@sendgrid/mail";
 
 // Ensure the SendGrid API key is set.
 if (process.env.SENDGRID_API_KEY) {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 } else {
-  console.warn('SENDGRID_API_KEY is not set. Email functionality will be disabled.');
+  console.warn(
+    "SENDGRID_API_KEY is not set. Email functionality will be disabled.",
+  );
 }
 
 interface IncidentAlertEmailProps {
@@ -25,7 +26,7 @@ export async function sendIncidentAlertEmail({
 }: IncidentAlertEmailProps) {
   // Check if SendGrid is configured
   if (!process.env.SENDGRID_API_KEY) {
-    console.log('Skipping email: SENDGRID_API_KEY not set.');
+    console.log("Skipping email: SENDGRID_API_KEY not set.");
     return;
   }
 
@@ -33,7 +34,7 @@ export async function sendIncidentAlertEmail({
 
   const msg = {
     to: email,
-    from: 'support@rentfax.co', // Must be a verified sender
+    from: "support@rentfax.co", // Must be a verified sender
     subject: `New Incident Reported: ${type}`,
     html: `
       <div style="font-family: sans-serif; padding: 20px;">
@@ -66,7 +67,7 @@ export async function sendIncidentAlertEmail({
     await sgMail.send(msg);
     console.log(`Incident alert email sent to ${email}`);
   } catch (error) {
-    console.error('Failed to send incident alert email:', error);
+    console.error("Failed to send incident alert email:", error);
     // Optional: Add more robust error handling or retry logic here
   }
 }

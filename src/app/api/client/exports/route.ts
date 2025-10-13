@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Invalid type" }, { status: 400 });
   }
 
-  const rows = docs.docs.map(d => ({ id: d.id, ...d.data() }));
+  const rows = docs.docs.map((d) => ({ id: d.id, ...d.data() }));
   const csv = stringify(rows, { header: true });
 
   return new NextResponse(csv, {

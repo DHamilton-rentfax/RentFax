@@ -1,12 +1,12 @@
-'use server';
+"use server";
 /**
  * @fileOverview A Genkit flow to introspect the claims of the currently authenticated user.
  * This flow is designed to be safe for unauthenticated users, returning a clear indicator.
  */
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-import {FlowAuth} from 'genkit/flow';
-import { adminAuth, adminDB } from '@/lib/firebase-admin';
+import { ai } from "@/ai/genkit";
+import { z } from "genkit";
+import { FlowAuth } from "genkit/flow";
+import { adminAuth, adminDB } from "@/lib/firebase-admin";
 
 const WhoAmIOutputSchema = z.object({
   uid: z.string().optional(),
@@ -22,13 +22,13 @@ export async function whoAmI(auth?: FlowAuth): Promise<WhoAmIOutput> {
 
 const whoAmIFlow = ai.defineFlow(
   {
-    name: 'whoAmIFlow',
+    name: "whoAmIFlow",
     inputSchema: z.void(),
     outputSchema: WhoAmIOutputSchema,
     // This flow is now safe for unauthenticated users
   },
-  async (payload, {auth}) => {
-    console.log('[whoAmI] auth context:', auth);
+  async (payload, { auth }) => {
+    console.log("[whoAmI] auth context:", auth);
 
     if (!auth) {
       return {
@@ -36,21 +36,23 @@ const whoAmIFlow = ai.defineFlow(
         claims: {},
       };
     }
-    
-    try {
-        const uid = auth.uid;
-        const user = await adminAuth.getUser(uid);
-        const userDoc = await adminDB.collection('users').doc(uid).get();
-        const firestoreRole = userDoc.exists ? { role: userDoc.data()?.role } : {};
 
-        return {
-            uid,
-            email: user.email,
-            claims: { ...user.customClaims, ...firestoreRole },
-            anonymous: false,
-        };
+    try {
+      const uid = auth.uid;
+      const user = await adminAuth.getUser(uid);
+      const userDoc = await adminDB.collection("users").doc(uid).get();
+      const firestoreRole = userDoc.exists
+        ? { role: userDoc.data()?.role }
+        : {};
+
+      return {
+        uid,
+        email: user.email,
+        claims: { ...user.customClaims, ...firestoreRole },
+        anonymous: false,
+      };
     } catch (err) {
-      console.error('Error fetching user from Firebase Admin:', err);
+      console.error("Error fetching user from Firebase Admin:", err);
       // Return authenticated but with empty claims if user lookup fails
       return {
         uid: auth.uid,
@@ -58,5 +60,5 @@ const whoAmIFlow = ai.defineFlow(
         anonymous: false,
       };
     }
-  }
+  },
 );

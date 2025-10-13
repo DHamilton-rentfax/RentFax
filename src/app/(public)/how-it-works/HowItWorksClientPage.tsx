@@ -133,7 +133,9 @@ export default function HowItWorksClientPage() {
 
       {/* Feature Highlights */}
       <section className="py-20 bg-muted/30 text-center">
-        <h3 className="text-3xl font-bold mb-10">Why Businesses Choose RentFAX</h3>
+        <h3 className="text-3xl font-bold mb-10">
+          Why Businesses Choose RentFAX
+        </h3>
         <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-10 text-left">
           {[
             {
@@ -188,7 +190,9 @@ export default function HowItWorksClientPage() {
 
       {/* FAQ Section */}
       <section className="py-20 bg-muted/20 px-6 md:px-20">
-        <h3 className="text-3xl font-bold text-center mb-12">Frequently Asked Questions</h3>
+        <h3 className="text-3xl font-bold text-center mb-12">
+          Frequently Asked Questions
+        </h3>
         <div className="max-w-4xl mx-auto space-y-4">
           {faqs.map((faq, idx) => (
             <div

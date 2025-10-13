@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from "react";
 
@@ -17,27 +17,29 @@ export default function DigestDashboard() {
   const [isRerunning, setIsRerunning] = useState(false);
 
   useEffect(() => {
-    fetch("/api/admin/digests").then(r => r.json()).then(setRuns);
+    fetch("/api/admin/digests")
+      .then((r) => r.json())
+      .then(setRuns);
   }, []);
 
   async function rerunFailed(runId: string) {
     if (!selected || isRerunning) return;
 
     setIsRerunning(true);
-    
+
     await fetch("/api/admin/digests/rerun-failed", {
       method: "POST",
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ runId }),
     });
 
-    const updatedRuns = await fetch("/api/admin/digests").then(r => r.json());
+    const updatedRuns = await fetch("/api/admin/digests").then((r) => r.json());
     setRuns(updatedRuns);
     const newSelected = updatedRuns.find((r: DigestRun) => r.id === runId);
     if (newSelected) {
       setSelected(newSelected);
     }
-    
+
     setIsRerunning(false);
   }
 
@@ -57,9 +59,11 @@ export default function DigestDashboard() {
             </tr>
           </thead>
           <tbody>
-            {runs.map(run => (
+            {runs.map((run) => (
               <tr key={run.id}>
-                <td className="p-2 border">{new Date(run.startedAt).toLocaleString()}</td>
+                <td className="p-2 border">
+                  {new Date(run.startedAt).toLocaleString()}
+                </td>
                 <td className="p-2 border">{run.frequency}</td>
                 <td className="p-2 border text-green-600">{run.totalSent}</td>
                 <td className="p-2 border text-red-600">{run.totalFailed}</td>
@@ -80,30 +84,32 @@ export default function DigestDashboard() {
       {selected && (
         <div>
           <div className="flex items-center mb-4 space-x-4">
+            <button
+              onClick={() => setSelected(null)}
+              className="bg-gray-200 px-3 py-1 rounded"
+            >
+              ← Back
+            </button>
+            {selected.totalFailed > 0 && (
               <button
-                onClick={() => setSelected(null)}
-                className="bg-gray-200 px-3 py-1 rounded"
+                onClick={() => rerunFailed(selected.id)}
+                disabled={isRerunning}
+                className="bg-blue-600 text-white px-3 py-1 rounded disabled:bg-blue-300"
               >
-                ← Back
+                {isRerunning
+                  ? "Rerunning..."
+                  : `Re-run ${selected.totalFailed} Failed`}
               </button>
-              {selected.totalFailed > 0 && (
-                <button
-                  onClick={() => rerunFailed(selected.id)}
-                  disabled={isRerunning}
-                  className="bg-blue-600 text-white px-3 py-1 rounded disabled:bg-blue-300"
-                >
-                  {isRerunning ? 'Rerunning...' : `Re-run ${selected.totalFailed} Failed`}
-                </button>
-              )}
+            )}
           </div>
           <h2 className="text-xl font-semibold mb-2">
             Run from {new Date(selected.startedAt).toLocaleString()}
           </h2>
           <ul className="space-y-2">
-            {selected.logs.map(log => (
+            {selected.logs.map((log) => (
               <li
                 key={log.uid}
-                className={`p-2 border rounded ${log.status === 'failed' ? 'bg-red-50' : 'bg-green-50'}`}
+                className={`p-2 border rounded ${log.status === "failed" ? "bg-red-50" : "bg-green-50"}`}
               >
                 {log.email} — {log.status}
               </li>

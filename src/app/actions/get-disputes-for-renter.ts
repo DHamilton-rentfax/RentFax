@@ -1,13 +1,15 @@
+"use server";
 
-'use server';
-
-import { adminDB } from '@/lib/firebase-admin';
-import { Dispute } from '@/types/dispute';
+import { adminDB } from "@/lib/firebase-admin";
+import { Dispute } from "@/types/dispute";
 
 export async function getDisputesForRenter(renterId: string) {
   try {
-    const disputesSnapshot = await adminDB.collection('disputes').where('renterId', '==', renterId).get();
-    const disputes = disputesSnapshot.docs.map(doc => {
+    const disputesSnapshot = await adminDB
+      .collection("disputes")
+      .where("renterId", "==", renterId)
+      .get();
+    const disputes = disputesSnapshot.docs.map((doc) => {
       const data = doc.data();
       return {
         ...data,
@@ -18,7 +20,7 @@ export async function getDisputesForRenter(renterId: string) {
 
     return { disputes };
   } catch (error) {
-    console.error('Error getting disputes for renter:', error);
-    return { error: 'Could not fetch disputes' };
+    console.error("Error getting disputes for renter:", error);
+    return { error: "Could not fetch disputes" };
   }
 }

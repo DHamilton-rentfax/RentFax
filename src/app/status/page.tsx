@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 export default function StatusPage() {
   return (
@@ -8,9 +8,15 @@ export default function StatusPage() {
         <p className="mt-4 text-lg text-gray-600">All systems operational ✅</p>
         <div className="mt-12 bg-white rounded-xl shadow p-8">
           <ul className="space-y-4 text-left">
-            <li><span className="text-green-500">●</span> API: Operational</li>
-            <li><span className="text-green-500">●</span> Dashboard: Operational</li>
-            <li><span className="text-green-500">●</span> Database: Operational</li>
+            <li>
+              <span className="text-green-500">●</span> API: Operational
+            </li>
+            <li>
+              <span className="text-green-500">●</span> Dashboard: Operational
+            </li>
+            <li>
+              <span className="text-green-500">●</span> Database: Operational
+            </li>
           </ul>
         </div>
       </div>

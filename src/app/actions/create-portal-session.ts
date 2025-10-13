@@ -1,7 +1,7 @@
-'use server';
+"use server";
 
-import { stripe } from '@/lib/stripe';
-import { getStripeCustomerId } from '@/lib/stripe-customers'; // your mapping function
+import { stripe } from "@/lib/stripe";
+import { getStripeCustomerId } from "@/lib/stripe-customers"; // your mapping function
 
 export async function createPortalSession(uid: string) {
   const customerId = await getStripeCustomerId(uid);

@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import { adminDB } from "@/lib/firebase-admin";
 import { OpenAI } from "openai";
@@ -58,46 +57,59 @@ function mergeResults(name: string, results: any[]) {
 
 export async function POST(req: Request) {
   try {
-    const isInternalRequest = req.headers.get('X-Internal-Request') === 'true';
+    const isInternalRequest = req.headers.get("X-Internal-Request") === "true";
     let userId, userEmail;
     const body = await req.json(); // Moved this up to access it earlier
 
     if (isInternalRequest) {
-        userId = body.userId;
-        const userRecord = await adminDB.collection('users').doc(userId).get();
-        if (!userRecord.exists) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
-        }
-        userEmail = userRecord.data()?.email;
+      userId = body.userId;
+      const userRecord = await adminDB.collection("users").doc(userId).get();
+      if (!userRecord.exists) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+      userEmail = userRecord.data()?.email;
     } else {
-        const user = await authUser(req);
-        if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-        userId = user.uid;
-        userEmail = user.email;
+      const user = await authUser(req);
+      if (!user)
+        return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+      userId = user.uid;
+      userEmail = user.email;
 
-        const userRef = adminDB.collection("users").doc(userId);
-        const userDoc = await userRef.get();
-        const userData = userDoc.data();
+      const userRef = adminDB.collection("users").doc(userId);
+      const userDoc = await userRef.get();
+      const userData = userDoc.data();
 
-        if (!userData) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
-        }
+      if (!userData) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
 
-        const { deepReportCredits, activePlan } = userData;
+      const { deepReportCredits, activePlan } = userData;
 
-        if ((!deepReportCredits || deepReportCredits <= 0) && activePlan === 'plan_free') {
-                return NextResponse.json({ error: "You have no deep report credits left. Please purchase more." }, { status: 402 });
-        }
+      if (
+        (!deepReportCredits || deepReportCredits <= 0) &&
+        activePlan === "plan_free"
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "You have no deep report credits left. Please purchase more.",
+          },
+          { status: 402 },
+        );
+      }
 
-        if (activePlan !== 'plan_free') {
-          await userRef.update({ deepReportCredits: FieldValue.increment(-1) });
-        }
+      if (activePlan !== "plan_free") {
+        await userRef.update({ deepReportCredits: FieldValue.increment(-1) });
+      }
     }
 
     const { name, address, email, licenseNumber, bankToken } = body;
 
     if (!name || !address)
-      return NextResponse.json({ error: "Missing name or address" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing name or address" },
+        { status: 400 },
+      );
 
     // Step 1: Fetch from mock external APIs
     const [clearbitData, experianData, plaidData] = await Promise.all([
@@ -120,10 +132,10 @@ export async function POST(req: Request) {
     `;
 
     const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [{ role: "system", content: aiPrompt }],
-      });
-  
+      model: "gpt-4o-mini",
+      messages: [{ role: "system", content: aiPrompt }],
+    });
+
     const summaryText = completion.choices[0].message.content;
 
     // Step 4: Store in Firestore
@@ -140,7 +152,7 @@ export async function POST(req: Request) {
       merged,
       aiSummary: summaryText,
       createdAt: new Date().toISOString(),
-      reportStatus: 'fresh',
+      reportStatus: "fresh",
     });
 
     // Step 5: Send Notification
@@ -164,6 +176,9 @@ export async function POST(req: Request) {
     });
   } catch (err: any) {
     console.error("Error in analyze-deep:", err);
-    return NextResponse.json({ error: "Failed to process deep analysis" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to process deep analysis" },
+      { status: 500 },
+    );
   }
 }

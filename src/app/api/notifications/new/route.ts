@@ -1,15 +1,18 @@
-import { NextResponse } from 'next/server';
-import { dbAdmin as db } from '@/lib/firebase-admin';
-import { serverTimestamp } from 'firebase/firestore';
+import { NextResponse } from "next/server";
+import { dbAdmin as db } from "@/lib/firebase-admin";
+import { serverTimestamp } from "firebase/firestore";
 
 export async function POST(req: Request) {
   try {
     const { userId, type, message, link } = await req.json();
     if (!userId || !type || !message) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 },
+      );
     }
-    
-    await db.collection('notifications').add({
+
+    await db.collection("notifications").add({
       userId,
       type,
       message,
@@ -20,7 +23,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('Error creating notification:', error);
+    console.error("Error creating notification:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

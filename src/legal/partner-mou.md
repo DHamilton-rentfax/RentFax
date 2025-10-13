@@ -45,10 +45,10 @@ RentFAX will invoice Partner monthly for all completed, confirmed referrals, unl
 
 Both parties agree to:
 
-* Maintain strict confidentiality of all shared information.
-* Comply with applicable data protection laws (e.g., GDPR, CCPA).
-* Use data solely for the purposes defined in this MOU.
-* Securely delete data upon request or termination of this agreement.
+- Maintain strict confidentiality of all shared information.
+- Comply with applicable data protection laws (e.g., GDPR, CCPA).
+- Use data solely for the purposes defined in this MOU.
+- Securely delete data upon request or termination of this agreement.
 
 Partner must not resell, share, or reuse any RentFAX-provided data beyond the scope of the referred service.
 
@@ -58,9 +58,9 @@ Partner must not resell, share, or reuse any RentFAX-provided data beyond the sc
 
 Each party represents that it:
 
-* Operates lawfully and holds all required licenses and insurance for its services.
-* Has reviewed and will comply with RentFAX’s **Data Processing Agreement (DPA)** and **Partner Privacy Policy**.
-* Shall promptly notify RentFAX of any legal or compliance issues that may affect the partnership.
+- Operates lawfully and holds all required licenses and insurance for its services.
+- Has reviewed and will comply with RentFAX’s **Data Processing Agreement (DPA)** and **Partner Privacy Policy**.
+- Shall promptly notify RentFAX of any legal or compliance issues that may affect the partnership.
 
 ---
 
@@ -95,12 +95,12 @@ This MOU shall be governed by and construed in accordance with the laws of the *
 
 ### **10. Signatures**
 
-| RentFAX, Inc.                           | Partner                                 |
-| --------------------------------------- | --------------------------------------- |
-| **Name:** [Your Name]                   | **Name:** [Partner Contact]             |
-| **Title:** Founder & CEO                | **Title:** [Title]                      |
-| **Date:** [Date]                        | **Date:** [Date]                        |
-| **Signature:** ________________________ | **Signature:** ________________________ |
+| RentFAX, Inc.                               | Partner                                     |
+| ------------------------------------------- | ------------------------------------------- |
+| **Name:** [Your Name]                       | **Name:** [Partner Contact]                 |
+| **Title:** Founder & CEO                    | **Title:** [Title]                          |
+| **Date:** [Date]                            | **Date:** [Date]                            |
+| **Signature:** **********\_\_\_\_********** | **Signature:** **********\_\_\_\_********** |
 
 ---
 
@@ -108,13 +108,12 @@ This MOU shall be governed by and construed in accordance with the laws of the *
 
 **Partner API Access:**
 
-* Base URL: `https://api.rentfax.io/partner`
-* Authentication: Bearer Token (issued by RentFAX)
-* Supported Endpoints:
-
-  * `/v1/cases/create` – Receive case data
-  * `/v1/status/update` – Send case updates
-  * `/v1/payments/report` – Confirm completed transactions
+- Base URL: `https://api.rentfax.io/partner`
+- Authentication: Bearer Token (issued by RentFAX)
+- Supported Endpoints:
+  - `/v1/cases/create` – Receive case data
+  - `/v1/status/update` – Send case updates
+  - `/v1/payments/report` – Confirm completed transactions
 
 **Data Retention:**
 Partners may retain case data for 12 months unless otherwise required by law.

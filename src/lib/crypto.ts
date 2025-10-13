@@ -7,7 +7,10 @@ const IV_LENGTH = 16;
 export function encryptPII(text: string): string {
   const iv = crypto.randomBytes(IV_LENGTH);
   const cipher = crypto.createCipheriv(ALGO, KEY, iv);
-  const encrypted = Buffer.concat([cipher.update(text, "utf8"), cipher.final()]);
+  const encrypted = Buffer.concat([
+    cipher.update(text, "utf8"),
+    cipher.final(),
+  ]);
   const tag = cipher.getAuthTag();
   return Buffer.concat([iv, tag, encrypted]).toString("base64");
 }
@@ -19,6 +22,9 @@ export function decryptPII(encrypted: string): string {
   const encryptedText = data.subarray(IV_LENGTH + 16);
   const decipher = crypto.createDecipheriv(ALGO, KEY, iv);
   decipher.setAuthTag(tag);
-  const decrypted = Buffer.concat([decipher.update(encryptedText), decipher.final()]);
+  const decrypted = Buffer.concat([
+    decipher.update(encryptedText),
+    decipher.final(),
+  ]);
   return decrypted.toString("utf8");
 }

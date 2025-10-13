@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import { adminDB } from "@/lib/firebase-admin";
 import OpenAI from "openai";
@@ -7,11 +6,13 @@ import { authAdmin } from "@/lib/authAdmin";
 export async function POST(req: Request) {
   try {
     const user = await authAdmin(req); // only admins trigger scoring
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    if (!user)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
 
     const body = await req.json();
     const { renterId } = body;
-    if (!renterId) return NextResponse.json({ error: "Missing renterId" }, { status: 400 });
+    if (!renterId)
+      return NextResponse.json({ error: "Missing renterId" }, { status: 400 });
 
     // --- 1️⃣ Gather signals from collections ---
     const signals: any[] = [];
@@ -52,25 +53,26 @@ export async function POST(req: Request) {
     // --- 3️⃣ Summarize via AI for context ---
     let aiSummary = "AI analysis not available.";
     if (process.env.OPENAI_API_KEY) {
-        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-        const summaryPrompt = `
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      const summaryPrompt = `
           Generate a short human-readable summary of renter risk based on these signals:
           ${JSON.stringify(signals.slice(0, 10))}
           The calculated score is ${score}.
           Mention the main issues and the overall risk level (e.g., Low, Moderate, High, Critical).
         `;
-        try {
-            const aiResp = await openai.chat.completions.create({
-              model: "gpt-4o-mini",
-              messages: [{ role: "system", content: summaryPrompt }],
-            });
-            aiSummary = aiResp.choices[0].message.content || "No AI summary was generated.";
-        } catch (e) {
-            console.error("OpenAI API call failed", e);
-            aiSummary = "Failed to generate AI summary due to an API error."
-        }
+      try {
+        const aiResp = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [{ role: "system", content: summaryPrompt }],
+        });
+        aiSummary =
+          aiResp.choices[0].message.content || "No AI summary was generated.";
+      } catch (e) {
+        console.error("OpenAI API call failed", e);
+        aiSummary = "Failed to generate AI summary due to an API error.";
+      }
     } else {
-        aiSummary = "AI analysis is disabled. No OpenAI API key is configured."
+      aiSummary = "AI analysis is disabled. No OpenAI API key is configured.";
     }
 
     // --- 4️⃣ Save to Firestore ---
@@ -103,6 +105,12 @@ export async function POST(req: Request) {
   } catch (err: any) {
     console.error("Risk engine error:", err);
     // It's good practice to not expose internal error messages.
-    return NextResponse.json({ error: "An unexpected error occurred in the risk engine.", details: err.message }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: "An unexpected error occurred in the risk engine.",
+        details: err.message,
+      },
+      { status: 500 },
+    );
   }
 }

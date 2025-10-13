@@ -25,7 +25,7 @@ export async function POST(req: Request) {
       customer_email: email, // Pre-fill the email address
       metadata: {
         fullName, // Pass full name to the metadata
-      }
+      },
     });
 
     return NextResponse.json({ sessionId: session.id });

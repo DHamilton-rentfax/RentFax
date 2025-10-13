@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server';
-import { getFraudSignals } from '@/app/actions/fraud-signals';
+import { NextResponse } from "next/server";
+import { getFraudSignals } from "@/app/actions/fraud-signals";
 
 export async function POST(req: Request) {
   const { uid } = await req.json();
 
   if (!uid) {
-    return NextResponse.json({ error: 'Missing UID' }, { status: 400 });
+    return NextResponse.json({ error: "Missing UID" }, { status: 400 });
   }
 
   try {

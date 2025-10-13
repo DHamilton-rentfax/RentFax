@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { adminDB } from "@/lib/firebase-admin";
@@ -17,44 +16,56 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 async function triggerDeepAnalysis(session: Stripe.Checkout.Session) {
-  const { renterName, renterAddress, licenseNumber, userId } = session.metadata!;
+  const { renterName, renterAddress, licenseNumber, userId } =
+    session.metadata!;
 
   // We need to call the /api/ai/analyze-deep endpoint internally
-  const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/analyze-deep`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      // We'll need a way to authenticate this internal request.
-      // For now, we'll pass the userId and trust our internal endpoint.
-      // In a production environment, we'd use a more secure method like a shared secret.
-      "X-Internal-Request": "true", 
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_APP_URL}/api/ai/analyze-deep`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // We'll need a way to authenticate this internal request.
+        // For now, we'll pass the userId and trust our internal endpoint.
+        // In a production environment, we'd use a more secure method like a shared secret.
+        "X-Internal-Request": "true",
+      },
+      body: JSON.stringify({
+        renterName,
+        renterAddress,
+        licenseNumber,
+        userId,
+      }),
     },
-    body: JSON.stringify({ renterName, renterAddress, licenseNumber, userId }),
-  });
+  );
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Error triggering deep analysis:', errorText);
-    // Optionally, you could add more robust error handling here, 
+    console.error("Error triggering deep analysis:", errorText);
+    // Optionally, you could add more robust error handling here,
     // like sending an alert or updating the report status to "failed".
   }
 }
 
 export async function POST(req: Request) {
   const sig = req.headers.get("stripe-signature");
-  
+
   // ✅ Read raw body as text, NOT JSON
   const body = await req.text();
 
   if (!sig) {
-    return NextResponse.json({ error: "Missing Stripe signature" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Missing Stripe signature" },
+      { status: 400 },
+    );
   }
 
   try {
     const event = stripe.webhooks.constructEvent(
       body,
       sig,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      process.env.STRIPE_WEBHOOK_SECRET!,
     );
 
     // ✅ Webhook test log
@@ -66,14 +77,14 @@ export async function POST(req: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        
+
         // Handle deep report purchases
-        if (session.metadata?.reportType === 'deep') {
+        if (session.metadata?.reportType === "deep") {
           await triggerDeepAnalysis(session);
           break;
         }
 
-        if (session.metadata?.reportType === 'deep_credit') {
+        if (session.metadata?.reportType === "deep_credit") {
           await updateDeepReportStatus(session);
           break;
         }
@@ -89,9 +100,9 @@ export async function POST(req: Request) {
             subscriptionId,
             lastCheckout: new Date().toISOString(),
           },
-          { merge: true }
+          { merge: true },
         );
-        
+
         // Update user plan and role
         await updateUserPlan(session);
 

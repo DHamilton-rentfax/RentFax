@@ -1,4 +1,3 @@
-
 "use client";
 import { whoAmI } from "@/app/auth/actions";
 import { useEffect, useState } from "react";

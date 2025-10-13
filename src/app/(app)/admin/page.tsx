@@ -1,9 +1,15 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
 import { jsPDF } from "jspdf";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 type GlobalStats = {
   totalOrgs: number;
@@ -52,8 +58,7 @@ function exportCSV(events: any[], revenue: any) {
   });
 
   const csvContent =
-    "data:text/csv;charset=utf-8," +
-    rows.map((r) => r.join(",")).join("\n");
+    "data:text/csv;charset=utf-8," + rows.map((r) => r.join(",")).join("\n");
 
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement("a");
@@ -82,7 +87,7 @@ function exportPDF(events: any[], revenue: any) {
     doc.text(
       `${idx + 1}. ${e.event} – ${new Date(e.ts).toLocaleString()}`,
       14,
-      100 + idx * 8
+      100 + idx * 8,
     );
   });
 
@@ -96,7 +101,7 @@ export default function SuperDashboard() {
 
   useEffect(() => {
     fetch("/api/admin/global-stats")
-      .then(r => r.json())
+      .then((r) => r.json())
       .then(setStats);
   }, []);
 
@@ -134,22 +139,40 @@ export default function SuperDashboard() {
         </div>
       </div>
       <div className="grid gap-6 md:grid-cols-4">
-        <div className="p-4 border rounded shadow"><h3>Orgs</h3><p>{stats.totalOrgs}</p></div>
-        <div className="p-4 border rounded shadow"><h3>Renters</h3><p>{stats.totalRenters}</p></div>
-        <div className="p-4 border rounded shadow"><h3>Disputes</h3><p>{stats.totalDisputes}</p></div>
-        <div className="p-4 border rounded shadow"><h3>Fraud Flags</h3><p>{stats.fraudFlags}</p></div>
+        <div className="p-4 border rounded shadow">
+          <h3>Orgs</h3>
+          <p>{stats.totalOrgs}</p>
+        </div>
+        <div className="p-4 border rounded shadow">
+          <h3>Renters</h3>
+          <p>{stats.totalRenters}</p>
+        </div>
+        <div className="p-4 border rounded shadow">
+          <h3>Disputes</h3>
+          <p>{stats.totalDisputes}</p>
+        </div>
+        <div className="p-4 border rounded shadow">
+          <h3>Fraud Flags</h3>
+          <p>{stats.fraudFlags}</p>
+        </div>
       </div>
 
       {/* Reports Engagement */}
       <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-xl font-semibold mb-4">📑 Reports Engagement (30d)</h2>
+        <h2 className="text-xl font-semibold mb-4">
+          📑 Reports Engagement (30d)
+        </h2>
         <div className="grid grid-cols-2 gap-6 mb-6">
           <div className="p-4 bg-gray-50 rounded-lg text-center">
-            <p className="text-3xl font-bold text-indigo-600">{stats.engagement?.totals.previewed || 0}</p>
+            <p className="text-3xl font-bold text-indigo-600">
+              {stats.engagement?.totals.previewed || 0}
+            </p>
             <p className="text-gray-600 text-sm">Reports Previewed</p>
           </div>
           <div className="p-4 bg-gray-50 rounded-lg text-center">
-            <p className="text-3xl font-bold text-green-600">{stats.engagement?.totals.downloaded || 0}</p>
+            <p className="text-3xl font-bold text-green-600">
+              {stats.engagement?.totals.downloaded || 0}
+            </p>
             <p className="text-gray-600 text-sm">Reports Downloaded</p>
           </div>
         </div>
@@ -171,7 +194,9 @@ export default function SuperDashboard() {
 
       {/* Engagement by Org */}
       <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-xl font-semibold mb-4">🏢 Report Engagement by Organization</h2>
+        <h2 className="text-xl font-semibold mb-4">
+          🏢 Report Engagement by Organization
+        </h2>
         {stats?.engagement?.byOrg?.length ? (
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
@@ -190,8 +215,12 @@ export default function SuperDashboard() {
                     onClick={() => viewOrg(org)}
                   >
                     <td className="px-4 py-2">{org.orgName}</td>
-                    <td className="px-4 py-2 text-indigo-600 font-semibold">{org.previewed}</td>
-                    <td className="px-4 py-2 text-green-600 font-semibold">{org.downloaded}</td>
+                    <td className="px-4 py-2 text-indigo-600 font-semibold">
+                      {org.previewed}
+                    </td>
+                    <td className="px-4 py-2 text-green-600 font-semibold">
+                      {org.downloaded}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -233,10 +262,12 @@ export default function SuperDashboard() {
             <div className="flex gap-3 mt-6">
               <button
                 onClick={async () => {
-                  const token = await window.firebase.auth().currentUser.getIdToken();
+                  const token = await window.firebase
+                    .auth()
+                    .currentUser.getIdToken();
                   const res = await fetch(
                     `/api/revenue/org-engagement/export?orgId=${selectedOrg.orgId}&format=csv`,
-                    { headers: { Authorization: `Bearer ${token}` } }
+                    { headers: { Authorization: `Bearer ${token}` } },
                   );
                   const blob = await res.blob();
                   const url = window.URL.createObjectURL(blob);
@@ -254,10 +285,12 @@ export default function SuperDashboard() {
 
               <button
                 onClick={async () => {
-                  const token = await window.firebase.auth().currentUser.getIdToken();
+                  const token = await window.firebase
+                    .auth()
+                    .currentUser.getIdToken();
                   const res = await fetch(
                     `/api/revenue/org-engagement/export?orgId=${selectedOrg.orgId}&format=pdf`,
-                    { headers: { Authorization: `Bearer ${token}` } }
+                    { headers: { Authorization: `Bearer ${token}` } },
                   );
                   const blob = await res.blob();
                   const url = window.URL.createObjectURL(blob);

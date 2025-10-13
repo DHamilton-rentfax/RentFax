@@ -1,17 +1,18 @@
-
-import sgMail from '@sendgrid/mail';
+import sgMail from "@sendgrid/mail";
 
 if (process.env.SENDGRID_API_KEY) {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 } else {
-  console.warn('SENDGRID_API_KEY is not set. Email functionality will be disabled.');
+  console.warn(
+    "SENDGRID_API_KEY is not set. Email functionality will be disabled.",
+  );
 }
 
 interface DisputeStatusUpdateEmailProps {
   email: string;
   renterName: string;
   id: string;
-  newStatus: 'approved' | 'rejected' | 'pending';
+  newStatus: "approved" | "rejected" | "pending";
   adminNotes?: string;
 }
 
@@ -20,30 +21,30 @@ export async function sendDisputeStatusUpdateEmail({
   renterName,
   id,
   newStatus,
-  adminNotes = 'No additional notes provided.',
+  adminNotes = "No additional notes provided.",
 }: DisputeStatusUpdateEmailProps) {
   if (!process.env.SENDGRID_API_KEY) {
-    console.log('Skipping email: SENDGRID_API_KEY not set.');
+    console.log("Skipping email: SENDGRID_API_KEY not set.");
     return;
   }
 
   const renterDisputesUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/renter/disputes`; // Assuming a page exists here
 
   const subjectLines = {
-    approved: 'Your Dispute Has Been Approved',
-    rejected: 'Your Dispute Has Been Rejected',
-    pending: 'Your Dispute is Under Review',
+    approved: "Your Dispute Has Been Approved",
+    rejected: "Your Dispute Has Been Rejected",
+    pending: "Your Dispute is Under Review",
   };
 
   const messageBody = {
-    approved: `Your dispute (ID: ${id.substring(0,8)}...) has been reviewed and **approved**. The original incident report has been updated accordingly.`,
-    rejected: `Your dispute (ID: ${id.substring(0,8)}...) has been reviewed and **rejected**. The original incident report will be upheld.`,
-    pending: `Your dispute (ID: ${id.substring(0,8)}...) is now under review by our team. We will notify you once a decision has been made.`,
-  }
+    approved: `Your dispute (ID: ${id.substring(0, 8)}...) has been reviewed and **approved**. The original incident report has been updated accordingly.`,
+    rejected: `Your dispute (ID: ${id.substring(0, 8)}...) has been reviewed and **rejected**. The original incident report will be upheld.`,
+    pending: `Your dispute (ID: ${id.substring(0, 8)}...) is now under review by our team. We will notify you once a decision has been made.`,
+  };
 
   const msg = {
     to: email,
-    from: 'support@rentfax.co', // Must be a verified sender
+    from: "support@rentfax.co", // Must be a verified sender
     subject: subjectLines[newStatus],
     html: `
       <div style="font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto;">
@@ -72,12 +73,19 @@ export async function sendDisputeStatusUpdateEmail({
 
   try {
     await sgMail.send(msg);
-    console.log(`Dispute status update email sent to ${email} for status ${newStatus}.`);
+    console.log(
+      `Dispute status update email sent to ${email} for status ${newStatus}.`,
+    );
   } catch (error) {
     if (error instanceof Error) {
-        console.error('Failed to send dispute status update email:', error.message);
+      console.error(
+        "Failed to send dispute status update email:",
+        error.message,
+      );
     } else {
-        console.error('An unknown error occurred while sending dispute status update email');
+      console.error(
+        "An unknown error occurred while sending dispute status update email",
+      );
     }
   }
 }

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -32,9 +31,11 @@ export default function RoleManagementPage() {
     const result = await updateUserRole(userId, newRole, adminUser.email);
     if (result.success) {
       setUsers((prev) =>
-        prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
+        prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)),
       );
-      alert("Role updated successfully! User may need to log out and back in for the change to take full effect.");
+      alert(
+        "Role updated successfully! User may need to log out and back in for the change to take full effect.",
+      );
     } else {
       alert("Error updating role: " + result.error);
     }
@@ -47,7 +48,9 @@ export default function RoleManagementPage() {
       <h1 className="text-2xl font-bold">User & Role Management</h1>
 
       <Card>
-        <CardHeader><CardTitle>All Users</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>All Users</CardTitle>
+        </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
@@ -68,7 +71,9 @@ export default function RoleManagementPage() {
                     <td className="p-2">
                       <select
                         value={user.role}
-                        onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                        onChange={(e) =>
+                          handleRoleChange(user.id, e.target.value)
+                        }
                         className="border rounded px-2 py-1"
                         disabled={user.id === adminUser?.uid} // Disable changing your own role
                       >

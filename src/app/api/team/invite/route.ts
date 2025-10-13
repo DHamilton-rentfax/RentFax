@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from "next/server";
 import { adminDB } from "@/firebase/server";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
@@ -9,11 +8,14 @@ export async function POST(req: NextRequest) {
     const { email, role, inviterName, companyName } = await req.json();
 
     if (!email || !role || !inviterName || !companyName) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 },
+      );
     }
 
     // Generate a unique token for the invite
-    const token = Buffer.from(`${email}-${Date.now()}`).toString('base64url');
+    const token = Buffer.from(`${email}-${Date.now()}`).toString("base64url");
 
     // Save invite to Firestore
     const inviteRef = await addDoc(collection(adminDB, "invites"), {
@@ -44,6 +46,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, inviteId: inviteRef.id });
   } catch (error) {
     console.error("Error sending invite:", error);
-    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Something went wrong" },
+      { status: 500 },
+    );
   }
 }

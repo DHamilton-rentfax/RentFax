@@ -1,15 +1,15 @@
-'use client';
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { PlusCircle, ListFilter, File, MoreHorizontal } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+"use client";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { PlusCircle, ListFilter, File, MoreHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -17,8 +17,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -27,13 +27,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import Image from 'next/image';
-import { Skeleton } from '@/components/ui/skeleton';
-import RenterActions from '@/components/renter-actions';
-import { useAuth } from '@/hooks/use-auth';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+} from "@/components/ui/dropdown-menu";
+import Image from "next/image";
+import { Skeleton } from "@/components/ui/skeleton";
+import RenterActions from "@/components/renter-actions";
+import { useAuth } from "@/hooks/use-auth";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export default function RentersPage() {
   const { claims } = useAuth();
@@ -46,8 +46,8 @@ export default function RentersPage() {
       return;
     }
     const q = query(
-      collection(db, 'renters'),
-      where('companyId', '==', claims.companyId)
+      collection(db, "renters"),
+      where("companyId", "==", claims.companyId),
     );
     const unsub = onSnapshot(q, (snapshot) => {
       setRenters(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
@@ -143,7 +143,9 @@ export default function RentersPage() {
                           alt="Renter image"
                           className="aspect-square rounded-md object-cover"
                           height="64"
-                          src={renter.imageUrl || `https://placehold.co/64x64.png`}
+                          src={
+                            renter.imageUrl || `https://placehold.co/64x64.png`
+                          }
                           width="64"
                           data-ai-hint="person"
                         />
@@ -159,26 +161,36 @@ export default function RentersPage() {
                           {renter.email}
                         </div>
                       </TableCell>
-                       <TableCell>
-                        <Badge variant={!renter.riskScore ? 'secondary' : renter.riskScore < 50 ? 'destructive' : (renter.riskScore < 75 ? 'secondary' : 'default')}>
-                          {renter.riskScore ?? 'N/A'}
+                      <TableCell>
+                        <Badge
+                          variant={
+                            !renter.riskScore
+                              ? "secondary"
+                              : renter.riskScore < 50
+                                ? "destructive"
+                                : renter.riskScore < 75
+                                  ? "secondary"
+                                  : "default"
+                          }
+                        >
+                          {renter.riskScore ?? "N/A"}
                         </Badge>
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
                         {renter.totalIncidents || 0}
                       </TableCell>
                       <TableCell>
-                         <RenterActions renter={renter} isIcon={true} />
+                        <RenterActions renter={renter} isIcon={true} />
                       </TableCell>
                     </TableRow>
                   ))}
             </TableBody>
           </Table>
-           {!loading && renters.length === 0 && (
-                <div className="text-center p-8 text-muted-foreground">
-                    No renters found. Add one to get started.
-                </div>
-           )}
+          {!loading && renters.length === 0 && (
+            <div className="text-center p-8 text-muted-foreground">
+              No renters found. Add one to get started.
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -5,8 +5,8 @@
 /* ========== ROOT VARIABLES ========== */
 :root {
   --background: #ffffff;
-  --foreground: #1A2540;
-  --accent: #D4A017;
+  --foreground: #1a2540;
+  --accent: #d4a017;
   --muted: #f8f9fb;
   --border: #e5e7eb;
   --radius: 12px;
@@ -15,7 +15,15 @@
 
 html,
 body {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    sans-serif;
   background: var(--background);
   color: var(--foreground);
   scroll-behavior: smooth;
@@ -76,13 +84,17 @@ a.button:active {
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 80% 80%, rgba(212, 160, 23, 0.05), transparent 70%);
+  background: radial-gradient(
+    circle at 80% 80%,
+    rgba(212, 160, 23, 0.05),
+    transparent 70%
+  );
   pointer-events: none;
 }
 
 /* ========== CTA SECTIONS ========== */
 .cta-section {
-  background: linear-gradient(135deg, #1A2540 0%, #222e56 50%, #1A2540 100%);
+  background: linear-gradient(135deg, #1a2540 0%, #222e56 50%, #1a2540 100%);
   color: #fff;
 }
 
@@ -166,7 +178,7 @@ footer a:hover {
 }
 
 .text-gradient {
-  background: linear-gradient(90deg, #1A2540 0%, #D4A017 100%);
+  background: linear-gradient(90deg, #1a2540 0%, #d4a017 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

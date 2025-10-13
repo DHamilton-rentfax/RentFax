@@ -1,4 +1,4 @@
-import { requireContentManager } from '@/lib/auth/requireContentManager';
+import { requireContentManager } from "@/lib/auth/requireContentManager";
 
 export default async function AdminSeoPage() {
   const { user } = await requireContentManager();
@@ -6,7 +6,9 @@ export default async function AdminSeoPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold">SEO Management</h1>
-      <p>Welcome, {user.email} ({user.role})</p>
+      <p>
+        Welcome, {user.email} ({user.role})
+      </p>
       {/* SEO management components */}
     </div>
   );

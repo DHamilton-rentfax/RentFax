@@ -9,7 +9,9 @@ import { getAuth } from "firebase-admin/auth";
 import { getStorage } from "firebase-admin/storage";
 
 // Load service account credentials from environment
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY as string);
+const serviceAccount = JSON.parse(
+  process.env.FIREBASE_SERVICE_ACCOUNT_KEY as string,
+);
 
 const adminApp = !getApps().length
   ? initializeApp({

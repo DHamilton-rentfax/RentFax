@@ -1,10 +1,13 @@
-
 "use server";
 
 import { dbAdmin } from "@/lib/firebase-admin";
 import { logAuditEvent } from "./log-audit";
 
-export async function flagRenter(renterId: string, flaggedBy: string, reason: string) {
+export async function flagRenter(
+  renterId: string,
+  flaggedBy: string,
+  reason: string,
+) {
   try {
     const renterRef = dbAdmin.collection("renters").doc(renterId);
     await renterRef.update({

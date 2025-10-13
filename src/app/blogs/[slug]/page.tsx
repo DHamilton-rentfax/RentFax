@@ -1,4 +1,3 @@
-
 import { adminDB } from "@/lib/firebase-admin";
 import { notFound } from "next/navigation";
 import { format } from "date-fns";
@@ -9,7 +8,11 @@ import { Suspense } from "react";
 import NewsletterSignup from "@/components/NewsletterSignup";
 
 // Dynamically generate metadata for each blog
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}): Promise<Metadata> {
   const slug = params.slug;
   try {
     const blogRef = adminDB.collection("blogs");
@@ -20,7 +23,9 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
     return {
       title: `${data.title} | RentFAX Blog`,
-      description: data.excerpt || "Read insights from the RentFAX team on renter safety, fraud prevention, and transparency.",
+      description:
+        data.excerpt ||
+        "Read insights from the RentFAX team on renter safety, fraud prevention, and transparency.",
       openGraph: {
         title: data.title,
         description: data.excerpt,
@@ -69,12 +74,15 @@ async function getRelatedPosts(slug: string) {
 // --- AI Summary ---
 async function getAISummary(content: string) {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/summarize`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: content }),
-      cache: "no-store",
-    });
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/ai/summarize`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: content }),
+        cache: "no-store",
+      },
+    );
     if (!res.ok) throw new Error("Failed to summarize");
     const data = await res.json();
     return data.summary;
@@ -95,8 +103,11 @@ export async function AISummary({ text }: { text: string }) {
   );
 }
 
-
-export default async function BlogPostPage({ params }: { params: { slug: string } }) {
+export default async function BlogPostPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
   const post = await getPost(params.slug);
 
   if (!post) return notFound();
@@ -123,7 +134,9 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
         <h1 className="text-4xl md:text-5xl font-bold mb-4">{post.title}</h1>
         <p className="text-muted-foreground mb-6">
           {post.author ? `By ${post.author}` : "RentFAX Editorial Team"} •{" "}
-          {post.createdAt ? format(post.createdAt.toDate(), "MMMM d, yyyy") : ""}
+          {post.createdAt
+            ? format(post.createdAt.toDate(), "MMMM d, yyyy")
+            : ""}
         </p>
 
         {/* Content */}
@@ -132,7 +145,11 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
 
-        <Suspense fallback={<p className="text-muted-foreground">Summarizing post...</p>}>
+        <Suspense
+          fallback={
+            <p className="text-muted-foreground">Summarizing post...</p>
+          }
+        >
           <AISummary text={post.content} />
         </Suspense>
 

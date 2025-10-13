@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -20,9 +19,12 @@ export default function InvitePage() {
     async function fetchInvite() {
       if (!orgId || !inviteId) return;
       const token = await auth.currentUser?.getIdToken();
-      const res = await fetch(`/api/team/invite-status?orgId=${orgId}&inviteId=${inviteId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `/api/team/invite-status?orgId=${orgId}&inviteId=${inviteId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
       const data = await res.json();
       if (res.ok) {
         setInvite(data.invite);
@@ -38,7 +40,10 @@ export default function InvitePage() {
     const token = await auth.currentUser?.getIdToken();
     const res = await fetch("/api/team/accept-invite", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({ orgId, inviteId }),
     });
     if (res.ok) {
@@ -57,7 +62,8 @@ export default function InvitePage() {
         <div className="max-w-md w-full bg-white border rounded shadow p-6 text-center">
           <h1 className="text-2xl font-bold mb-4">❌ Invite Expired</h1>
           <p className="mb-4 text-gray-600">
-            This invite is no longer valid. Please request a new invite from your org admin.
+            This invite is no longer valid. Please request a new invite from
+            your org admin.
           </p>
         </div>
       </div>

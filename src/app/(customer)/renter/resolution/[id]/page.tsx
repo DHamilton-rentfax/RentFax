@@ -1,4 +1,3 @@
-
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -22,18 +21,23 @@ export default function ResolutionDetailPage() {
   // 🔹 Fetch resolution data in real time
   useEffect(() => {
     if (!id) return;
-    const unsub = onSnapshot(doc(db, "resolutions", id as string), async (snap) => {
-      if (snap.exists()) {
-        const data = snap.data();
-        setResolution(data);
+    const unsub = onSnapshot(
+      doc(db, "resolutions", id as string),
+      async (snap) => {
+        if (snap.exists()) {
+          const data = snap.data();
+          setResolution(data);
 
-        // Fetch linked incident
-        if (data.incidentId) {
-          const incidentSnap = await getDoc(doc(db, "incidents", data.incidentId));
-          if (incidentSnap.exists()) setIncident(incidentSnap.data());
+          // Fetch linked incident
+          if (data.incidentId) {
+            const incidentSnap = await getDoc(
+              doc(db, "incidents", data.incidentId),
+            );
+            if (incidentSnap.exists()) setIncident(incidentSnap.data());
+          }
         }
-      }
-    });
+      },
+    );
     return () => unsub();
   }, [id]);
 
@@ -84,8 +88,8 @@ export default function ResolutionDetailPage() {
                 resolution.status === "resolved"
                   ? "bg-green-100 text-green-700"
                   : resolution.status === "under review"
-                  ? "bg-yellow-100 text-yellow-700"
-                  : "bg-gray-200 text-gray-700"
+                    ? "bg-yellow-100 text-yellow-700"
+                    : "bg-gray-200 text-gray-700"
               }`}
             >
               {resolution.status}
@@ -106,7 +110,8 @@ export default function ResolutionDetailPage() {
               <strong>Status:</strong> {incident.status || "N/A"}
             </p>
             <p className="text-gray-700">
-              <strong>Description:</strong> {incident.description || "No details provided."}
+              <strong>Description:</strong>{" "}
+              {incident.description || "No details provided."}
             </p>
           </div>
         )}
@@ -168,7 +173,9 @@ export default function ResolutionDetailPage() {
         <div className="text-sm text-gray-500 border-t pt-4">
           <p>Created: {resolution.createdAt?.toDate().toLocaleString()}</p>
           {resolution.updatedAt && (
-            <p>Last Updated: {resolution.updatedAt?.toDate().toLocaleString()}</p>
+            <p>
+              Last Updated: {resolution.updatedAt?.toDate().toLocaleString()}
+            </p>
           )}
         </div>
       </div>

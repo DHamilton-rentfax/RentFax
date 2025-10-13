@@ -8,7 +8,11 @@ export async function POST(req: Request) {
     const token = req.headers.get("authorization")?.split(" ")[1];
     const decoded = await getAuth().verifyIdToken(token!);
 
-    const inviteRef = adminDB.collection("orgs").doc(orgId).collection("invites").doc(inviteId);
+    const inviteRef = adminDB
+      .collection("orgs")
+      .doc(orgId)
+      .collection("invites")
+      .doc(inviteId);
     const inviteDoc = await inviteRef.get();
 
     if (!inviteDoc.exists) {
@@ -17,7 +21,10 @@ export async function POST(req: Request) {
 
     const invite = inviteDoc.data();
     if (invite?.status !== "pending" && invite?.status !== "expired") {
-      return NextResponse.json({ error: "Invite already used or canceled" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invite already used or canceled" },
+        { status: 400 },
+      );
     }
 
     await inviteRef.update({
@@ -27,12 +34,12 @@ export async function POST(req: Request) {
     });
 
     await adminDB.collection("auditLogs").add({
-        type: "INVITE_CANCELED",
-        actorUid: decoded.uid,
-        targetEmail: invite.email,
-        orgId,
-        role: invite.role,
-        timestamp: Date.now(),
+      type: "INVITE_CANCELED",
+      actorUid: decoded.uid,
+      targetEmail: invite.email,
+      orgId,
+      role: invite.role,
+      timestamp: Date.now(),
     });
 
     // (Optional) Notify recipient

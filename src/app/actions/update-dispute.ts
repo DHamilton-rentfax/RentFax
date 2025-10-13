@@ -1,10 +1,13 @@
-
 "use server";
 
 import { adminDb } from "@/firebase/server";
 import { logAuditEvent } from "./log-audit";
 
-export async function updateDispute(disputeId: string, newStatus: string, adminEmail: string) {
+export async function updateDispute(
+  disputeId: string,
+  newStatus: string,
+  adminEmail: string,
+) {
   try {
     const disputeRef = adminDb.collection("disputes").doc(disputeId);
     const doc = await disputeRef.get();

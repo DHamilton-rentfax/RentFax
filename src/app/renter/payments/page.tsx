@@ -13,8 +13,13 @@ export default function RenterPaymentsPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">Payments</h1>
-      <p className="mb-4">You can pay outstanding balances here securely via Stripe.</p>
-      <button onClick={() => pay(100)} className="bg-green-600 text-white px-4 py-2 rounded">
+      <p className="mb-4">
+        You can pay outstanding balances here securely via Stripe.
+      </p>
+      <button
+        onClick={() => pay(100)}
+        className="bg-green-600 text-white px-4 py-2 rounded"
+      >
         Pay $100
       </button>
     </div>

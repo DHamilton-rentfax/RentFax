@@ -6,10 +6,12 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const orgId = searchParams.get("orgId");
-    if (!orgId) return NextResponse.json({ error: "Missing orgId" }, { status: 400 });
+    if (!orgId)
+      return NextResponse.json({ error: "Missing orgId" }, { status: 400 });
 
     const authHeader = req.headers.get("authorization");
-    if (!authHeader) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!authHeader)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const token = authHeader.split(" ")[1];
     const decoded = await getAuth().verifyIdToken(token);
@@ -25,7 +27,8 @@ export async function GET(req: Request) {
       .orderBy("ts", "asc")
       .get();
 
-    const timeline: Record<string, { previewed: number; downloaded: number }> = {};
+    const timeline: Record<string, { previewed: number; downloaded: number }> =
+      {};
     snap.forEach((doc) => {
       const e = doc.data();
       const date = new Date(e.ts).toISOString().slice(0, 10);

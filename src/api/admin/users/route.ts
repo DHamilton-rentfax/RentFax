@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
 import { authAdmin } from "@/lib/firebase-admin";
@@ -6,7 +5,8 @@ import { authAdmin } from "@/lib/firebase-admin";
 export async function GET(req: Request) {
   try {
     const authHeader = req.headers.get("authorization");
-    if (!authHeader) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!authHeader)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const token = authHeader.split(" ")[1];
     const decoded = await authAdmin.verifyIdToken(token);

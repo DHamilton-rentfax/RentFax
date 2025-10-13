@@ -11,10 +11,17 @@ export async function GET(req: Request) {
     const decoded = await getAuth().verifyIdToken(token!);
 
     // Find the organization the user belongs to.
-    const memberSnapshot = await adminDB.collectionGroup("members").where("email", "==", decoded.email).limit(1).get();
+    const memberSnapshot = await adminDB
+      .collectionGroup("members")
+      .where("email", "==", decoded.email)
+      .limit(1)
+      .get();
 
     if (memberSnapshot.empty) {
-      return NextResponse.json({ error: "User is not a member of any organization." }, { status: 403 });
+      return NextResponse.json(
+        { error: "User is not a member of any organization." },
+        { status: 403 },
+      );
     }
 
     const memberDoc = memberSnapshot.docs[0];

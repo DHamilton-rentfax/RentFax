@@ -1,12 +1,11 @@
-
-'use client';
-import { useEffect, useState } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { useAuth } from '@/hooks/use-auth';
-import { PLAN_FEATURES, Plan, CompanyStatus } from '@/lib/plan-features';
-import Paywall from './paywall';
-import { useToast } from '@/hooks/use-toast';
+"use client";
+import { useEffect, useState } from "react";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { useAuth } from "@/hooks/use-auth";
+import { PLAN_FEATURES, Plan, CompanyStatus } from "@/lib/plan-features";
+import Paywall from "./paywall";
+import { useToast } from "@/hooks/use-toast";
 
 export default function FeatureGate({
   name,
@@ -20,8 +19,8 @@ export default function FeatureGate({
   const { claims } = useAuth();
   const { toast } = useToast();
   const [isAllowed, setIsAllowed] = useState<boolean | null>(null);
-  const [plan, setPlan] = useState<Plan>('starter');
-  const [status, setStatus] = useState<CompanyStatus>('active');
+  const [plan, setPlan] = useState<Plan>("starter");
+  const [status, setStatus] = useState<CompanyStatus>("active");
 
   useEffect(() => {
     const checkPlan = async () => {
@@ -31,35 +30,46 @@ export default function FeatureGate({
       }
 
       try {
-        const companyRef = doc(db, 'companies', claims.companyId);
+        const companyRef = doc(db, "companies", claims.companyId);
         const companySnap = await getDoc(companyRef);
         if (companySnap.exists()) {
           const companyData = companySnap.data();
-          const currentPlan = (companyData.plan || 'starter') as Plan;
-          const currentStatus = (companyData.status || 'active') as CompanyStatus;
+          const currentPlan = (companyData.plan || "starter") as Plan;
+          const currentStatus = (companyData.status ||
+            "active") as CompanyStatus;
           // Check the company-wide toggle. Default to true if not explicitly set.
-          const aiEnabled = companyData.ai?.enabled ?? true; 
-          
+          const aiEnabled = companyData.ai?.enabled ?? true;
+
           setPlan(currentPlan);
           setStatus(currentStatus);
 
           const planHasFeature = PLAN_FEATURES[currentPlan]?.[name];
           // For AI features, also check if the admin has enabled them.
-          const companyAllowsFeature = name.startsWith('ai_') ? aiEnabled : true;
-          
-          setIsAllowed(currentStatus === 'active' && !!planHasFeature && companyAllowsFeature);
+          const companyAllowsFeature = name.startsWith("ai_")
+            ? aiEnabled
+            : true;
+
+          setIsAllowed(
+            currentStatus === "active" &&
+              !!planHasFeature &&
+              companyAllowsFeature,
+          );
         } else {
           setIsAllowed(false);
         }
       } catch (error: any) {
         console.error("Error fetching company plan:", error);
-        toast({ title: "Error", description: `Could not verify your plan: ${error.message}`, variant: "destructive" });
+        toast({
+          title: "Error",
+          description: `Could not verify your plan: ${error.message}`,
+          variant: "destructive",
+        });
         setIsAllowed(false);
       }
     };
 
     if (claims) {
-        checkPlan();
+      checkPlan();
     }
   }, [name, claims, toast]);
 
@@ -72,7 +82,11 @@ export default function FeatureGate({
   }
 
   if (!isAllowed) {
-    return fallback || <Paywall currentPlan={plan} currentStatus={status} featureName={name} />;
+    return (
+      fallback || (
+        <Paywall currentPlan={plan} currentStatus={status} featureName={name} />
+      )
+    );
   }
 
   return <>{children}</>;

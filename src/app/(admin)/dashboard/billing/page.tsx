@@ -2,14 +2,13 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { auth } from "@/lib/firebase";
+import { auth, functions } from "@/lib/firebase-client";
 import { ADDON_CATALOG, Addon } from "@/lib/addons";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { httpsCallable } from "firebase/functions";
-import { functions } from "@/lib/firebase";
 
 
 export default function BillingDashboard() {

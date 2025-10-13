@@ -1,19 +1,21 @@
+"use server";
 
-'use server';
-
-import { dbAdmin } from '@/lib/firebase-admin';
+import { dbAdmin } from "@/lib/firebase-admin";
 
 export async function getAllIncidents() {
   try {
-    const incidentsSnap = await dbAdmin.collection('incidents').orderBy('createdAt', 'desc').get();
+    const incidentsSnap = await dbAdmin
+      .collection("incidents")
+      .orderBy("createdAt", "desc")
+      .get();
 
     if (incidentsSnap.empty) {
       return [];
     }
 
-    const incidents = incidentsSnap.docs.map(doc => {
+    const incidents = incidentsSnap.docs.map((doc) => {
       const data = doc.data();
-      
+
       return {
         id: doc.id,
         ...data,
@@ -23,7 +25,7 @@ export async function getAllIncidents() {
 
     return incidents;
   } catch (error) {
-    console.error('Error fetching all incidents:', error);
+    console.error("Error fetching all incidents:", error);
     return [];
   }
 }

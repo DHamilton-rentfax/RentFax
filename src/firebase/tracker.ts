@@ -16,6 +16,6 @@ export async function trackDemoEvent(event: string, data: any = {}) {
       createdAt: serverTimestamp(),
     });
   } catch (error) {
-      console.error("Error writing to demoAnalytics", error)
+    console.error("Error writing to demoAnalytics", error);
   }
 }

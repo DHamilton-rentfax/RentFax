@@ -1,1 +1,23 @@
-\'use client\'\nimport { useEffect, useState } from \'react\'\n\nexport default function CreditWidget() {\n  const [credits, setCredits] = useState<number | null>(null)\n\n  useEffect(() => {\n    fetch(\'/api/credits\')\n      .then((r) => r.json())\n      .then((d) => setCredits(d.creditsRemaining))\n  }, [])\n\n  return (\n    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex justify-between items-center">\n      <p className="text-blue-900 font-medium">\n        Remaining Verification Credits: {credits ?? \'...\'}\n      </p>\n      <a href="/pricing" className="text-blue-700 hover:underline text-sm font-semibold">\n        Add Credits\n      </a>\n    </div>\n  )\n}\n
+'use client'
+import { useEffect, useState } from 'react'
+
+export default function CreditWidget() {
+  const [credits, setCredits] = useState<number | null>(null)
+
+  useEffect(() => {
+    fetch('/api/credits')
+      .then((r) => r.json())
+      .then((d) => setCredits(d.creditsRemaining))
+  }, [])
+
+  return (
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex justify-between items-center">
+      <p className="text-blue-900 font-medium">
+        Remaining Verification Credits: {credits ?? '...'}
+      </p>
+      <a href="/pricing" className="text-blue-700 hover:underline text-sm font-semibold">
+        Add Credits
+      </a>
+    </div>
+  )
+}

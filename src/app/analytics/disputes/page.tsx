@@ -1,20 +1,22 @@
-
-import { getAllDisputes } from '@/app/actions/get-all-disputes';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { getAllDisputes } from "@/app/actions/get-all-disputes";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function DisputeAnalyticsPage() {
   const { disputes, error } = await getAllDisputes();
 
   if (error || !disputes) {
-    return <div>Error: {error || 'Could not fetch disputes'}</div>;
+    return <div>Error: {error || "Could not fetch disputes"}</div>;
   }
 
   const totalDisputes = disputes.length;
-  const disputesByStatus = disputes.reduce((acc, dispute) => {
-    const status = dispute.incident.status;
-    acc[status] = (acc[status] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const disputesByStatus = disputes.reduce(
+    (acc, dispute) => {
+      const status = dispute.incident.status;
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
 
   return (
     <div className="container mx-auto p-4">
@@ -45,11 +47,18 @@ export default async function DisputeAnalyticsPage() {
         </CardHeader>
         <CardContent>
           <ul>
-            {disputes.slice(0, 10).map(dispute => (
+            {disputes.slice(0, 10).map((dispute) => (
               <li key={dispute.id} className="border-b py-2">
-                <p><strong>Incident:</strong> {dispute.incident.description}</p>
-                <p><strong>Status:</strong> {dispute.incident.status}</p>
-                <p><strong>Disputed on:</strong> {dispute.createdAt.toLocaleDateString()}</p>
+                <p>
+                  <strong>Incident:</strong> {dispute.incident.description}
+                </p>
+                <p>
+                  <strong>Status:</strong> {dispute.incident.status}
+                </p>
+                <p>
+                  <strong>Disputed on:</strong>{" "}
+                  {dispute.createdAt.toLocaleDateString()}
+                </p>
               </li>
             ))}
           </ul>

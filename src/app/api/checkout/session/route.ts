@@ -10,11 +10,15 @@ export async function POST(req: Request) {
     const { items } = await req.json();
 
     if (!items || items.length === 0)
-      return NextResponse.json({ error: "No items provided." }, { status: 400 });
+      return NextResponse.json(
+        { error: "No items provided." },
+        { status: 400 },
+      );
 
     const lineItems = items.map((item: any) => ({
-      price_data: { // Changed from 'price' to 'price_data' for ad-hoc items
-        currency: 'usd',
+      price_data: {
+        // Changed from 'price' to 'price_data' for ad-hoc items
+        currency: "usd",
         product_data: {
           name: item.lookup_key, // Use lookup_key as product name
         },

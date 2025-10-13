@@ -16,7 +16,7 @@ export async function GET() {
     console.error("Error fetching demo analytics:", error);
     return NextResponse.json(
       { success: false, message: "Failed to fetch demo analytics." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

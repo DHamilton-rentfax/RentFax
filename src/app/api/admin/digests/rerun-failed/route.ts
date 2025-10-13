@@ -5,47 +5,50 @@ import sendgrid from "@sendgrid/mail";
 sendgrid.setApiKey(process.env.SENDGRID_API_KEY!);
 
 export async function POST(req: NextRequest) {
-    const { runId } = await req.json();
-    const runRef = adminDB.collection("digestRuns").doc(runId);
-    const runDoc = await runRef.get();
+  const { runId } = await req.json();
+  const runRef = adminDB.collection("digestRuns").doc(runId);
+  const runDoc = await runRef.get();
 
-    if (!runDoc.exists) {
-        return new Response("Run not found", { status: 404 });
-    }
+  if (!runDoc.exists) {
+    return new Response("Run not found", { status: 404 });
+  }
 
-    const runData = runDoc.data()!;
-    const failedLogs = runData.logs.filter((log: any) => log.status === 'failed');
+  const runData = runDoc.data()!;
+  const failedLogs = runData.logs.filter((log: any) => log.status === "failed");
 
-    for (const log of failedLogs) {
-        const userDoc = await adminDB.doc(`users/${log.uid}`).get();
-        if (!userDoc.exists) continue;
+  for (const log of failedLogs) {
+    const userDoc = await adminDB.doc(`users/${log.uid}`).get();
+    if (!userDoc.exists) continue;
 
-        const notifSnap = await adminDB.collection(`users/${log.uid}/notifications`)
-            .where("read", "==", false)
-            .get();
+    const notifSnap = await adminDB
+      .collection(`users/${log.uid}/notifications`)
+      .where("read", "==", false)
+      .get();
 
-        if (notifSnap.empty) continue;
+    if (notifSnap.empty) continue;
 
-        const lines = notifSnap.docs.map(d => `- ${d.get("title")}: ${d.get("body")}`);
-        const emailBody = `
+    const lines = notifSnap.docs.map(
+      (d) => `- ${d.get("title")}: ${d.get("body")}`,
+    );
+    const emailBody = `
             <p>Here’s your digest:</p>
-            <ul>${lines.map(l => `<li>${l}</li>`).join("")}</ul>
+            <ul>${lines.map((l) => `<li>${l}</li>`).join("")}</ul>
         `;
 
-        try {
-            await sendgrid.send({
-                to: log.email,
-                from: "noreply@rentfax.ai",
-                subject: `Your RentFAX Digest`,
-                html: emailBody,
-            });
-            log.status = "sent";
-        } catch (err) {
-            log.status = "failed";
-        }
+    try {
+      await sendgrid.send({
+        to: log.email,
+        from: "noreply@rentfax.ai",
+        subject: `Your RentFAX Digest`,
+        html: emailBody,
+      });
+      log.status = "sent";
+    } catch (err) {
+      log.status = "failed";
     }
+  }
 
-    await runRef.update({ logs: runData.logs });
+  await runRef.update({ logs: runData.logs });
 
-    return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true });
 }

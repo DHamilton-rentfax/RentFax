@@ -11,7 +11,9 @@ export async function GET() {
   for (const org of orgs.docs) {
     const renters = await db.collection(`orgs/${org.id}/renters`).get();
     const disputes = await db.collection(`orgs/${org.id}/disputes`).get();
-    const flagged = renters.docs.filter(d => d.get("fraudFlag") === true).length;
+    const flagged = renters.docs.filter(
+      (d) => d.get("fraudFlag") === true,
+    ).length;
 
     totalRenters += renters.size;
     totalDisputes += disputes.size;
@@ -34,7 +36,10 @@ export async function GET() {
   });
 
   // Aggregate daily
-  const engagementTimeline: Record<string, { previewed: number; downloaded: number }> = {};
+  const engagementTimeline: Record<
+    string,
+    { previewed: number; downloaded: number }
+  > = {};
   engagementSnap.forEach((doc) => {
     const e = doc.data();
     const date = new Date(e.ts).toISOString().slice(0, 10);
@@ -66,7 +71,7 @@ export async function GET() {
   const orgIds = Object.keys(orgEngagement);
   if (orgIds.length) {
     const orgDocs = await db.getAll(
-      ...orgIds.map((id) => db.collection("orgs").doc(id))
+      ...orgIds.map((id) => db.collection("orgs").doc(id)),
     );
     orgDocs.forEach((doc) => {
       if (doc.exists) orgsData[doc.id] = doc.data();

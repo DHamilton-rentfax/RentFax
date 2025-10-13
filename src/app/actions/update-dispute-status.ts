@@ -1,15 +1,15 @@
-'use server';
+"use server";
 
-import { adminDB } from '@/firebase/server';
-import { FieldValue } from 'firebase-admin/firestore';
-import { logAudit } from './audit-log';
-import { getDisputeById } from './get-dispute-by-id';
+import { adminDB } from "@/firebase/server";
+import { FieldValue } from "firebase-admin/firestore";
+import { logAudit } from "./audit-log";
+import { getDisputeById } from "./get-dispute-by-id";
 
 export async function updateDisputeStatus(
   id: string,
   status: string,
   adminNote: string,
-  actorId: string
+  actorId: string,
 ) {
   const before = await getDisputeById(id);
 
@@ -21,5 +21,5 @@ export async function updateDisputeStatus(
 
   const after = await getDisputeById(id);
 
-  await logAudit('updateDisputeStatus', actorId, { before, after });
+  await logAudit("updateDisputeStatus", actorId, { before, after });
 }

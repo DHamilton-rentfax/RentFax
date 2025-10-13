@@ -1,1 +1,38 @@
-'use client'\n\nimport { useEffect, useState } from 'react'\nimport DisputeTable from './components/DisputeTable'\nimport { Loader2 } from 'lucide-react'\n\nexport default function AdminDisputesPage() {\n  const [disputes, setDisputes] = useState<any[]>([])\n  const [loading, setLoading] = useState(true)\n\n  useEffect(() => {\n    const load = async () => {\n      try {\n        const res = await fetch('/api/disputes')\n        const data = await res.json()\n        setDisputes(data.disputes || [])\n      } catch (err) {\n        console.error(err)\n      } finally {\n        setLoading(false)\n      }\n    }\n    load()\n  }, [])\n\n  return (\n    <div className="p-6">\n      <h1 className="text-2xl font-semibold text-gray-800 mb-4">Renter Disputes</h1>\n      {loading ? (\n        <div className="flex items-center text-gray-500">\n          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading disputes...\n        </div>\n      ) : (\n        <DisputeTable data={disputes} />\n      )}\n    </div>\n  )\n}\n
+'use client'
+
+import { useEffect, useState } from 'react'
+import DisputeTable from './components/DisputeTable'
+import { Loader2 } from 'lucide-react'
+
+export default function AdminDisputesPage() {
+  const [disputes, setDisputes] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch('/api/disputes')
+        const data = await res.json()
+        setDisputes(data.disputes || [])
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [])
+
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-semibold text-gray-800 mb-4">Renter Disputes</h1>
+      {loading ? (
+        <div className="flex items-center text-gray-500">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading disputes...
+        </div>
+      ) : (
+        <DisputeTable data={disputes} />
+      )}
+    </div>
+  )
+}

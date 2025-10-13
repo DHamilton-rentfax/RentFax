@@ -3,12 +3,13 @@ import { adminDB } from "@/firebase/server";
 
 export async function GET(req: NextRequest) {
   const uid = req.nextUrl.searchParams.get("uid")!;
-  const snap = await adminDB.collection(`users/${uid}/notifications`)
+  const snap = await adminDB
+    .collection(`users/${uid}/notifications`)
     .orderBy("createdAt", "desc")
     .limit(20)
     .get();
 
-  return NextResponse.json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  return NextResponse.json(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
 }
 
 export async function POST(req: NextRequest) {

@@ -2,7 +2,11 @@
 
 import RoleSidebar from "@/components/RoleSidebar";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex">
       <RoleSidebar />

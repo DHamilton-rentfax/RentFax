@@ -1,13 +1,12 @@
+"use client";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "@/firebase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { postDisputeMessage, updateDisputeStatus } from "@/app/auth/actions";
 
-'use client';
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '@/firebase/client';
-import { useAuth } from '@/hooks/use-auth';
-import { postDisputeMessage, updateDisputeStatus } from '@/app/auth/actions';
-
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -15,22 +14,22 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Send } from 'lucide-react';
-import { format } from 'date-fns';
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
+import { ArrowLeft, Send } from "lucide-react";
+import { format } from "date-fns";
 
-type DisputeStatus = 'open' | 'needs_info' | 'resolved' | 'rejected';
+type DisputeStatus = "open" | "needs_info" | "resolved" | "rejected";
 
 export default function DisputeDetailPage() {
   const params = useParams();
@@ -41,17 +40,21 @@ export default function DisputeDetailPage() {
 
   const [dispute, setDispute] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessage, setNewMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (!id) return;
-    const unsub = onSnapshot(doc(db, 'disputes', id), (doc) => {
+    const unsub = onSnapshot(doc(db, "disputes", id), (doc) => {
       if (doc.exists()) {
         setDispute({ id: doc.id, ...doc.data() });
       } else {
-        toast({ title: 'Error', description: 'Dispute not found.', variant: 'destructive' });
-        router.push('/dashboard/disputes');
+        toast({
+          title: "Error",
+          description: "Dispute not found.",
+          variant: "destructive",
+        });
+        router.push("/dashboard/disputes");
       }
       setLoading(false);
     });
@@ -63,9 +66,13 @@ export default function DisputeDetailPage() {
     setIsSubmitting(true);
     try {
       await postDisputeMessage({ id: id, text: newMessage.trim() });
-      setNewMessage('');
+      setNewMessage("");
     } catch (error: any) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -75,9 +82,13 @@ export default function DisputeDetailPage() {
     setIsSubmitting(true);
     try {
       await updateDisputeStatus({ id: id, status });
-      toast({ title: 'Success', description: 'Dispute status updated.' });
+      toast({ title: "Success", description: "Dispute status updated." });
     } catch (error: any) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -98,8 +109,10 @@ export default function DisputeDetailPage() {
   if (!dispute) {
     return null;
   }
-  
-  const canUpdateStatus = claims?.role && ['owner', 'manager', 'agent', 'collections'].includes(claims.role);
+
+  const canUpdateStatus =
+    claims?.role &&
+    ["owner", "manager", "agent", "collections"].includes(claims.role);
 
   return (
     <div className="p-4 md:p-10">
@@ -134,24 +147,28 @@ export default function DisputeDetailPage() {
               <div>
                 <p className="text-sm font-medium">SLA Due</p>
                 <p className="text-muted-foreground">
-                  {format(dispute.slaDueAt.toDate(), 'PPP')}
+                  {format(dispute.slaDueAt.toDate(), "PPP")}
                 </p>
               </div>
             </CardContent>
             {canUpdateStatus && (
-                <CardFooter>
-                     <Select onValueChange={handleStatusChange} defaultValue={dispute.status} disabled={isSubmitting}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Update status..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="open">Open</SelectItem>
-                            <SelectItem value="needs_info">Needs Info</SelectItem>
-                            <SelectItem value="resolved">Resolved</SelectItem>
-                            <SelectItem value="rejected">Rejected</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </CardFooter>
+              <CardFooter>
+                <Select
+                  onValueChange={handleStatusChange}
+                  defaultValue={dispute.status}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Update status..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="open">Open</SelectItem>
+                    <SelectItem value="needs_info">Needs Info</SelectItem>
+                    <SelectItem value="resolved">Resolved</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
+              </CardFooter>
             )}
           </Card>
         </div>
@@ -168,24 +185,28 @@ export default function DisputeDetailPage() {
                   <div
                     key={index}
                     className={`flex flex-col ${
-                      msg.uid === user?.uid ? 'items-end' : 'items-start'
+                      msg.uid === user?.uid ? "items-end" : "items-start"
                     }`}
                   >
                     <div
                       className={`p-3 rounded-lg max-w-sm ${
                         msg.uid === user?.uid
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted'
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted"
                       }`}
                     >
                       <p className="text-sm">{msg.text}</p>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {msg.by} - {format(new Date(msg.at), 'p, PPP')}
+                      {msg.by} - {format(new Date(msg.at), "p, PPP")}
                     </p>
                   </div>
                 ))}
-                {dispute.messages.length === 0 && <p className="text-muted-foreground text-center">No messages yet.</p>}
+                {dispute.messages.length === 0 && (
+                  <p className="text-muted-foreground text-center">
+                    No messages yet.
+                  </p>
+                )}
               </div>
             </CardContent>
             <CardFooter className="flex gap-2">

@@ -1,7 +1,6 @@
+"use server";
 
-'use server';
-
-import { adminDB } from '@/firebase/server';
+import { adminDB } from "@/firebase/server";
 
 export interface AuditLog {
   id: string;
@@ -19,13 +18,13 @@ export interface AuditLog {
 export async function getDisputeHistory(id: string) {
   try {
     const historySnapshot = await adminDB
-      .collection('disputes')
+      .collection("disputes")
       .doc(id)
-      .collection('history')
-      .orderBy('timestamp', 'desc')
+      .collection("history")
+      .orderBy("timestamp", "desc")
       .get();
 
-    const history = historySnapshot.docs.map(doc => {
+    const history = historySnapshot.docs.map((doc) => {
       const data = doc.data();
       return {
         id: doc.id,
@@ -39,8 +38,8 @@ export async function getDisputeHistory(id: string) {
     if (error instanceof Error) {
       console.error(`Error fetching history for dispute ${id}:`, error.message);
     } else {
-      console.error('Unknown error fetching history for dispute', id)
+      console.error("Unknown error fetching history for dispute", id);
     }
-    return { error: 'Failed to fetch audit history.' };
+    return { error: "Failed to fetch audit history." };
   }
 }

@@ -4,10 +4,13 @@ import { stripe } from "@/lib/stripe/server";
 
 export async function GET() {
   try {
-    const products = await stripe.products.list({ expand: ["data.default_price"] });
+    const products = await stripe.products.list({
+      expand: ["data.default_price"],
+    });
 
     const formatted = products.data.map((p) => {
-      const price = typeof p.default_price === "object" ? p.default_price : null;
+      const price =
+        typeof p.default_price === "object" ? p.default_price : null;
       return {
         id: p.id,
         name: p.name,

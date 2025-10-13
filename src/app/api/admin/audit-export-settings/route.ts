@@ -11,7 +11,10 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const settingsDoc = await db.collection("settings").doc("auditExports").get();
+    const settingsDoc = await db
+      .collection("settings")
+      .doc("auditExports")
+      .get();
 
     if (!settingsDoc.exists) {
       return NextResponse.json({
@@ -46,7 +49,7 @@ export async function POST(req: Request) {
         frequency,
         recipients,
       },
-      { merge: true }
+      { merge: true },
     );
 
     return NextResponse.json({ success: true });

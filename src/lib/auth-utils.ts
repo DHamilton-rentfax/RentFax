@@ -1,4 +1,4 @@
-import { getServerSession } from 'next-auth';
+import { getServerSession } from "next-auth";
 
 export async function getAuthUser() {
   const session = await getServerSession();

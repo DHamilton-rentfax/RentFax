@@ -1,9 +1,9 @@
-'use server';
+"use server";
 /**
  * @fileOverview A Genkit flow for checking the health of the application.
  */
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from "@/ai/genkit";
+import { z } from "genkit";
 
 const HealthOutputSchema = z.object({
   ok: z.boolean(),
@@ -19,12 +19,12 @@ export async function health(): Promise<HealthOutput> {
 
 const healthFlow = ai.defineFlow(
   {
-    name: 'healthFlow',
+    name: "healthFlow",
     inputSchema: z.void(),
     outputSchema: HealthOutputSchema,
   },
   async () => {
-    const VERSION = process.env.APP_VERSION || 'v1.0.0';
+    const VERSION = process.env.APP_VERSION || "v1.0.0";
 
     const env = {
       STRIPE_WEBHOOK_SECRET: !!process.env.STRIPE_WEBHOOK_SECRET,
@@ -42,5 +42,5 @@ const healthFlow = ai.defineFlow(
       timestamp: new Date().toISOString(),
       env,
     };
-  }
+  },
 );

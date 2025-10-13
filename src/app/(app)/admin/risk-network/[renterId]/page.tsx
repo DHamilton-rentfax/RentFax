@@ -1,4 +1,3 @@
-
 "use client";
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
@@ -6,7 +5,10 @@ import { db } from "@/firebase/client";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import dynamic from "next/dynamic";
 
-const ForceGraph2D = dynamic(() => import("react-force-graph").then(mod => mod.ForceGraph2D), { ssr: false });
+const ForceGraph2D = dynamic(
+  () => import("react-force-graph").then((mod) => mod.ForceGraph2D),
+  { ssr: false },
+);
 
 export default function RiskNetworkPage() {
   const { renterId } = useParams();
@@ -26,43 +28,74 @@ export default function RiskNetworkPage() {
     });
 
     // Incidents
-    const incidentsSnap = await getDocs(query(collection(db, "incidents"), where("renterId", "==", renterId)));
+    const incidentsSnap = await getDocs(
+      query(collection(db, "incidents"), where("renterId", "==", renterId)),
+    );
     incidentsSnap.forEach((d) => {
       const inc = d.data();
       const incidentNodeId = `incident_${d.id}`;
-      nodes.push({ id: incidentNodeId, name: `Incident: ${inc.type || "N/A"}`, group: "incident", color: "#f59e0b" });
+      nodes.push({
+        id: incidentNodeId,
+        name: `Incident: ${inc.type || "N/A"}`,
+        group: "incident",
+        color: "#f59e0b",
+      });
       links.push({ source: renterId, target: incidentNodeId });
       if (inc.address) {
         const addrId = `address_${inc.address}`;
         if (!nodes.find((n) => n.id === addrId)) {
-          nodes.push({ id: addrId, name: inc.address, group: "address", color: "#10b981" });
+          nodes.push({
+            id: addrId,
+            name: inc.address,
+            group: "address",
+            color: "#10b981",
+          });
         }
         links.push({ source: incidentNodeId, target: addrId });
       }
     });
 
     // Unauthorized drivers
-    const unauthSnap = await getDocs(query(collection(db, "unauthorizedDrivers"), where("linkedRenterId", "==", renterId)));
+    const unauthSnap = await getDocs(
+      query(
+        collection(db, "unauthorizedDrivers"),
+        where("linkedRenterId", "==", renterId),
+      ),
+    );
     unauthSnap.forEach((d) => {
       const u = d.data();
       const uid = `unauth_${d.id}`;
-      nodes.push({ id: uid, name: `Unauthorized: ${u.driverName}`, group: "unauthorized", color: "#ef4444" });
+      nodes.push({
+        id: uid,
+        name: `Unauthorized: ${u.driverName}`,
+        group: "unauthorized",
+        color: "#ef4444",
+      });
       links.push({ source: renterId, target: uid });
     });
 
     // Disputes
-    const disputesSnap = await getDocs(query(collection(db, "disputes"), where("renterId", "==", renterId)));
+    const disputesSnap = await getDocs(
+      query(collection(db, "disputes"), where("renterId", "==", renterId)),
+    );
     disputesSnap.forEach((d) => {
       const disp = d.data();
       const did = `dispute_${d.id}`;
-      nodes.push({ id: did, name: `Dispute: ${disp.status || "Pending"}`, group: "dispute", color: "#f87171" });
+      nodes.push({
+        id: did,
+        name: `Dispute: ${disp.status || "Pending"}`,
+        group: "dispute",
+        color: "#f87171",
+      });
       links.push({ source: renterId, target: did });
     });
 
     // Addresses reused by other renters
     const addressNodes = nodes.filter((n) => n.group === "address");
     for (const addr of addressNodes) {
-      const otherSnap = await getDocs(query(collection(db, "incidents"), where("address", "==", addr.name)));
+      const otherSnap = await getDocs(
+        query(collection(db, "incidents"), where("address", "==", addr.name)),
+      );
       otherSnap.forEach((d) => {
         const data = d.data();
         if (data.renterId && data.renterId !== renterId) {
@@ -88,7 +121,8 @@ export default function RiskNetworkPage() {
     fetchConnections();
   }, [renterId]);
 
-  if (loading) return <div className="p-8 text-lg">Loading network graph...</div>;
+  if (loading)
+    return <div className="p-8 text-lg">Loading network graph...</div>;
 
   return (
     <div className="p-6 space-y-4">

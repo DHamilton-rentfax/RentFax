@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -14,17 +13,18 @@ import {
   orderBy,
   serverTimestamp,
 } from "firebase/firestore";
-import {
-  ref,
-  uploadBytesResumable,
-  getDownloadURL,
-} from "firebase/storage";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Upload,
   Loader2,
@@ -51,13 +51,13 @@ export default function DisputesPage() {
   // Fetch disputes for current renter
   useEffect(() => {
     if (!user) {
-        setLoading(false);
-        return;
-    };
+      setLoading(false);
+      return;
+    }
     const q = query(
       collection(dbClient, "disputes"),
       where("renterId", "==", user.uid),
-      orderBy("createdAt", "desc")
+      orderBy("createdAt", "desc"),
     );
     const unsub = onSnapshot(q, (snap) => {
       setDisputes(snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
@@ -70,7 +70,10 @@ export default function DisputesPage() {
   const handleFileUpload = async (disputeId: string) => {
     if (!selectedFile) return;
     setUploading(disputeId);
-    const fileRef = ref(storageClient, `disputes/${disputeId}/${selectedFile.name}`);
+    const fileRef = ref(
+      storageClient,
+      `disputes/${disputeId}/${selectedFile.name}`,
+    );
     const uploadTask = uploadBytesResumable(fileRef, selectedFile);
 
     uploadTask.on(
@@ -89,7 +92,7 @@ export default function DisputesPage() {
         });
         setUploading(null);
         alert("Evidence uploaded successfully!");
-      }
+      },
     );
   };
 
@@ -111,18 +114,16 @@ export default function DisputesPage() {
 
       // Upload evidence file if provided
       if (newFile) {
-        const fileRef = ref(storageClient, `disputes/tmp/${Date.now()}_${newFile.name}`);
+        const fileRef = ref(
+          storageClient,
+          `disputes/tmp/${Date.now()}_${newFile.name}`,
+        );
         const uploadTask = uploadBytesResumable(fileRef, newFile);
         await new Promise<void>((resolve, reject) => {
-          uploadTask.on(
-            "state_changed",
-            null,
-            reject,
-            async () => {
-              evidenceUrl = await getDownloadURL(uploadTask.snapshot.ref);
-              resolve();
-            }
-          );
+          uploadTask.on("state_changed", null, reject, async () => {
+            evidenceUrl = await getDownloadURL(uploadTask.snapshot.ref);
+            resolve();
+          });
         });
       }
 
@@ -147,7 +148,9 @@ export default function DisputesPage() {
       });
       const { summary } = await aiRes.json();
       if (summary) {
-        await updateDoc(doc(dbClient, "disputes", docRef.id), { aiSummary: summary });
+        await updateDoc(doc(dbClient, "disputes", docRef.id), {
+          aiSummary: summary,
+        });
       }
 
       // Notify admin
@@ -188,7 +191,10 @@ export default function DisputesPage() {
         <p className="text-muted-foreground">
           Please log in to view and manage your disputes.
         </p>
-        <Button onClick={() => (window.location.href = "/login")} className="mt-4">
+        <Button
+          onClick={() => (window.location.href = "/login")}
+          className="mt-4"
+        >
           Log In
         </Button>
       </div>
@@ -240,8 +246,8 @@ export default function DisputesPage() {
                     d.status === "Resolved"
                       ? "bg-green-100 text-green-700"
                       : d.status === "Under Review"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : "bg-red-100 text-red-700"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : "bg-red-100 text-red-700"
                   }`}
                 >
                   {d.status || "Open"}
@@ -286,7 +292,9 @@ export default function DisputesPage() {
                 <div className="flex items-center gap-3 mt-5">
                   <Input
                     type="file"
-                    onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                    onChange={(e) =>
+                      setSelectedFile(e.target.files?.[0] || null)
+                    }
                   />
                   <Button
                     onClick={() => handleFileUpload(d.id)}
@@ -295,7 +303,8 @@ export default function DisputesPage() {
                   >
                     {uploading === d.id ? (
                       <>
-                        <Loader2 className="h-4 w-4 animate-spin" /> Uploading...
+                        <Loader2 className="h-4 w-4 animate-spin" />{" "}
+                        Uploading...
                       </>
                     ) : (
                       <>

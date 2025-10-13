@@ -5,7 +5,8 @@ export default function DocsHome() {
     <div className="max-w-5xl mx-auto py-20 px-6">
       <h1 className="text-4xl font-bold mb-4">Documentation</h1>
       <p className="text-muted-foreground mb-10">
-        Welcome to the RentFAX Docs. Find guides, API references, and feature explanations.
+        Welcome to the RentFAX Docs. Find guides, API references, and feature
+        explanations.
       </p>
 
       <div className="grid md:grid-cols-3 gap-6">

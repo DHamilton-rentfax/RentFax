@@ -1,4 +1,3 @@
-
 import { dbAdmin } from "@/lib/firebase-admin";
 import { NextResponse } from "next/server";
 import { sendDisputeNotification } from "@/lib/notifications";
@@ -7,12 +6,15 @@ import { logAuditEvent } from "@/lib/audit-log";
 
 export async function POST(req: Request) {
   try {
-    const { disputeId, status, resolutionOutcome, adminNotes } = await req.json();
-    if (!disputeId) return NextResponse.json({ error: "Missing disputeId" }, { status: 400 });
+    const { disputeId, status, resolutionOutcome, adminNotes } =
+      await req.json();
+    if (!disputeId)
+      return NextResponse.json({ error: "Missing disputeId" }, { status: 400 });
 
     const ref = dbAdmin.collection("disputes").doc(disputeId);
     const snap = await ref.get();
-    if (!snap.exists) return NextResponse.json({ error: "Dispute not found" }, { status: 404 });
+    if (!snap.exists)
+      return NextResponse.json({ error: "Dispute not found" }, { status: 404 });
 
     const dispute = snap.data()!;
 
@@ -31,18 +33,20 @@ export async function POST(req: Request) {
       aiSummary: summary,
       updatedAt: new Date(),
     });
-    
+
     // 3️⃣ Log the audit event
     await logAuditEvent({
-        disputeId,
-        action: "STATUS_UPDATED",
-        actor: "ADMIN",
-        details: `Status changed to ${status}`,
+      disputeId,
+      action: "STATUS_UPDATED",
+      actor: "ADMIN",
+      details: `Status changed to ${status}`,
     });
 
-
     // 4️⃣ Send notification
-    const renterRef = await dbAdmin.collection("renters").doc(dispute.renterId).get();
+    const renterRef = await dbAdmin
+      .collection("renters")
+      .doc(dispute.renterId)
+      .get();
     if (renterRef.exists) {
       const renter = renterRef.data()!;
       await sendDisputeNotification({

@@ -29,7 +29,9 @@ export async function generateDisputeSummary({
       temperature: 0.3,
     });
 
-    return completion.choices[0].message.content?.trim() || "Summary not available.";
+    return (
+      completion.choices[0].message.content?.trim() || "Summary not available."
+    );
   } catch (err) {
     console.error("AI summary error:", err);
     return "Summary unavailable due to AI processing error.";

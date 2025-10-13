@@ -20,7 +20,7 @@ export default function BlogClientPage() {
         const q = query(
           collection(db, "blogs"),
           where("published", "==", true),
-          orderBy("date", "desc")
+          orderBy("date", "desc"),
         );
         const snapshot = await getDocs(q);
         const postData = snapshot.docs.map((doc) => ({

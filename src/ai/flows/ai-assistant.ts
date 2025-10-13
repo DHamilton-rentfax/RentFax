@@ -3,7 +3,7 @@
  * --------------------------
  * This file defines the AI workflow logic for RentFAX.
  * It integrates with Genkit AI to manage chat and reasoning flows.
- * 
+ *
  * Note:
  * The @genkit-ai/flow package currently does NOT export `FlowAuth`.
  * We've replaced that type with `any` temporarily to resolve build errors.
@@ -19,12 +19,13 @@ type FlowAuth = any;
 export const aiAssistantFlow = new Flow({
   name: "aiAssistant",
   version: "1.0.0",
-  description: "Handles AI-driven reasoning, report summaries, and insights for RentFAX."
+  description:
+    "Handles AI-driven reasoning, report summaries, and insights for RentFAX.",
 });
 
 /**
  * Starts the AI assistant logic.
- * 
+ *
  * @param auth - Authentication context for the current user (temporarily typed as any).
  * @param input - User query or system request.
  * @returns AI response string or object depending on flow configuration.
