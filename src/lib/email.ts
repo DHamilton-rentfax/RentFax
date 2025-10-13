@@ -1,33 +1,52 @@
-interface FraudClusterAlertData {
-  reason: string;
-  clusterMembers: { id: string; trustScore: number; name: string }[];
-  primaryRenterId: string;
+import { Resend } from "resend";
+
+// Initialize Resend with the API key from environment variables
+const resend = new Resend(process.env.RESEND_API_KEY!);
+
+interface SendReportEmailProps {
+  to: string;
+  reportUrl?: string;
+  reportId?: string;
+  renterName?: string;
 }
 
 /**
- * Sends an email alert to the admin about a detected fraud cluster.
- * In a real application, this would use an email service like SendGrid, AWS SES, etc.
+ * Sends a renter report email using Resend.
+ * @param {SendReportEmailProps} props - The properties for the email.
  */
-export async function sendFraudClusterAlert(data: FraudClusterAlertData) {
-  const adminEmail = process.env.ADMIN_EMAIL || "admin@rentfax.co";
+export async function sendReportEmail({
+  to,
+  reportUrl,
+  reportId,
+  renterName,
+}: SendReportEmailProps) {
+  try {
+    const subject = `Your RentFAX Report ${reportId ? `#${reportId}` : ""}`;
+    const html = `
+      <div style="font-family:Arial,Helvetica,sans-serif;line-height:1.5;">
+        <h2 style="color:#1A2540;">RentFAX Report Ready</h2>
+        <p>Hello${renterName ? ` ${renterName}` : ""},</p>
+        <p>Your renter report has been generated and is now available.</p>
+        ${
+          reportUrl
+            ? `<p><a href="${reportUrl}" style="background:#1A2540;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;">View Your Report</a></p>`
+            : ""
+        }
+        <p>If you have any questions, contact <a href="mailto:info@rentfax.io">info@rentfax.io</a>.</p>
+        <p style="margin-top:40px;font-size:12px;color:#888;">© ${new Date().getFullYear()} RentFAX, Inc.</p>
+      </div>
+    `;
 
-  console.log(`
-        ---= FRAUD CLUSTER ALERT =---
-        To: ${adminEmail}
-        Subject: High-Risk Fraud Cluster Detected
+    await resend.emails.send({
+      from: "reports@rentfax.io", // This will be updated once your domain is verified in Resend
+      to,
+      subject,
+      html,
+    });
 
-        A potential fraud cluster has been automatically detected.
-
-        Reason: ${data.reason}
-        Primary Renter ID: ${data.primaryRenterId}
-
-        Cluster Members:
-        ${data.clusterMembers.map((m) => `- ID: ${m.id}, Name: ${m.name}, Trust Score: ${m.trustScore}`).join("\n")}
-
-        Please investigate this cluster immediately.
-        ---= END OF ALERT =---
-    `);
-
-  // Mock sending email
-  return Promise.resolve();
+    console.log(`✅ Report email sent successfully to: ${to}`);
+  } catch (err: any) {
+    console.error("❌ Error sending report email:", err.message);
+    // Optional: Add more robust error handling, e.g., logging to a dedicated service
+  }
 }

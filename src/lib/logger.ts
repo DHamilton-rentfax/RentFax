@@ -4,7 +4,13 @@ export async function logEvent(
   meta: any = {}
 ) {
   try {
-    await fetch("/api", {
+    // Construct an absolute URL to be safe on both client and server
+    const absoluteUrl = new URL(
+      "/api",
+      process.env.NEXT_PUBLIC_URL || "http://localhost:3000"
+    );
+
+    await fetch(absoluteUrl.href, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
