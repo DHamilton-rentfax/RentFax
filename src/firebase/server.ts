@@ -1,16 +1,24 @@
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
-import { getAuth } from 'firebase-admin/auth';
+import * as admin from 'firebase-admin';
 
-const serviceAccount = JSON.parse(
-  process.env.FIREBASE_SERVICE_ACCOUNT_KEY as string
-);
+if (!admin.apps.length) {
+  const privateKey = 
+    process.env.FIREBASE_ADMIN_PRIVATE_KEY?.startsWith('-----') 
+      ? process.env.FIREBASE_ADMIN_PRIVATE_KEY.replace(/\\n/g, '\n')
+      : Buffer.from(process.env.FIREBASE_ADMIN_PRIVATE_KEY_BASE64 || '', 'base64').toString('utf8');
 
-if (!getApps().length) {
-  initializeApp({
-    credential: cert(serviceAccount),
+  if (!privateKey) {
+    console.error('🚨 Missing FIREBASE_ADMIN_PRIVATE_KEY or FIREBASE_ADMIN_PRIVATE_KEY_BASE64');
+  }
+
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
+      privateKey
+    })
   });
 }
 
-export const db = getFirestore();
-export const auth = getAuth();
+export const db = admin.firestore();
+export const auth = admin.auth();
+export const storage = admin.storage();

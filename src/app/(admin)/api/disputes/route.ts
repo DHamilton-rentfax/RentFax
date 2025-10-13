@@ -1,1 +1,0 @@
-import { firestore } from '@/lib/firebase/admin'\nimport { NextResponse } from 'next/server'\n\nexport async function GET() {\n  const snap = await firestore.collection('disputes').get()\n  const disputes = snap.docs.map((d) => ({ id: d.id, ...d.data() }))\n  return NextResponse.json({ disputes })\n}\n

@@ -1,4 +1,14 @@
 {
-  "search_reports": "Buscar Informes",
-  "first_name": "Nombre"
+  "search_reports": "Informes de búsqueda",
+  "first_name": "Nombre de pila",
+  "Header": {
+    "home": "Casa",
+    "howItWorks": "Cómo funciona",
+    "pricing": "Precios",
+    "partners": "Socios",
+    "blog": "Blog",
+    "contact": "Contacto",
+    "logIn": "Iniciar sesión",
+    "getStarted": "Empezar"
+  }
 }

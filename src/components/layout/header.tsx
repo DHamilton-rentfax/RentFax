@@ -4,10 +4,12 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useModal } from '@/context/ModalContext';
 import clsx from 'clsx';
+import { useTranslations } from 'next-intl';
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const { openModal } = useModal();
+  const t = useTranslations('Header');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,25 +31,25 @@ export function Header() {
           Rent<span className="text-[#D4A017]">FAX</span>
         </Link>
         <nav className="hidden md:flex space-x-8 text-gray-700 font-medium">
-          <Link href="/" className="hover:text-[#D4A017] transition">Home</Link>
-          <Link href="/how-it-works" className="hover:text-[#D4A017] transition">How It Works</Link>
-          <Link href="/pricing" className="hover:text-[#D4A017] transition">Pricing</Link>
-          <Link href="/partners" className="hover:text-[#D4A017] transition">Partners</Link>
-          <Link href="/blog" className="hover:text-[#D4A017] transition">Blog</Link>
-          <Link href="/contact" className="hover:text-[#D4A017] transition">Contact</Link>
+          <Link href="/" className="hover:text-[#D4A017] transition">{t('home')}</Link>
+          <Link href="/how-it-works" className="hover:text-[#D4A017] transition">{t('howItWorks')}</Link>
+          <Link href="/pricing" className="hover:text-[#D4A017] transition">{t('pricing')}</Link>
+          <Link href="/partners" className="hover:text-[#D4A017] transition">{t('partners')}</Link>
+          <Link href="/blog" className="hover:text-[#D4A017] transition">{t('blog')}</Link>
+          <Link href="/contact" className="hover:text-[#D4A017] transition">{t('contact')}</Link>
         </nav>
         <div className="flex items-center space-x-4">
           <Link
             href="/login"
             className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition"
           >
-            Log In
+            {t('logIn')}
           </Link>
           <button
             onClick={openModal}
             className="px-5 py-2 bg-[#1A2540] text-white rounded-lg shadow-md font-semibold hover:bg-[#2a3660] transition"
           >
-            Get Started
+            {t('getStarted')}
           </button>
         </div>
       </div>

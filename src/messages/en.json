@@ -1,4 +1,14 @@
 {
   "search_reports": "Search Reports",
-  "first_name": "First Name"
+  "first_name": "First Name",
+  "Header": {
+    "home": "Home",
+    "howItWorks": "How It Works",
+    "pricing": "Pricing",
+    "partners": "Partners",
+    "blog": "Blog",
+    "contact": "Contact",
+    "logIn": "Log In",
+    "getStarted": "Get Started"
+  }
 }
