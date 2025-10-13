@@ -1,25 +1,8 @@
 import { getRequestConfig } from "next-intl/server";
-import { db } from "@/firebase/server";
-import { doc, setDoc } from "firebase/firestore";
 
 export default getRequestConfig(async ({ locale }) => {
   const supportedLocales = ["en", "es"];
   const chosenLocale = supportedLocales.includes(locale) ? locale : "en";
-
-  // ✅ Log unsupported locale attempts to Firestore (optional but smart)
-  if (!supportedLocales.includes(locale)) {
-    try {
-      if (typeof db !== "undefined") {
-        await setDoc(doc(db, "localeLogs", locale || "unknown"), {
-          attemptedLocale: locale,
-          resolvedTo: chosenLocale,
-          timestamp: new Date().toISOString(),
-        });
-      }
-    } catch (err) {
-      console.warn("Locale log write failed:", err);
-    }
-  }
 
   try {
     const messages = (await import(`../messages/${chosenLocale}.json`)).default;

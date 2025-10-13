@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ModalProvider } from "@/context/ModalContext";
 import { Header } from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
+import { logLocale } from "@/lib/log-locale";
 
 export async function generateStaticParams() {
   return [{ locale: "en" }, { locale: "es" }];
@@ -16,6 +17,8 @@ export default async function LocaleLayout(props: {
   const { children, params } = props;
   const { locale } = await params; // ✅ await params here
 
+  await logLocale(locale);
+
   let messages;
   try {
     messages = (await import(`../../messages/${locale}.json`)).default;
@@ -24,16 +27,12 @@ export default async function LocaleLayout(props: {
   }
 
   return (
-    <html lang={locale}>
-      <body>
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <ModalProvider>
-            <Header />
-            {children}
-            <Footer />
-          </ModalProvider>
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      <ModalProvider>
+        <Header />
+        {children}
+        <Footer />
+      </ModalProvider>
+    </NextIntlClientProvider>
   );
 }
