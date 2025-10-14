@@ -1,123 +1,85 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { getAllDisputes } from "@/lib/admin/getAllDisputes";
-import { updateDisputeStatus } from "@/lib/admin/updateDisputeStatus";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardDescription,
-  CardFooter,
-} from "@/components/ui/card";
+import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import DisputeAISummary from "@/components/admin/DisputeAISummary";
+import { Input } from "@/components/ui/input";
+import { updateDisputeStatusAction } from "@/app/actions/update-dispute-status";
+import { Loader2, CheckCircle2 } from "lucide-react";
+import toast from "react-hot-toast";
 
-export default function AdminDisputePage() {
-  const { id } = useParams();
-  const router = useRouter();
-  const [dispute, setDispute] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+export default function DisputeDetailPage({ params }: { id: string } }) {
   const [status, setStatus] = useState("");
-  const [updating, setUpdating] = useState(false);
+  const [note, setNote] = useState("");
+  const [renterId, setRenterId] = useState(""); // renter's Firestore user ID
+  const [isPending, startTransition] = useTransition();
 
-  useEffect(() => {
-    const load = async () => {
-      const all = await getAllDisputes();
-      const found = all.find((d) => d.id === id);
-      setDispute(found);
-      setStatus(found?.status || "");
-      setLoading(false);
-    };
-    load();
-  }, [id]);
+  const handleUpdate = () => {
+    if (!renterId) {
+      toast.error("Please enter a valid renter ID before updating.");
+      return;
+    }
 
-  const handleStatusChange = async (newStatus: string) => {
-    setUpdating(true);
-    await updateDisputeStatus(id as string, newStatus);
-    setStatus(newStatus);
-    setUpdating(false);
+    startTransition(async () => {
+      const res = await updateDisputeStatusAction({
+        disputeId: params.id,
+        status,
+        note,
+        renterId,
+      });
+
+      if (res.success) {
+        toast.success("✅ Dispute updated and renter notified!");
+      } else {
+        toast.error(`❌ Update failed: ${res.error}`);
+      }
+    });
   };
 
-  if (loading)
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="w-8 h-8 animate-spin" />
-      </div>
-    );
-  if (!dispute)
-    return (
-      <p className="p-8 text-center text-destructive">Dispute not found.</p>
-    );
-
   return (
-    <div className="p-4 md:p-8">
-      <Button variant="outline" onClick={() => router.back()} className="mb-4">
-        ← Back to Dashboard
-      </Button>
-      <Card className="max-w-3xl mx-auto">
-        <CardHeader>
-          <CardTitle>Dispute from {dispute.name || dispute.email}</CardTitle>
-          <CardDescription>
-            ID: {dispute.id} | Submitted:{" "}
-            {dispute.createdAt
-              ? formatDistanceToNow(dispute.createdAt.toDate(), {
-                  addSuffix: true,
-                })
-              : "N/A"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <h3 className="font-semibold">Renter's Statement</h3>
-            <p className="text-muted-foreground bg-secondary p-3 rounded-md">
-              {dispute.description}
-            </p>
-          </div>
+    <div className="p-6 max-w-xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Update Dispute</h1>
 
-          {dispute.files?.length > 0 && (
-            <div>
-              <h3 className="font-semibold">Evidence Files</h3>
-              <ul className="list-disc ml-5 mt-1 space-y-1">
-                {dispute.files.map((url: string, idx: number) => (
-                  <li key={idx}>
-                    <a
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary underline"
-                    >
-                      View File {idx + 1}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          <DisputeAISummary dispute={dispute} />
-        </CardContent>
-        <CardFooter className="flex items-center gap-2 pt-6 border-t">
-          <span className="text-sm font-medium">Set Status:</span>
-          {["submitted", "reviewing", "resolved"].map((s) => (
-            <Button
-              key={s}
-              variant={status === s ? "default" : "outline"}
-              onClick={() => handleStatusChange(s)}
-              disabled={updating}
-              size="sm"
-            >
-              {updating && status === s && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              {s.charAt(0).toUpperCase() + s.slice(1)}
-            </Button>
-          ))}
-        </CardFooter>
-      </Card>
+      <Input
+        placeholder="New Status (e.g. Resolved, Under Review)"
+        value={status}
+        onChange={(e) => setStatus(e.target.value)}
+        className="mb-3"
+      />
+
+      <Input
+        placeholder="Optional note to renter"
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        className="mb-3"
+      />
+
+      <Input
+        placeholder="Renter Firestore ID"
+        value={renterId}
+        onChange={(e) => setRenterId(e.target.value)}
+        className="mb-3"
+      />
+
+      <Button
+        onClick={handleUpdate}
+        disabled={isPending}
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+      >
+        {isPending ? (
+          <>
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Updating...
+          </>
+        ) : (
+          "Update & Notify Renter"
+        )}
+      </Button>
+
+      {isPending && (
+        <div className="flex items-center justify-center mt-3 text-gray-500 text-sm">
+          <Loader2 className="animate-spin mr-2 w-4 h-4" />
+          Processing update...
+        </div>
+      )}
     </div>
   );
 }

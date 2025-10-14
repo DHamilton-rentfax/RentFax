@@ -1,38 +1,28 @@
-import { db } from "@/firebase/client";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { sendEmail } from "./sendEmail";
-import { sendSMS } from "./sendSMS";
+import { db } from "@/lib/firebase/admin";
+import admin from "firebase-admin";
 
 export async function createNotification({
   userId,
-  type,
+  title,
   message,
-  link,
-  email,
-  phone,
+  type = "GENERAL",
 }: {
   userId: string;
-  type: "dispute" | "system" | "billing" | "alert";
+  title: string;
   message: string;
-  link?: string;
-  email?: string;
-  phone?: string;
+  type?: string;
 }) {
-  await addDoc(collection(db, "notifications"), {
-    userId,
-    type,
-    message,
-    link: link || null,
-    read: false,
-    createdAt: serverTimestamp(),
-  });
-
-  // Optional email + SMS
-  if (email)
-    await sendEmail({
-      to: email,
-      subject: "RentFAX Notification",
-      html: `<p>${message}</p>`,
+  try {
+    await db.collection("notifications").add({
+      userId,
+      title,
+      message,
+      type,
+      read: false,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
-  if (phone) await sendSMS({ to: phone, message });
+    console.log(`📢 Notification created for user ${userId}`);
+  } catch (err) {
+    console.error("❌ Failed to create notification:", err);
+  }
 }

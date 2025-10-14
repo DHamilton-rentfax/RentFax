@@ -1,1 +1,138 @@
-import { NextResponse } from 'next/server'\nimport Stripe from 'stripe'\nimport { firestore } from '@/lib/firebase/admin'\nimport admin from 'firebase-admin'\n\n// Stripe requires the raw request body for signature verification\nexport const config = {\n  api: { bodyParser: false },\n}\n\nconst stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {\n  apiVersion: '2024-06-20',\n})\n\n// Server-side helper to find a user document by email\nconst findUserByEmail = async (email: string) => {\n  const usersRef = firestore.collection('users');\n  const snapshot = await usersRef.where('email', '==', email).limit(1).get();\n  if (snapshot.empty) {\n    console.warn(`No user found with email: ${email}`);\n    return null;\n  }\n  const userDoc = snapshot.docs[0];\n  return { id: userDoc.id, ref: userDoc.ref, ...userDoc.data() };\n}\n\nexport async function POST(req: Request) {\n  const sig = req.headers.get('stripe-signature')!\n  let event: Stripe.Event\n\n  try {\n    const buf = await req.arrayBuffer()\n    event = stripe.webhooks.constructEvent(\n      Buffer.from(buf),\n      sig,\n      process.env.STRIPE_WEBHOOK_SECRET!\n    )\n  } catch (err: any) {\n    console.error('❌ Stripe signature verification failed', err.message)\n    return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 })\n  }\n\n  try {\n    const timestamp = admin.firestore.FieldValue.serverTimestamp();\n\n    switch (event.type) {\n      case 'checkout.session.completed': {\n        const session = event.data.object as Stripe.Checkout.Session\n        const email = session.customer_details?.email || session.customer_email;\n        const metadataType = session.metadata?.type;\n\n        if (!email) {\n            console.error('No email found in checkout session.');\n            break;\n        }\n\n        const user = await findUserByEmail(email);\n        if (!user) break; // Error already logged in helper\n\n        if (metadataType === 'verification' || metadataType === 'report') {\n          const collectionName = metadataType === 'verification' ? 'verifications' : 'reports';\n          \n          await firestore.collection(collectionName).add({\n            createdBy: user.id,\n            aiConfidence: metadataType === 'verification' ? Math.floor(Math.random() * 10) + 90 : undefined,\n            riskScore: metadataType === 'report' ? Math.floor(Math.random() * 40) + 60 : undefined,\n            riskLevel: metadataType === 'report' ? 'Moderate' : undefined,\n            verificationType: 'summary',\n            createdAt: timestamp,\n          });\n\n          await user.ref.update({ creditsRemaining: admin.firestore.FieldValue.increment(-1) });\n          console.log(`✅ ${metadataType} processed for ${email}. Credits decremented.`);\n        }\n        break;\n      }\n\n      case 'invoice.payment_succeeded': {\n        const invoice = event.data.object as Stripe.Invoice;\n        const email = invoice.customer_email;\n        if (!email) break;\n\n        const user = await findUserByEmail(email);\n        if (!user) break;\n\n        const planId = invoice.lines.data[0]?.price?.lookup_key;\n        let credits = 10; // Default plan\n        if (planId === 'price_pro_plan') credits = 50;\n        if (planId === 'price_unlimited_plan') credits = 9999;\n\n        await user.ref.update({\n          plan: planId,\n          creditsRemaining: credits,\n          nextBillingDate: admin.firestore.Timestamp.fromMillis(invoice.period_end * 1000),\n        });\n        console.log(`✅ Subscription renewal for ${email}. Plan: ${planId}, Credits: ${credits}`);\n        break;\n      }\n\n      case 'customer.subscription.deleted': {\n        const subscription = event.data.object as Stripe.Subscription;\n        const user = await findUserByEmail(subscription.metadata.email);\n        if (!user) break;\n\n        await user.ref.update({\n          plan: 'free',\n          creditsRemaining: 0,\n        });\n        console.log(`✅ Subscription canceled for ${subscription.metadata.email}. Plan set to free.`);\n        break;\n      }\n\n      default:{\n        // console.log(`Unhandled Stripe event type: ${event.type}`)\n      }\n        \n    }\n\n    return NextResponse.json({ received: true })\n  } catch (err: any) {\n    console.error('🔥 Stripe webhook handler error:', err)\n    return new NextResponse(`Webhook handler failed: ${err.message}`, { status: 500 })\n  }\n}\n
+import { NextResponse } from "next/server";
+import Stripe from "stripe";
+import { firestore } from "@/lib/firebase/admin";
+import admin from "firebase-admin";
+
+export const config = {
+  api: { bodyParser: false },
+};
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2024-06-20",
+});
+
+const findUserByEmail = async (email: string) => {
+  const usersRef = firestore.collection("users");
+  const snapshot = await usersRef.where("email", "==", email).limit(1).get();
+  if (snapshot.empty) {
+    console.warn(`No user found with email: ${email}`);
+    return null;
+  }
+  const userDoc = snapshot.docs[0];
+  return { id: userDoc.id, ref: userDoc.ref, ...userDoc.data() };
+};
+
+export async function POST(req: Request) {
+  const sig = req.headers.get("stripe-signature")!;
+  let event: Stripe.Event;
+
+  try {
+    const buf = await req.arrayBuffer();
+    event = stripe.webhooks.constructEvent(
+      Buffer.from(buf),
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET!
+    );
+  } catch (err: any) {
+    console.error("❌ Stripe signature verification failed", err.message);
+    return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
+  }
+
+  try {
+    const timestamp = admin.firestore.FieldValue.serverTimestamp();
+
+    switch (event.type) {
+      case "checkout.session.completed": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const email =
+          session.customer_details?.email || session.customer_email;
+        const metadataType = session.metadata?.type;
+
+        if (!email) {
+          console.error("No email found in checkout session.");
+          break;
+        }
+
+        const user = await findUserByEmail(email);
+        if (!user) break;
+
+        if (metadataType === "verification" || metadataType === "report") {
+          const collectionName =
+            metadataType === "verification"
+              ? "verifications"
+              : "reports";
+
+          await firestore.collection(collectionName).add({
+            createdBy: user.id,
+            aiConfidence:
+              metadataType === "verification"
+                ? Math.floor(Math.random() * 10) + 90
+                : undefined,
+            riskScore:
+              metadataType === "report"
+                ? Math.floor(Math.random() * 40) + 60
+                : undefined,
+            riskLevel:
+              metadataType === "report" ? "Moderate" : undefined,
+            verificationType: "summary",
+            createdAt: timestamp,
+          });
+
+          await user.ref.update({
+            creditsRemaining: admin.firestore.FieldValue.increment(-1),
+          });
+          console.log(
+            `✅ ${metadataType} processed for ${email}. Credits decremented.`
+          );
+        }
+        break;
+      }
+
+      case "invoice.payment_succeeded": {
+        const invoice = event.data.object as Stripe.Invoice;
+        const email = invoice.customer_email;
+        if (!email) break;
+
+        const user = await findUserByEmail(email);
+        if (!user) break;
+
+        const planId = invoice.lines.data[0]?.price?.lookup_key;
+        let credits = 10;
+        if (planId === "price_pro_plan") credits = 50;
+        if (planId === "price_unlimited_plan") credits = 9999;
+
+        await user.ref.update({
+          plan: planId,
+          creditsRemaining: credits,
+          nextBillingDate: admin.firestore.Timestamp.fromMillis(
+            invoice.period_end * 1000
+          ),
+        });
+        console.log(
+          `✅ Subscription renewal for ${email}. Plan: ${planId}, Credits: ${credits}`
+        );
+        break;
+      }
+
+      case "customer.subscription.deleted": {
+        const subscription = event.data.object as Stripe.Subscription;
+        const user = await findUserByEmail(subscription.metadata.email);
+        if (!user) break;
+
+        await user.ref.update({
+          plan: "free",
+          creditsRemaining: 0,
+        });
+        console.log(
+          `✅ Subscription canceled for ${subscription.metadata.email}. Plan set to free.`
+        );
+        break;
+      }
+    }
+
+    return NextResponse.json({ received: true });
+  } catch (err) {
+    console.error("❌ Webhook handling error:", err);
+    return new NextResponse("Webhook Error", { status: 500 });
+  }
+}

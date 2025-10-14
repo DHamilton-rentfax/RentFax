@@ -1,25 +1,38 @@
 "use server";
 
-import { adminDB } from "@/firebase/server";
-import { FieldValue } from "firebase-admin/firestore";
-import { logAudit } from "./audit-log";
-import { getDisputeById } from "./get-dispute-by-id";
+import { db } from "@/lib/firebase/admin";
+import { createNotification } from "@/lib/notifications/createNotification";
 
-export async function updateDisputeStatus(
-  id: string,
-  status: string,
-  adminNote: string,
-  actorId: string,
-) {
-  const before = await getDisputeById(id);
+export async function updateDisputeStatusAction({
+  disputeId,
+  status,
+  note,
+  renterId,
+}: {
+  disputeId: string;
+  status: string;
+  note?: string;
+  renterId: string;
+}) {
+  try {
+    await db.collection("disputes").doc(disputeId).update({
+      status,
+      adminNote: note || "",
+      updatedAt: new Date(),
+    });
 
-  await adminDB.doc(`disputes/${id}`).update({
-    status,
-    adminNote,
-    updatedAt: FieldValue.serverTimestamp(),
-  });
+    await createNotification({
+      userId: renterId,
+      title: `Dispute Status Updated`,
+      message: `Your dispute has been marked as "${status}". ${
+        note ? `Admin note: ${note}` : ""
+      }`,
+      type: "DISPUTE",
+    });
 
-  const after = await getDisputeById(id);
-
-  await logAudit("updateDisputeStatus", actorId, { before, after });
+    return { success: true };
+  } catch (err: any) {
+    console.error("Error updating dispute:", err);
+    return { success: false, error: err.message };
+  }
 }
