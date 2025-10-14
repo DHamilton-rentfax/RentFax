@@ -6,11 +6,11 @@ const withNextIntl = createNextIntlPlugin(
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
-  allowedDevOrigins: [
-    'https://3000-firebase-studio-1754325563199.cluster-wfwbjypkvnfkaqiqzlu3ikwjhe.cloudworkstations.dev'
-  ],
-  experimental: {},
+  output: "export",
+  images: {
+    unoptimized: true,
+  },
+  trailingSlash: true,
 };
 
 export default withNextIntl(nextConfig);
