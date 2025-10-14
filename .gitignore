@@ -2,7 +2,6 @@
 node_modules
 .next
 out
-dist
 
 # Firebase functions builds
 functions/lib
@@ -16,3 +15,6 @@ firebase-debug.log
 .env.local
 .env.production
 .env.development
+
+# Optional: Ignore specific dist folders if needed (but keep scripts)
+# /dist/test/
