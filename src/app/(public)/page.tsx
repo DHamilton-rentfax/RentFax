@@ -4,9 +4,10 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import RenterSearchModal from "@/components/renter/RenterSearchModal";
+import { useModal } from "@/context/ModalContext";
 
 export default function HomePage() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { isModalOpen, openModal, closeModal } = useModal();
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900">
@@ -27,7 +28,7 @@ export default function HomePage() {
         </p>
         <div className="mt-10 flex justify-center gap-4">
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={openModal}
             className="px-8 py-3 bg-[#1A2540] text-white font-semibold rounded-lg shadow hover:bg-[#2a3660] transition"
           >
             Start Screening
@@ -94,10 +95,7 @@ export default function HomePage() {
             <p className="text-sm text-gray-600 mb-6">
               Perfect for individual screenings.
             </p>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="w-full py-2 cta-button"
-            >
+            <button onClick={openModal} className="w-full py-2 cta-button">
               Start Now
             </button>
           </div>
@@ -127,7 +125,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <RenterSearchModal open={isModalOpen} setOpen={setIsModalOpen} />
+      <RenterSearchModal open={isModalOpen} setOpen={closeModal} />
     </main>
   );
 }

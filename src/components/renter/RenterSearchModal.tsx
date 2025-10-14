@@ -87,23 +87,29 @@ export default function RenterSearchModal({
     }
   };
 
-  const handlePayment = async (type: "verification" | "report") => {
+  const handleProceedToPayment = async () => {
     setProcessingPayment(true);
-
     try {
-      const res = await fetch(`/api/stripe/${type}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: form.email }),
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: form.email,
+          plan: 'pro',
+        }),
       });
-
+  
       const data = await res.json();
-      if (data.url) window.location.href = data.url;
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert('Unable to start checkout. Please try again.');
+      }
     } catch (err) {
-      console.error("Payment failed:", err);
-      alert("Payment failed. Please try again.");
+      console.error(err);
+      alert('An error occurred while connecting to Stripe.');
     } finally {
-      setProcessingPayment(false);
+        setProcessingPayment(false);
     }
   };
 
@@ -111,44 +117,25 @@ export default function RenterSearchModal({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-lg bg-white/90 backdrop-blur-md rounded-2xl p-6">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-gray-900">
-            Search RentFAX Records
+          <DialogTitle className="text-lg font-semibold">
+            Search Renter Records
           </DialogTitle>
         </DialogHeader>
 
         {/* --- Search Form --- */}
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-2">
-            <Input
-              placeholder="First Name"
-              value={form.firstName}
-              onChange={(e) =>
-                setForm({ ...form, firstName: e.target.value })
-              }
-            />
-            <Input
-              placeholder="Last Name"
-              value={form.lastName}
-              onChange={(e) =>
-                setForm({ ...form, lastName: e.target.value })
-              }
-            />
-          </div>
-
+        <div className="space-y-4">
           <Input
-            placeholder="Driver’s License / ID Number"
-            value={form.licenseNumber}
+            placeholder="Full Name"
+            value={form.firstName}
             onChange={(e) =>
-              setForm({ ...form, licenseNumber: e.target.value })
+              setForm({ ...form, firstName: e.target.value })
             }
           />
-
           <Input
             placeholder="Email Address"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
           />
-
           <PhoneInput
             country={form.country.toLowerCase()}
             value={form.phone}
@@ -161,35 +148,23 @@ export default function RenterSearchModal({
             }
             inputStyle={{ width: "100%" }}
           />
-
           <Input
             placeholder="Address (include postal code)"
             value={form.address}
             onChange={(e) => setForm({ ...form, address: e.target.value })}
           />
-
           <Select
             options={countries}
             value={countries.find((c) => c.value === form.country)}
-            onChange={(val: any) =>
-              setForm({ ...form, country: val.value })
-            }
+            onChange={(val: any) => setForm({ ...form, country: val.value })}
             placeholder="Select Country"
           />
-
           <Button
             onClick={handleSearch}
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-2"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
           >
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Searching...
-              </>
-            ) : (
-              "Search Reports"
-            )}
+            {loading ? "Searching..." : "Search Reports"}
           </Button>
         </div>
 
@@ -205,40 +180,30 @@ export default function RenterSearchModal({
 
                 <div className="space-y-3 max-h-56 overflow-y-auto">
                   {results.map((r, i) => (
-                    <div
-                      key={i}
-                      className="border p-3 rounded-lg bg-gray-50 shadow-sm"
-                    >
-                      <p className="font-semibold">
-                        {r.renterName} ({r.renterCountry})
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {r.renterEmail}
-                      </p>
-
-                      <div className="flex items-center mt-1">
-                        <div className="h-2 w-full bg-gray-200 rounded-full mr-2">
-                          <div
-                            className="h-2 bg-green-500 rounded-full"
-                            style={{ width: `${r.matchScore}%` }}
-                          ></div>
+                      <div key={i} className="border p-3 rounded-lg bg-gray-50 mt-2">
+                        <p className="font-semibold">{r.renterName} ({r.renterCountry})</p>
+                        <p className="text-sm text-gray-500">{r.renterEmail}</p>
+                        <div className="flex items-center mt-1">
+                          <div className="h-2 w-full bg-gray-200 rounded-full mr-2">
+                            <div
+                              className="h-2 bg-green-500 rounded-full"
+                              style={{ width: `${r.matchScore}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-xs font-medium">{r.matchScore}%</span>
                         </div>
-                        <span className="text-xs font-medium">
-                          {r.matchScore}% match
-                        </span>
                       </div>
-                    </div>
                   ))}
                 </div>
 
                 <Button
-                  onClick={() => handlePayment("report")}
+                  onClick={handleProceedToPayment}
                   disabled={processingPayment}
                   className="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 text-white"
                 >
                   {processingPayment
                     ? "Processing..."
-                    : "Unlock Risk Report – $20"}
+                    : "Continue to Payment"}
                 </Button>
               </>
             ) : aiSummary ? (
@@ -257,33 +222,22 @@ export default function RenterSearchModal({
                 </p>
 
                 <Button
-                  onClick={() => handlePayment("verification")}
+                  onClick={handleProceedToPayment}
                   disabled={processingPayment}
                   className="mt-4 w-full bg-yellow-500 hover:bg-yellow-600 text-white"
                 >
                   {processingPayment
                     ? "Processing..."
-                    : "Start New Verification – $4.99"}
+                    : "Start New Verification"}
                 </Button>
               </div>
             ) : (
               <p className="text-sm text-gray-500 text-center">
-                No reports found. RentFAX AI is analyzing data...
+                No reports found.
               </p>
             )}
           </div>
         )}
-
-        {/* --- Footer --- */}
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Already have an account?{" "}
-          <a
-            href="/login"
-            className="font-semibold text-blue-600 hover:underline"
-          >
-            Log in
-          </a>
-        </p>
       </DialogContent>
     </Dialog>
   );

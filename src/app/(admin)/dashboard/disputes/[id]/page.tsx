@@ -1,3 +1,4 @@
+
 "use client";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -134,7 +135,7 @@ export default function DisputeDetailPage() {
               </div>
               <div>
                 <p className="text-sm font-medium">Incident ID</p>
-                <p className="text-muted-foreground">{dispute.id}</p>
+                <p className="text-muted-foreground">{dispute.incidentId}</p>
               </div>
               <div>
                 <p className="text-sm font-medium">Renter ID</p>
