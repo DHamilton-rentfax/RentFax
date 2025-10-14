@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
@@ -9,6 +9,8 @@ import { Header } from "@/components/layout/header";
 import { Loader2 } from "lucide-react";
 import Protected from "@/components/protected";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import NotificationListener from "@/components/dashboard/NotificationListener";
+import { Toaster } from "react-hot-toast";
 
 const sidebarNavItems = [
   {
@@ -61,6 +63,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <Protected>
+      <Toaster position="bottom-right" />
+      <NotificationListener />
       <Header />
       <div className="flex justify-end p-4">
         <NotificationBell />
