@@ -1,5 +1,4 @@
-# .github/workflows/firebase-deploy.yml
-name: Build and Deploy to Firebase
+name: 🔥 Deploy RentFAX to Firebase (after Vercel build passes)
 
 on:
   push:
@@ -7,43 +6,72 @@ on:
       - main
 
 jobs:
-  build_and_deploy_firebase:
+  # 1️⃣ Vercel build first
+  vercel-build:
+    name: 🧱 Build & Deploy to Vercel
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0 # Required for the git rev-parse in the build script
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18' # From package.json engines
+          node-version: 20
+          cache: "npm"
 
-      - name: Install Dependencies
-        run: npm install
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Build Next.js project
-        run: npm run build
+      - name: Debug Environment
+        run: |
+          echo "VERCEL_TOKEN: ✅ loaded"
+          echo "VERCEL_ORG_ID length: $(echo $VERCEL_ORG_ID | wc -c)"
+          echo "VERCEL_PROJECT_ID length: $(echo $VERCEL_PROJECT_ID | wc -c)"
+          echo "Firebase key detected: ✅"
         env:
-          # These secrets must be added to your GitHub repository settings
-          NEXT_PUBLIC_URL: https://rentfax.vercel.app
-          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
-          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
-          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
-          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
-          NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
-          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
-          NEXT_PUBLIC_USE_EMULATORS: false
-          FIREBASE_ADMIN_PROJECT_ID: ${{ secrets.FIREBASE_ADMIN_PROJECT_ID }}
-          FIREBASE_ADMIN_CLIENT_EMAIL: ${{ secrets.FIREBASE_ADMIN_CLIENT_EMAIL }}
-          FIREBASE_ADMIN_PRIVATE_KEY: ${{ secrets.FIREBASE_ADMIN_PRIVATE_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Build Next.js
+        run: npm run build
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: .
+          prod: true
+
+  # 2️⃣ Deploy to Firebase only if Vercel succeeded
+  firebase-deploy:
+    name: 🔥 Deploy to Firebase Hosting
+    runs-on: ubuntu-latest
+    needs: vercel-build   # 👈 waits until the Vercel job completes successfully
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
 
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' # Paste the full JSON key here
-          projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
-          target: 'rentfax-revamp' # From your package.json deploy script
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
+          channelId: live
+          projectId: rentfax-revamp
