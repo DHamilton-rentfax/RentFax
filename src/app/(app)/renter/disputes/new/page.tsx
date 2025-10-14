@@ -1,89 +1,75 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { createDispute } from "@/lib/createDispute";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { createDisputeAction } from "@/app/actions/create-dispute";
+import { Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function NewDisputePage() {
   const [description, setDescription] = useState("");
-  const [files, setFiles] = useState<FileList | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const router = useRouter();
+  const [amount, setAmount] = useState("");
+  const [renterId, setRenterId] = useState(""); // renter’s Firestore userId
+  const [isPending, startTransition] = useTransition();
 
-  const handleFileChange = (e: any) => setFiles(e.target.files);
-
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage("");
-
-    const result = await createDispute({ description, files });
-    setLoading(false);
-
-    if (result.success) {
-      setMessage("Dispute submitted successfully!");
-      setTimeout(() => router.push("/renter/dashboard"), 1500);
-    } else {
-      setMessage(result.message || "Something went wrong.");
+  const handleSubmit = () => {
+    if (!description || !renterId) {
+      toast.error("Please fill in renter ID and description.");
+      return;
     }
+
+    startTransition(async () => {
+      const res = await createDisputeAction({
+        renterId,
+        description,
+        amount: parseFloat(amount),
+      });
+
+      if (res.success) toast.success("✅ Dispute created successfully!");
+      else toast.error(`❌ Error: ${res.error}`);
+    });
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 px-4">
-      <Card className="w-full max-w-2xl shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-center text-xl">
-            Submit a Dispute
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Textarea
-              placeholder="Explain the issue or reason for this dispute..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-              rows={6}
-            />
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Upload Evidence
-              </label>
-              <Input type="file" multiple onChange={handleFileChange} />
-              <p className="text-xs text-gray-500 mt-1">
-                You can upload images (JPG, PNG) or PDFs (max 10 MB each).
-              </p>
-            </div>
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...
-                </>
-              ) : (
-                <>
-                  <Upload className="w-4 h-4 mr-2" /> Submit Dispute
-                </>
-              )}
-            </Button>
+    <div className="p-6 max-w-xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">File a New Dispute</h1>
 
-            {message && (
-              <p className="text-center text-sm mt-3 text-gray-700">
-                {message}
-              </p>
-            )}
-          </form>
-        </CardContent>
-      </Card>
+      <Input
+        placeholder="Renter Firestore ID"
+        value={renterId}
+        onChange={(e) => setRenterId(e.target.value)}
+        className="mb-3"
+      />
+
+      <Input
+        placeholder="Dispute Description"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        className="mb-3"
+      />
+
+      <Input
+        placeholder="Disputed Amount ($)"
+        type="number"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+        className="mb-3"
+      />
+
+      <Button
+        onClick={handleSubmit}
+        disabled={isPending}
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+      >
+        {isPending ? (
+          <>
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Submitting...
+          </>
+        ) : (
+          "Submit Dispute"
+        )}
+      </Button>
     </div>
   );
 }

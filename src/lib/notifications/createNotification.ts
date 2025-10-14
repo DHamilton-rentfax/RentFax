@@ -1,28 +1,41 @@
-import { db } from "@/lib/firebase/admin";
-import admin from "firebase-admin";
+'use server';
 
+import { firestore } from '@/lib/firebase/admin';
+import admin from 'firebase-admin';
+
+/**
+ * Creates a user notification in Firestore.
+ */
 export async function createNotification({
   userId,
   title,
   message,
-  type = "GENERAL",
+  type,
+  link,
 }: {
   userId: string;
   title: string;
   message: string;
-  type?: string;
+  type: 'DISPUTE' | 'SYSTEM' | 'ALERT';
+  link?: string;
 }) {
   try {
-    await db.collection("notifications").add({
+    if (!userId) {
+      console.warn('⚠️ Notification skipped: userId is missing.');
+      return;
+    }
+    await firestore.collection('notifications').add({
       userId,
       title,
       message,
       type,
+      link: link || null,
       read: false,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
-    console.log(`📢 Notification created for user ${userId}`);
+
+    console.log(`✅ Notification sent to ${userId}`);
   } catch (err) {
-    console.error("❌ Failed to create notification:", err);
+    console.error('❌ Failed to create notification:', err);
   }
 }

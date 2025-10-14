@@ -2,43 +2,42 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Public blogs
-    match /blogs/{blogId} {
-      allow read: if true;
-      allow write: if request.auth.token.role in ['admin', 'editor'];
+    // --- USERS ---
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Renter reports and incidents
-    match /reports/{reportId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth.token.role in ['admin', 'superadmin'];
+    // --- BUSINESSES ---
+    match /businesses/{businessId} {
+      allow read: if isBusinessMember(businessId);
+      allow write: if isAdmin(businessId);
     }
 
-    // Risk and forecast data
-    match /riskProfiles/{renterId},
-          /riskForecasts/{renterId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth.token.role in ['admin','superadmin'];
+    // --- DISPUTES ---
+    match /disputes/{disputeId} {
+      allow read: if isBusinessMember(resource.data.businessId) ||
+                  request.auth.uid == resource.data.renterId;
+
+      allow write: if isAdmin(resource.data.businessId) ||
+                   (isTeamMember(resource.data.businessId) && request.resource.data.status == "under_review");
     }
 
-    // Partners and enterprise
-    match /enterpriseClients/{id},
-          /partnerCases/{id},
-          /partnerPayouts/{id} {
-      allow read, write: if request.auth.token.role in ['superadmin'];
+    // --- Helper functions ---
+    function isBusinessMember(businessId) {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.businessId == businessId;
     }
 
-    // Compliance
-    match /consents/{userId},
-          /deletionRequests/{id},
-          /auditLogs/{id} {
-      allow read, write: if request.auth.token.role in ['admin','superadmin'];
+    function isAdmin(businessId) {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ["SUPER_ADMIN", "BUSINESS_ADMIN"] &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.businessId == businessId;
     }
 
-    // Notifications
-    match /notifications/{id} {
-      allow read: if request.auth.uid == resource.data.userId;
-      allow write: if request.auth != null;
+    function isTeamMember(businessId) {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "TEAM_MEMBER" &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.businessId == businessId;
     }
   }
 }
