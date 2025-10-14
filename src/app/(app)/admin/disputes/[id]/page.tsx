@@ -7,7 +7,7 @@ import { updateDisputeStatusAction } from "@/app/actions/update-dispute-status";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import toast from "react-hot-toast";
 
-export default function DisputeDetailPage({ params }: { id: string } }) {
+export default function DisputeDetailPage({ params }: { params: { id: string } }) {
   const [status, setStatus] = useState("");
   const [note, setNote] = useState("");
   const [renterId, setRenterId] = useState(""); // renter's Firestore user ID
