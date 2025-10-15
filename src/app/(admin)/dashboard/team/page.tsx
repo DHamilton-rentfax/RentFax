@@ -16,7 +16,7 @@ import {
   onSnapshot,
   getDocs,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase-client";
+import { db } from "@/firebase/client-client";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import RenterActions from "@/components/renter-actions";

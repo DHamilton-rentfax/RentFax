@@ -1,47 +1,25 @@
 "use client";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { auth } from "@/firebase/client";
 
-import { useState, useEffect } from "react";
-import { auth, db } from "@/firebase/client";
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
+const AuthContext = createContext<{ user: User | null | undefined }>({
+  user: undefined,
+});
 
-export function useAuth() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null | undefined>(undefined);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        const ref = doc(db, "users", firebaseUser.uid);
-        const snap = await getDoc(ref);
-
-        if (snap.exists()) {
-          const data = snap.data();
-          setUser({ ...firebaseUser, ...data });
-        } else {
-          // Default to English for new users
-          await setDoc(ref, {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            locale: "en",
-            createdAt: new Date().toISOString(),
-          });
-          setUser(firebaseUser);
-        }
-      } else {
-        setUser(null);
-      }
-      setLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
     });
-
     return () => unsubscribe();
   }, []);
 
-  return { user, loading };
+  return <AuthContext.Provider value={{ user }}>{children}</AuthContext.Provider>;
 }
 
-// Utility to update locale in Firestore
-export async function updateUserLocale(uid: string, locale: string) {
-  const ref = doc(db, "users", uid);
-  await updateDoc(ref, { locale });
+export function useAuth() {
+  return useContext(AuthContext);
 }

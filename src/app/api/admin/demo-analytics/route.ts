@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { dbAdmin as db } from "@/lib/firebase-admin"; // ✅ fixed import path
+import { dbAdmin as db } from "@/firebase/client-admin"; // ✅ fixed import path
 
 export async function GET() {
   try {

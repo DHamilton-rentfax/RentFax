@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { doc, onSnapshot } from "firebase/firestore";
-import { db } from "@/lib/firebase-client";
+import { db } from "@/firebase/client-client";
 import { useAuth } from "@/hooks/use-auth";
 
 import { Button } from "@/components/ui/button";

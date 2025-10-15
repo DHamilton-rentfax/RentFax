@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
-import { dbAdmin as db, authAdmin } from "@/lib/firebase-admin";
+import { dbAdmin as db, authAdmin } from "@/firebase/client-admin";
 import Papa from "papaparse";
 import { headers } from "next/headers";
 

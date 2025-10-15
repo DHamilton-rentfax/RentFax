@@ -5,7 +5,7 @@
 import { ai } from "@/ai/genkit";
 import { z } from "genkit";
 import { FlowAuth } from "genkit/flow";
-import { admin, adminDB as db, adminAuth } from "@/lib/firebase-admin";
+import { admin, adminDB as db, adminAuth } from "@/firebase/client-admin";
 import { logAudit } from "./audit";
 
 type Reason = { code: string; message: string; weight: number };

@@ -1,4 +1,4 @@
-import { dbAdmin } from "@/lib/firebase-admin";
+import { dbAdmin } from "@/firebase/client-admin";
 
 export async function getDemoTrendData() {
   const ninetyDaysAgo = new Date(

@@ -1,4 +1,4 @@
-import { adminDB } from "@/lib/firebase-admin";
+import { adminDB } from "@/firebase/client-admin";
 
 export default async function sitemap() {
   const baseUrl = "https://rentfax.io";

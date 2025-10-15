@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { authAdmin, dbAdmin } from "@/lib/firebase-admin";
+import { authAdmin, dbAdmin } from "@/firebase/client-admin";
 
 const stripe = new Stripe(process.env.STRIPE_API_KEY!, {
   apiVersion: "2024-06-20",

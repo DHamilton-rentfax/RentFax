@@ -1,4 +1,4 @@
-import { authAdmin as firebaseAuthAdmin } from "@/lib/firebase-admin";
+import { authAdmin as firebaseAuthAdmin } from "@/firebase/client-admin";
 
 export const authUser = async (req: Request) => {
   try {

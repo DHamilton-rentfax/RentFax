@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { adminDB } from "@/lib/firebase-admin";
+import { adminDB } from "@/firebase/client-admin";
 import { updateUserPlan } from "@/lib/billing/updateUserPlan";
 import { updateDeepReportStatus } from "@/lib/billing/updateDeepReportStatus";
 

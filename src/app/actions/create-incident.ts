@@ -1,6 +1,6 @@
 "use server";
 
-import { dbAdmin } from "@/lib/firebase-admin";
+import { dbAdmin } from "@/firebase/client-admin";
 import { logAuditEvent } from "./log-audit";
 
 export async function createIncident(

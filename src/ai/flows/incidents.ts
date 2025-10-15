@@ -6,7 +6,7 @@ import { ai } from "@/ai/genkit";
 import { z } from "genkit";
 import { recomputeRenterScore } from "./risk-scorer";
 import { FlowAuth } from "genkit/flow";
-import { admin, adminDB as db, adminAuth } from "@/lib/firebase-admin";
+import { admin, adminDB as db, adminAuth } from "@/firebase/client-admin";
 
 const CreateIncidentSchema = z.object({
   renterId: z.string(),

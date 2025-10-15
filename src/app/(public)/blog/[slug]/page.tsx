@@ -1,5 +1,5 @@
 import * as React from "react";
-import { adminDB } from "@/lib/firebase-admin";
+import { adminDB } from "@/firebase/client-admin";
 import { notFound } from "next/navigation";
 import { format } from "date-fns";
 import Image from "next/image";

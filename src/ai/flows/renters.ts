@@ -6,7 +6,7 @@ import { ai } from "@/ai/genkit";
 import { z } from "genkit";
 import { FlowAuth } from "genkit/flow";
 import { v4 as uuid } from "uuid";
-import { admin, adminDB as db, adminAuth } from "@/lib/firebase-admin";
+import { admin, adminDB as db, adminAuth } from "@/firebase/client-admin";
 import { logAudit } from "./audit";
 
 // --- Upsert Renter ---

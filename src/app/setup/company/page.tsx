@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { auth } from "@/lib/firebase";
+import { auth } from "@/firebase/client";
 import { createCompany } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
 import {

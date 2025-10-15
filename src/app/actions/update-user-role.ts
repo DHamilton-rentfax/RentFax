@@ -1,7 +1,7 @@
 "use server";
 
 import { getAuth } from "firebase-admin/auth";
-import { adminDB as adminDb } from "@/lib/firebase-admin";
+import { adminDB as adminDb } from "@/firebase/client-admin";
 import { logAuditEvent } from "./log-audit";
 
 export async function updateUserRole(

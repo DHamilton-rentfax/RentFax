@@ -1,4 +1,4 @@
-import { authAdmin as firebaseAuthAdmin } from "@/lib/firebase-admin";
+import { authAdmin as firebaseAuthAdmin } from "@/firebase/client-admin";
 
 // This is a simplified mock. In a real app, you'd have more robust error handling
 // and potentially unpack the full user record from your own 'users' collection.

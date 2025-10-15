@@ -1,6 +1,6 @@
 "use server";
 
-import { firestore } from "@/lib/firebase/admin";
+import { firestore } from "@/firebase/client/admin";
 import { createNotification } from "@/lib/notifications/createNotification";
 
 export async function createDisputeAction({

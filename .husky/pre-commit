@@ -1,0 +1,2 @@
+echo "🔍 Checking for invalid Firebase imports..."
+npm run check-firebase-imports || exit 1

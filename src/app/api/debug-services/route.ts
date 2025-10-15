@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
-import admin, { firestore } from "@/lib/firebase/admin";
+import admin, { firestore } from "@/firebase/client/admin";
 import Stripe from "stripe";
 import { getStorage } from "firebase-admin/storage";
 

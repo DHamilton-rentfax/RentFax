@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { db } from "@/lib/firebase";
+import { db } from "@/firebase/client";
 import { collection, query, where, getDocs } from "firebase/firestore";
 
 export default function FraudList({ readOnly = false }) {

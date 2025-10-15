@@ -6,7 +6,7 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import { dbAdmin } from "@/lib/firebase-admin";
+import { dbAdmin } from "@/firebase/client-admin";
 
 export async function GET() {
   const disputesSnap = await getCountFromServer(

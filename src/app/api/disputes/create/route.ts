@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { dbAdmin } from "@/lib/firebase-admin";
+import { dbAdmin } from "@/firebase/client-admin";
 import { FieldValue } from "firebase-admin/firestore";
 
 // This is a mock file upload handler. In a real application, you would

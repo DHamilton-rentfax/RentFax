@@ -33,7 +33,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import RenterActions from "@/components/renter-actions";
 import { useAuth } from "@/hooks/use-auth";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db } from "@/firebase/client";
 
 export default function RentersPage() {
   const { claims } = useAuth();

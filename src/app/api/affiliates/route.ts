@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { dbAdmin as db } from "@/lib/firebase-admin";
+import { dbAdmin as db } from "@/firebase/client-admin";
 
 /**
  * Track referrals:

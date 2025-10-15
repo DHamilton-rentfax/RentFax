@@ -1,4 +1,4 @@
-import { dbAdmin } from "@/lib/firebase-admin";
+import { dbAdmin } from "@/firebase/client-admin";
 
 export async function getStripeCustomerId(uid: string): Promise<string> {
   const snap = await dbAdmin.doc(`users/${uid}`).get();

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { dbAdmin as db } from "@/lib/firebase-admin";
+import { dbAdmin as db } from "@/firebase/client-admin";
 
 export async function GET() {
   const orgs = await db.collection("orgs").get();

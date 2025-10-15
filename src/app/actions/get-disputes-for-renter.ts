@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDB } from "@/lib/firebase-admin";
+import { adminDB } from "@/firebase/client-admin";
 import { Dispute } from "@/types/dispute";
 
 export async function getDisputesForRenter(renterId: string) {

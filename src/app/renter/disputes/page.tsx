@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { dbClient, storageClient } from "@/lib/firebase-client";
+import { dbClient, storageClient } from "@/firebase/client-client";
 import {
   collection,
   query,

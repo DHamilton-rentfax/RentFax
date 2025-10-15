@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
-import { dbAdmin, authAdmin } from "@/lib/firebase-admin";
+import { dbAdmin, authAdmin } from "@/firebase/client-admin";
 import { logAudit } from "@/ai/flows/audit";
 
 export async function POST(req: Request) {

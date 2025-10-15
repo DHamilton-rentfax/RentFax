@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDB } from "@/lib/firebase-admin";
+import { adminDB } from "@/firebase/client-admin";
 
 export async function logAuditEvent(event: {
   action: string; // e.g. ROLE_UPDATED, DISPUTE_STATUS_CHANGED

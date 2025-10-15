@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { dbAdmin } from "@/lib/firebase-admin";
+import { dbAdmin } from "@/firebase/client-admin";
 import { collection, getDocs, query, where } from "firebase-admin/firestore";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 

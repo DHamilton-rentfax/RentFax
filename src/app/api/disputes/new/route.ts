@@ -1,4 +1,4 @@
-import { adminDB as dbAdmin } from "@/lib/firebase-admin";
+import { adminDB as dbAdmin } from "@/firebase/client-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 

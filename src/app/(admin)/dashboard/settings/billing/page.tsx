@@ -10,12 +10,12 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { httpsCallable } from "firebase/functions";
-import { functions } from "@/lib/firebase-client";
+import { functions } from "@/firebase/client-client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase-client";
+import { db } from "@/firebase/client-client";
 import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import Protected from "@/components/protected";

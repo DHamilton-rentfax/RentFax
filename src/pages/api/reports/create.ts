@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import admin from '@/lib/firebase/admin';
+import admin from '@/firebase/client/admin';
 import { sendReportEmail } from '@/lib/email';
 
 const db = admin.firestore();

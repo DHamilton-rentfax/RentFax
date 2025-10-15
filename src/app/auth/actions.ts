@@ -1,5 +1,5 @@
 "use server";
-import { auth } from "@/lib/firebase";
+import { auth } from "@/firebase/client";
 import { whoAmI as whoAmIFlow, type WhoAmIOutput } from "@/ai/flows/who-am-i";
 import {
   setUserClaims as setUserClaimsFlow,
@@ -75,7 +75,7 @@ import {
   type UpdateCompanySettingsInput,
 } from "@/ai/flows/settings";
 import { headers } from "next/headers";
-import { authAdmin } from "@/lib/firebase-admin";
+import { authAdmin } from "@/firebase/client-admin";
 
 async function getAuth(): Promise<any | undefined> {
   const authorization = headers().get("Authorization");

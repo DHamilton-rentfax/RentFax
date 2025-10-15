@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { authAdmin } from "@/lib/authAdmin";
-import { adminDB } from "@/lib/firebase-admin";
+import { adminDB } from "@/firebase/client-admin";
 
 // GET /api/admin/unauthorized-drivers?status=pending
 export async function GET(req: Request) {

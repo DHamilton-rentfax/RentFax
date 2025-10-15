@@ -1,6 +1,6 @@
 "use server";
 
-import { dbAdmin } from "@/lib/firebase-admin";
+import { dbAdmin } from "@/firebase/client-admin";
 import { Incident } from "@/types/incident";
 import { DocumentData } from "firebase-admin/firestore";
 

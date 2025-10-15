@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@/lib/firebase-admin";
+import { adminDB } from "@/firebase/client-admin";
 
 const PARTNER_API_KEY = process.env.PARTNER_API_KEY;
 

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db } from "@/firebase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { PLAN_FEATURES, Plan, CompanyStatus } from "@/lib/plan-features";
 import Paywall from "./paywall";

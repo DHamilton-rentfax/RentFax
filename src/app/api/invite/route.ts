@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { dbAdmin as adminDb } from "@/lib/firebase-admin";
+import { dbAdmin as adminDb } from "@/firebase/client-admin";
 import { v4 as uuidv4 } from "uuid";
 
 const seatLimits: { [key: string]: number } = {

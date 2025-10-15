@@ -4,7 +4,7 @@
  */
 import { ai } from "@/ai/genkit";
 import { z } from "genkit";
-import { admin, adminDB as db } from "@/lib/firebase-admin";
+import { admin, adminDB as db } from "@/firebase/client-admin";
 
 const AuditLogSchema = z.object({
   actorUid: z.string(),

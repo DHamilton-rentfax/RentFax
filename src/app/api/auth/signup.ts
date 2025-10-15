@@ -1,4 +1,4 @@
-import { dbAdmin, authAdmin } from "@/lib/firebase-admin";
+import { dbAdmin, authAdmin } from "@/firebase/client-admin";
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {

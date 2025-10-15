@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { authAdmin, dbAdmin } from "@/lib/firebase-admin";
+import { authAdmin, dbAdmin } from "@/firebase/client-admin";
 import { ADDON_CATALOG } from "@/lib/addons";
 
 export async function GET(req: Request) {

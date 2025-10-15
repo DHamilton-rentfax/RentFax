@@ -6,7 +6,7 @@
 import { ai } from "@/ai/genkit";
 import { z } from "genkit";
 import { FlowAuth } from "genkit/flow";
-import { adminAuth, adminDB } from "@/lib/firebase-admin";
+import { adminAuth, adminDB } from "@/firebase/client-admin";
 
 const WhoAmIOutputSchema = z.object({
   uid: z.string().optional(),

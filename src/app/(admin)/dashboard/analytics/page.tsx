@@ -33,7 +33,7 @@ import {
   PieChart,
 } from "recharts";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase-client";
+import { db } from "@/firebase/client-client";
 
 const COLORS = ["#10b981", "#fbbf24", "#ef4444", "#3b82f6", "#8b5cf6"];
 

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import Protected from "@/components/protected";
 import Checklist, { Check } from "@/components/checklist";
 import { useAuth } from "@/hooks/use-auth";
-import { db } from "@/lib/firebase";
+import { db } from "@/firebase/client";
 import {
   collection,
   query,

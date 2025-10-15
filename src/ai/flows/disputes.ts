@@ -7,7 +7,7 @@ import { z } from "genkit";
 import { logAudit } from "./audit";
 import { sendNotification } from "@/lib/notifications";
 // import {FlowAuth} from 'genkit/flow';
-import { admin, adminDB as db, adminAuth } from "@/lib/firebase-admin";
+import { admin, adminDB as db, adminAuth } from "@/firebase/client-admin";
 
 const PROJECT_ID = process.env.GCLOUD_PROJECT!;
 const LOCATION = process.env.TASKS_LOCATION || "us-central1";

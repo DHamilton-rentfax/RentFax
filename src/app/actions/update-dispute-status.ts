@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/lib/firebase/admin";
+import { db } from "@/firebase/client/admin";
 import { createNotification } from "@/lib/notifications/createNotification";
 
 export async function updateDisputeStatusAction({

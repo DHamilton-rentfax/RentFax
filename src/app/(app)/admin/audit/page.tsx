@@ -11,7 +11,7 @@ import {
   DocumentData,
   QueryDocumentSnapshot,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db } from "@/firebase/client";
 import { useAuth } from "@/hooks/use-auth";
 import Protected from "@/components/protected";
 import {

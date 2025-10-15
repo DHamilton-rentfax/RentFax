@@ -1,4 +1,4 @@
-import { dbAdmin } from "@/lib/firebase-admin";
+import { dbAdmin } from "@/firebase/client-admin";
 import { NextResponse } from "next/server";
 import { sendDisputeNotification } from "@/lib/notifications";
 import { generateDisputeSummary } from "@/lib/ai-summary";

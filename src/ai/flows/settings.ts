@@ -5,7 +5,7 @@
 import { ai } from "@/ai/genkit";
 import { z } from "genkit";
 import { FlowAuth } from "genkit/flow";
-import { adminDB as db, adminAuth } from "@/lib/firebase-admin";
+import { adminDB as db, adminAuth } from "@/firebase/client-admin";
 
 const CompanySettingsSchema = z.object({
   bannerMessage: z.string().optional(),
