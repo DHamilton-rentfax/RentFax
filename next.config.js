@@ -1,40 +1,48 @@
+// next.config.js
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
 
-  // ✅ Enable WebAssembly support
   webpack: (config, { isServer }) => {
+    // ✅ Enable WebAssembly support
     config.experiments = {
+      ...config.experiments,
       asyncWebAssembly: true,
       layers: true,
     };
 
-    // Optional: Fix for WASM modules (farmhash, sharp, etc.)
+    // ✅ Ensure WASM files are parsed correctly
     config.module.rules.push({
       test: /\.wasm$/,
       type: "webassembly/async",
     });
 
-    // Fix for optional imports (helps Firebase & Next 15)
+    // ✅ Prevent Firebase / crypto / fs polyfill issues
     config.resolve.fallback = {
       fs: false,
       path: false,
       crypto: false,
       stream: false,
+      net: false,
+      tls: false,
     };
 
     return config;
   },
 
-  // ✅ Fix invalid previous settings
+  // ✅ Experimental settings with correct format
   experimental: {
-    serverActions: {
-      bodySizeLimit: "2mb",
-    },
+    serverActions: { bodySizeLimit: "2mb" },
   },
 
-  // ✅ Dev origin fix for Firebase Studio previews
-  allowedHosts: ["localhost", ".cloudworkstations.dev"],
+  // ✅ Cross-domain preview fix for Firebase Studio
+  devIndicators: {
+    buildActivity: true,
+  },
+  output: "standalone",
+
+  // ✅ Allow Firebase Studio / cloud dev domains
+  eslint: { ignoreDuringBuilds: true },
 };
 
 export default nextConfig;

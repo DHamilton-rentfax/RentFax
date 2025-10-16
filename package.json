@@ -22,7 +22,8 @@
     "check:routes": "node scripts/check-route-conflicts.js",
     "verify:prepush": "node scripts/pre-push.js",
     "prepare": "husky install",
-    "check-firebase-imports": "node scripts/check-firebase-imports.js"
+    "check-firebase-imports": "node scripts/check-firebase-imports.js",
+    "verify:build": "node scripts/verify-config.js"
   },
   "dependencies": {
     "@genkit-ai/flow": "^0.5.17",
