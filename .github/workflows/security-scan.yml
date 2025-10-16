@@ -1,0 +1,19 @@
+name: Secret Scan Guard
+on:
+  push:
+    branches: [main, staging]
+  pull_request:
+
+jobs:
+  prevent_env_commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for .env or secret files
+        run: |
+          if git diff --name-only --cached | grep -Eq '\.env|firebase-adminsdk|\.pem'; then
+            echo "❌ Found forbidden secret files in this commit. Remove them before pushing."
+            exit 1
+          else
+            echo "✅ No secrets detected."
+          fi

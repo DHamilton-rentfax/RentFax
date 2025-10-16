@@ -1,40 +1,30 @@
 import { NextIntlClientProvider } from "next-intl";
-import { ReactNode } from "react";
-import { notFound } from "next/navigation";
-import { ModalProvider } from "@/context/ModalContext";
+import { getMessages } from "next-intl/server";
+import { Toaster } from "@/components/ui/toaster";
+import { AuthProvider } from "@/hooks/use-auth";
 import { Header } from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
-import { logLocale } from "@/lib/log-locale";
-import { logEvent } from "@/lib/logger";
+import { ModalProvider } from "@/context/ModalContext";
 
-export async function generateStaticParams() {
-  return [{ locale: "en" }, { locale: "es" }];
-}
-
-export default async function LocaleLayout(props: {
-  children: ReactNode;
-  params: Promise<{ locale: string }>;
+export default async function LocaleLayout({
+  children,
+  params: { locale },
+}: {
+  children: React.ReactNode;
+  params: { locale: string };
 }) {
-  const { children, params } = props;
-  const { locale } = await params; // ✅ await params here
-
-  await logLocale(locale);
-  await logEvent("Locale rendered", "info", { locale });
-
-  let messages;
-  try {
-    messages = (await import(`../../messages/${locale}.json`)).default;
-  } catch {
-    notFound();
-  }
+  const messages = await getMessages();
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <ModalProvider>
-        <Header />
-        {children}
-        <Footer />
-      </ModalProvider>
+      <AuthProvider>
+        <ModalProvider>
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </ModalProvider>
+        <Toaster />
+      </AuthProvider>
     </NextIntlClientProvider>
   );
 }

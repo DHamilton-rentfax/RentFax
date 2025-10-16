@@ -1,32 +1,29 @@
-# Environment files
-.env*
-!.env.example
-
-# Local Firebase files
-.firebaserc
-firebase-debug.log
-
-# Build artifacts
-.next/
-out/
-dist/
-
-# Dependencies
-node_modules/
-
 # Logs
+logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lerna-debug.log*
 
-# Local Editor settings
-.vscode/
-.idea/
+# Node
+node_modules
+dist
+.next
+out
 
-# Test reports
-e2e-report/
-
-# OS files
+# Build
 .DS_Store
-Thumbs.db
+*.pem
+
+# Environment files (never commit)
+.env
+.env.*
+!.env.example
+
+# Firebase
+.firebase
+*.firebase.json
+firebase-debug.log
+firebase-key.json
+*.serviceAccountKey.json
