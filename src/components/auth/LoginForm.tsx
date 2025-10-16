@@ -1,4 +1,7 @@
+
 'use client'
+
+import { auth } from '@/firebase/client'
 
 export default function LoginForm() {
   return (

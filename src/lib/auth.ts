@@ -1,5 +1,6 @@
+
 "use client";
-import { auth as clientAuth } from "./firebase";
+import { auth as clientAuth } from "@/firebase/client";
 import { onAuthStateChanged, User, getIdToken } from "firebase/auth";
 import { whoAmI as whoAmIFlow, WhoAmIOutput } from "@/app/auth/actions";
 

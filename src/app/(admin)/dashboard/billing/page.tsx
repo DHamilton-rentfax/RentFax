@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { auth, functions } from "@/firebase/client-client";
+import { auth, functions } from "@/firebase/client";
 import { ADDON_CATALOG, Addon } from "@/lib/addons";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";

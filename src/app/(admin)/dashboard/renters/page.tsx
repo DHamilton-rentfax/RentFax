@@ -1,3 +1,4 @@
+
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -33,7 +34,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import RenterActions from "@/components/renter-actions";
 import { useAuth } from "@/hooks/use-auth";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
-import { db } from "@/firebase/client-client";
+import { db } from "@/firebase/client";
 
 export default function RentersPage() {
   const { claims } = useAuth();

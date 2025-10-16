@@ -1,9 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 import { db } from "@/firebase/client";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, addDoc } from "firebase/firestore";
 import FraudScoreCard from "@/components/FraudScoreCard";
 import { useAuth } from "@/hooks/use-auth";
+import { runCodeAudit } from "@/lib/codesage";
 
 export default function RenterProfile({ params }: { params: { id: string } }) {
   const [renter, setRenter] = useState<any>(null);
@@ -14,7 +15,7 @@ export default function RenterProfile({ params }: { params: { id: string } }) {
     async function load() {
       const snap = await getDoc(doc(db, "renters", params.id));
       if (snap.exists()) {
-        setRenter(snap.data());
+        setRenter({ id: snap.id, ...snap.data() });
         const res = await fetch(`/api/fraud?id=${params.id}`);
         setSignals(await res.json());
       }
@@ -40,6 +41,23 @@ export default function RenterProfile({ params }: { params: { id: string } }) {
             signals.map((s, i) => <li key={i}>{s}</li>)
           )}
         </ul>
+        <button
+          onClick={async () => {
+            const issues = await runCodeAudit(renter.id, renter.codeSample || "");
+            if (issues.length > 0) {
+              await addDoc(collection(db, "aiAudits"), {
+                renterId: renter.id,
+                createdAt: new Date(),
+                issues
+              });
+            }
+            if (issues.length === 0) alert("No issues found!");
+            else alert(`Found ${issues.length} code issues.`);
+          }}
+          className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 mt-4"
+        >
+          Run AI Code Audit
+        </button>
       </div>
     </div>
   );

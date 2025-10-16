@@ -1,3 +1,4 @@
+
 "use client";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
@@ -33,7 +34,7 @@ import {
   PieChart,
 } from "recharts";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "@/firebase/client-client";
+import { db } from "@/firebase/client";
 
 const COLORS = ["#10b981", "#fbbf24", "#ef4444", "#3b82f6", "#8b5cf6"];
 
@@ -280,4 +281,3 @@ export default function AnalyticsPage() {
       ) : null}
     </div>
   );
-}

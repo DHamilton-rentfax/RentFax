@@ -1,8 +1,9 @@
+
 // src/lib/auth/requireSuperAdmin.ts
 "use server";
 
 import { cookies } from "next/headers";
-import { dbAdmin as adminDB, authAdmin } from "@/firebase/client-admin";
+import { authAdmin, adminDB } from "@/firebase/server";
 import { redirect } from "next/navigation";
 import { getUserFromSessionCookie } from "./getUserFromSessionCookie";
 
