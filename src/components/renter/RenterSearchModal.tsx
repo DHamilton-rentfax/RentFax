@@ -1,242 +1,177 @@
 
 "use client";
-
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import countryList from "react-select-country-list";
 import Select from "react-select";
-import { Loader2 } from "lucide-react";
-
-interface RenterSearchModalProps {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-}
+import { Loader2, HelpCircle } from "lucide-react";
+import { useModal } from "@/context/ModalContext";
 
 interface RenterForm {
-  firstName: string;
-  lastName: string;
-  licenseNumber: string;
+  name: string;
   email: string;
   phone: string;
   address: string;
   country: string;
+  license: string;
 }
 
-export default function RenterSearchModal({
-  open,
-  setOpen,
-}: RenterSearchModalProps) {
-  const countries = countryList().getData();
+type SearchResult = { match: boolean; renterId?: string } | null;
+
+export default function SearchRenterModal() {
+  const { isModalOpen, closeModal } = useModal();
+  const countries = useMemo(() => countryList().getData(), []);
 
   const [form, setForm] = useState<RenterForm>({
-    firstName: "",
-    lastName: "",
-    licenseNumber: "",
+    name: "",
     email: "",
     phone: "",
     address: "",
     country: "US",
+    license: "",
   });
 
   const [loading, setLoading] = useState(false);
-  const [searched, setSearched] = useState(false);
-  const [results, setResults] = useState<any[]>([]);
-  const [aiSummary, setAiSummary] = useState<any>(null);
-  const [processingPayment, setProcessingPayment] = useState(false);
+  const [result, setResult] = useState<SearchResult>(null);
 
-  const handleSearch = async () => {
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
-    setSearched(true);
-    setResults([]);
-    setAiSummary(null);
-
+    setResult(null);
     try {
-      const res = await fetch("/api/renter/search", {
+      const res = await fetch("/api/report/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-
       const data = await res.json();
-
-      if (data.matches?.length > 0) {
-        setResults(data.matches);
-      } else {
-        // No matches – trigger AI analysis
-        const aiRes = await fetch("/api/ai/analyze", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
-        });
-        const aiData = await aiRes.json();
-        setAiSummary(aiData);
-      }
-    } catch (err) {
-      console.error("Search failed:", err);
+      setResult(data);
+    } catch (error) {
+      console.error("Search failed", error);
+      // Optionally, set an error state to show a message to the user
     } finally {
       setLoading(false);
     }
   };
 
-  const handleProceedToPayment = async () => {
-    setProcessingPayment(true);
+  const handleCheckout = async (type: "basic" | "full") => {
+    setLoading(true);
     try {
-      const res = await fetch('/api/stripe/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: form.email,
-          plan: 'pro',
-        }),
-      });
-  
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        alert('Unable to start checkout. Please try again.');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('An error occurred while connecting to Stripe.');
+        const res = await fetch("/api/checkout/session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type, renterId: result?.renterId, email: form.email }),
+        });
+        const data = await res.json();
+        if (data.url) {
+            window.location.href = data.url;
+        }
+    } catch (error) {
+        console.error("Checkout failed", error);
+        // Optionally, set an error state
     } finally {
-        setProcessingPayment(false);
+        setLoading(false);
     }
   };
 
+  const resetModal = () => {
+    setForm({
+        name: "", email: "", phone: "", address: "", country: "US", license: "",
+    });
+    setResult(null);
+    setLoading(false);
+    closeModal();
+  }
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-lg bg-white/90 backdrop-blur-md rounded-2xl p-6">
+    <Dialog open={isModalOpen} onOpenChange={resetModal}>
+      <DialogContent className="sm:max-w-md bg-white p-6 rounded-lg shadow-xl">
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold">
-            Search Renter Records
-          </DialogTitle>
+          <DialogTitle>Search Renter Records</DialogTitle>
+          <DialogDescription>
+             We use multiple data sources to verify renters. Your search will be matched against verified records in the RentFAX global database.
+          </DialogDescription>
         </DialogHeader>
 
-        {/* --- Search Form --- */}
-        <div className="space-y-4">
-          <Input
-            placeholder="Full Name"
-            value={form.firstName}
-            onChange={(e) =>
-              setForm({ ...form, firstName: e.target.value })
-            }
-          />
-          <Input
-            placeholder="Email Address"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-          />
-          <PhoneInput
-            country={form.country.toLowerCase()}
-            value={form.phone}
-            onChange={(phone, country: any) =>
-              setForm({
-                ...form,
-                phone,
-                country: country.countryCode.toUpperCase(),
-              })
-            }
-            inputStyle={{ width: "100%" }}
-          />
-          <Input
-            placeholder="Address (include postal code)"
-            value={form.address}
-            onChange={(e) => setForm({ ...form, address: e.target.value })}
-          />
-          <Select
-            options={countries}
-            value={countries.find((c) => c.value === form.country)}
-            onChange={(val: any) => setForm({ ...form, country: val.value })}
-            placeholder="Select Country"
-          />
-          <Button
-            onClick={handleSearch}
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            {loading ? "Searching..." : "Search Reports"}
-          </Button>
-        </div>
-
-        {/* --- Search Results / AI Summary --- */}
-        {searched && !loading && (
-          <div className="mt-6">
-            {results.length > 0 ? (
-              <>
-                <h3 className="text-lg font-medium mb-3">
-                  {results.length} potential record
-                  {results.length > 1 && "s"} found
-                </h3>
-
-                <div className="space-y-3 max-h-56 overflow-y-auto">
-                  {results.map((r, i) => (
-                      <div key={i} className="border p-3 rounded-lg bg-gray-50 mt-2">
-                        <p className="font-semibold">{r.renterName} ({r.renterCountry})</p>
-                        <p className="text-sm text-gray-500">{r.renterEmail}</p>
-                        <div className="flex items-center mt-1">
-                          <div className="h-2 w-full bg-gray-200 rounded-full mr-2">
-                            <div
-                              className="h-2 bg-green-500 rounded-full"
-                              style={{ width: `${r.matchScore}%` }}
-                            ></div>
-                          </div>
-                          <span className="text-xs font-medium">{r.matchScore}%</span>
-                        </div>
-                      </div>
-                  ))}
-                </div>
-
-                <Button
-                  onClick={handleProceedToPayment}
-                  disabled={processingPayment}
-                  className="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 text-white"
-                >
-                  {processingPayment
-                    ? "Processing..."
-                    : "Continue to Payment"}
-                </Button>
-              </>
-            ) : aiSummary ? (
-              <div className="bg-gray-50 border p-4 rounded-lg">
-                <h4 className="font-semibold mb-2 text-gray-800">
-                  AI Summary
-                </h4>
-                <p className="text-sm text-gray-600 mb-3">
-                  {aiSummary.message}
-                </p>
-                <p className="text-sm text-gray-500">
-                  AI Confidence:{" "}
-                  <span className="font-semibold">
-                    {aiSummary.confidence}%
-                  </span>
-                </p>
-
-                <Button
-                  onClick={handleProceedToPayment}
-                  disabled={processingPayment}
-                  className="mt-4 w-full bg-yellow-500 hover:bg-yellow-600 text-white"
-                >
-                  {processingPayment
-                    ? "Processing..."
-                    : "Start New Verification"}
-                </Button>
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500 text-center">
-                No reports found.
-              </p>
-            )}
+        {loading ? (
+          <div className="flex justify-center items-center p-10">
+            <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
           </div>
+        ) : result ? (
+            // Results View
+            <div className="text-center py-4">
+                {result.match ? (
+                    <>
+                        <h3 className="text-lg font-semibold">Match Found!</h3>
+                        <p className="text-sm text-gray-600 mt-2 mb-4">We found an existing record for this renter. View a detailed report containing incidents, disputes, and risk score.</p>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button onClick={() => handleCheckout("full")} className="w-full">View Full Report - $20</Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Provides a comprehensive history of the renter from our collective database.</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </>
+                ) : (
+                    <>
+                        <h3 className="text-lg font-semibold">No Report Found</h3>
+                        <p className="text-sm text-gray-600 mt-2 mb-4">You can perform a basic verification check to confirm renter authenticity and fraud signals.</p>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button onClick={() => handleCheckout("basic")} className="w-full">Run Basic Lookup - $4.99</Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Verifies renter identity against live data sources for fraud and duplication signals.</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </>
+                )}
+                <Button variant="link" onClick={() => setResult(null)} className="mt-2">Search again</Button>
+            </div>
+        ) : (
+          // Form View
+          <form onSubmit={handleSearch} className="space-y-4">
+            <div>
+                <Input id="name" placeholder="Full Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+                <p className="text-xs text-gray-500 mt-1">Enter the renter’s legal name.</p>
+            </div>
+            <div>
+                <Input id="email" type="email" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required/>
+                <p className="text-xs text-gray-500 mt-1">Used to match existing reports.</p>
+            </div>
+            <PhoneInput country={form.country.toLowerCase()} value={form.phone} onChange={(phone, country: any) => setForm({...form, phone, country: country.countryCode.toUpperCase()})} inputStyle={{width: '100%'}}/>
+            <div>
+                <Input id="address" placeholder="Address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })}/>
+                 <p className="text-xs text-gray-500 mt-1">Helps verify identity and link records.</p>
+            </div>
+             <div>
+                <Input id="license" placeholder="Driver’s License / ID Number" value={form.license} onChange={(e) => setForm({ ...form, license: e.target.value })}/>
+                 <p className="text-xs text-gray-500 mt-1">Increases accuracy of the search.</p>
+            </div>
+            <Select options={countries} value={countries.find(c => c.value === form.country)} onChange={(val: any) => setForm({ ...form, country: val.value})} />
+            <Button type="submit" className="w-full">Search Reports</Button>
+          </form>
         )}
       </DialogContent>
     </Dialog>

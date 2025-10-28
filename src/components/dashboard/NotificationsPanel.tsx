@@ -1,158 +1,57 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
+import { Bell, CheckCircle, XCircle } from "lucide-react";
 import { db } from "@/firebase/client";
-import {
-  collection,
-  query,
-  where,
-  onSnapshot,
-  orderBy,
-  updateDoc,
-  doc,
-  getDocs,
-} from "firebase/firestore";
-import { Bell, CheckCircle2, X, Filter } from "lucide-react";
-import toast from "react-hot-toast";
+import { collection, onSnapshot, query, where, orderBy } from "firebase/firestore";
+import { useAuth } from "@/hooks/use-auth";
 
-interface Notification {
-  id: string;
-  userId: string;
-  title: string;
-  message: string;
-  type: string;
-  read: boolean;
-  createdAt: { seconds: number; nanoseconds: number };
-}
-
-export default function NotificationsPanel({ userId }: { userId: string }) {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [filter, setFilter] = useState<string>("ALL");
+export default function NotificationsPanel() {
+  const { user } = useAuth();
+  const [notifications, setNotifications] = useState<any[]>([]);
 
   useEffect(() => {
-    if (!userId) return;
-
+    if (!user) return;
     const q = query(
       collection(db, "notifications"),
-      where("userId", "==", userId),
-      orderBy("createdAt", "desc")
+      where("userId", "==", user.uid),
+      orderBy("timestamp", "desc")
     );
-
-    const unsub = onSnapshot(q, (snapshot) => {
-      const list = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Notification[];
-
-      setNotifications(list);
-
-      // show toast for new unread notifications
-      const newItems = list.filter((n) => !n.read);
-      if (newItems.length > 0) {
-        newItems.forEach((n) =>
-          toast.custom(
-            (t) => (
-              <div
-                className={`${t.visible ? "animate-enter" : "animate-leave"} max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 p-4`}>
-                <div className="flex items-start">
-                  <div className="flex-shrink-0">
-                    <Bell className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div className="ml-3 w-0 flex-1 pt-0.5">
-                    <p className="text-sm font-medium text-gray-900">
-                      {n.title}
-                    </p>
-                    <p className="mt-1 text-sm text-gray-500">{n.message}</p>
-                  </div>
-                  <div className="ml-4 flex-shrink-0 flex">
-                    <button
-                      onClick={() => toast.dismiss(t.id)}
-                      className="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-500">
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ),
-            { duration: 5000 }
-          )
-        );
-      }
+    const unsub = onSnapshot(q, (snap) => {
+      const notes = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setNotifications(notes);
     });
-
     return () => unsub();
-  }, [userId]);
+  }, [user]);
 
-  const markAsRead = async (id: string) => {
-    await updateDoc(doc(db, "notifications", id), { read: true });
-  };
-
-  const markAllAsRead = async () => {
-    const q = query(collection(db, "notifications"), where("userId", "==", userId));
-    const snapshot = await getDocs(q);
-    snapshot.forEach((docSnap) => updateDoc(docSnap.ref, { read: true }));
-  };
-
-  const filtered = notifications.filter(
-    (n) => filter === "ALL" || n.type === filter
-  );
+  if (!user) return null;
 
   return (
-    <div className="p-4 bg-white rounded-xl shadow-md max-w-md">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center">
-          <Bell className="mr-2 text-blue-600" />
-          <h2 className="font-semibold text-lg">Notifications</h2>
-        </div>
+    <div className="bg-white border rounded-lg shadow-sm p-4 space-y-2">
+      <h2 className="font-semibold text-gray-700 text-sm flex items-center gap-2">
+        <Bell className="h-4 w-4 text-blue-500" /> Notifications
+      </h2>
 
-        <div className="flex gap-2">
-          <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="border rounded-md text-sm px-2 py-1">
-            <option value="ALL">All</option>
-            <option value="DISPUTE">Disputes</option>
-            <option value="ALERT">Alerts</option>
-            <option value="GENERAL">General</option>
-          </select>
-
-          <button
-            onClick={markAllAsRead}
-            className="text-sm text-blue-600 hover:underline">
-            Mark all read
-          </button>
-        </div>
-      </div>
-
-      {filtered.length === 0 ? (
-        <p className="text-gray-500 text-sm">No notifications</p>
+      {notifications.length === 0 ? (
+        <p className="text-xs text-gray-500">No notifications yet.</p>
       ) : (
-        <ul className="space-y-2">
-          {filtered.map((n) => (
+        <ul className="space-y-2 text-sm">
+          {notifications.map((n) => (
             <li
               key={n.id}
-              className={`border p-2 rounded-lg transition ${
-                n.read ? "bg-gray-50" : "bg-blue-50"
-              }`}>
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="font-medium text-gray-800">{n.title}</p>
-                  <p className="text-sm text-gray-600">{n.message}</p>
-                </div>
-                {!n.read && (
-                  <button
-                    onClick={() => markAsRead(n.id)}
-                    className="text-xs text-blue-600 hover:underline">
-                    Mark read
-                  </button>
+              className="border-b border-gray-100 last:border-none pb-2"
+            >
+              <div className="flex items-center gap-2">
+                {n.type === "success" ? (
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                ) : (
+                  <XCircle className="h-4 w-4 text-red-500" />
                 )}
+                <span>{n.message}</span>
               </div>
-              {n.read && (
-                <div className="flex items-center mt-1 text-green-600 text-xs">
-                  <CheckCircle2 className="w-3 h-3 mr-1" /> Read
-                </div>
-              )}
+              <p className="text-xs text-gray-400">
+                {new Date(n.timestamp).toLocaleString()}
+              </p>
             </li>
           ))}
         </ul>

@@ -1,138 +1,89 @@
+// ===========================================
+// RentFAX | Stripe Webhook Handler
+// Location: src/app/api/stripe/webhook/route.ts
+// ===========================================
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { firestore } from "@/firebase/client/admin";
-import admin from "firebase-admin";
-
-export const config = {
-  api: { bodyParser: false },
-};
+import { db } from "@/firebase/server";
+import { doc, updateDoc, addDoc, collection, Timestamp } from "firebase/firestore";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
+  apiVersion: "2024-04-10",
 });
 
-const findUserByEmail = async (email: string) => {
-  const usersRef = firestore.collection("users");
-  const snapshot = await usersRef.where("email", "==", email).limit(1).get();
-  if (snapshot.empty) {
-    console.warn(`No user found with email: ${email}`);
-    return null;
-  }
-  const userDoc = snapshot.docs[0];
-  return { id: userDoc.id, ref: userDoc.ref, ...userDoc.data() };
-};
-
 export async function POST(req: Request) {
+  const body = await req.text();
   const sig = req.headers.get("stripe-signature")!;
-  let event: Stripe.Event;
 
   try {
-    const buf = await req.arrayBuffer();
-    event = stripe.webhooks.constructEvent(
-      Buffer.from(buf),
+    const event = stripe.webhooks.constructEvent(
+      body,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET!
     );
-  } catch (err: any) {
-    console.error("❌ Stripe signature verification failed", err.message);
-    return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
-  }
 
-  try {
-    const timestamp = admin.firestore.FieldValue.serverTimestamp();
+    // ---- Handle Completed Checkout ----
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const metadata = session.metadata || {};
+      const email = metadata.email;
+      const renterId = metadata.renterId;
+      const type = metadata.type; // "basic" or "full"
 
-    switch (event.type) {
-      case "checkout.session.completed": {
-        const session = event.data.object as Stripe.Checkout.Session;
-        const email =
-          session.customer_details?.email || session.customer_email;
-        const metadataType = session.metadata?.type;
+      console.log(`✅ Checkout complete: ${type} for renter ${renterId}`);
 
-        if (!email) {
-          console.error("No email found in checkout session.");
-          break;
-        }
+      // Step 1: Log event
+      await addDoc(collection(db, "auditLogs"), {
+        type: "checkout.completed",
+        amount: session.amount_total! / 100,
+        email,
+        renterId,
+        purchaseType: type,
+        timestamp: Timestamp.now(),
+      });
 
-        const user = await findUserByEmail(email);
-        if (!user) break;
-
-        if (metadataType === "verification" || metadataType === "report") {
-          const collectionName =
-            metadataType === "verification"
-              ? "verifications"
-              : "reports";
-
-          await firestore.collection(collectionName).add({
-            createdBy: user.id,
-            aiConfidence:
-              metadataType === "verification"
-                ? Math.floor(Math.random() * 10) + 90
-                : undefined,
-            riskScore:
-              metadataType === "report"
-                ? Math.floor(Math.random() * 40) + 60
-                : undefined,
-            riskLevel:
-              metadataType === "report" ? "Moderate" : undefined,
-            verificationType: "summary",
-            createdAt: timestamp,
-          });
-
-          await user.ref.update({
-            creditsRemaining: admin.firestore.FieldValue.increment(-1),
-          });
-          console.log(
-            `✅ ${metadataType} processed for ${email}. Credits decremented.`
-          );
-        }
-        break;
-      }
-
-      case "invoice.payment_succeeded": {
-        const invoice = event.data.object as Stripe.Invoice;
-        const email = invoice.customer_email;
-        if (!email) break;
-
-        const user = await findUserByEmail(email);
-        if (!user) break;
-
-        const planId = invoice.lines.data[0]?.price?.lookup_key;
-        let credits = 10;
-        if (planId === "price_pro_plan") credits = 50;
-        if (planId === "price_unlimited_plan") credits = 9999;
-
-        await user.ref.update({
-          plan: planId,
-          creditsRemaining: credits,
-          nextBillingDate: admin.firestore.Timestamp.fromMillis(
-            invoice.period_end * 1000
-          ),
+      // Step 2: Trigger renter verification or report creation
+      if (type === "basic") {
+        await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/report/verify`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ renterId, email }),
         });
-        console.log(
-          `✅ Subscription renewal for ${email}. Plan: ${planId}, Credits: ${credits}`
-        );
-        break;
-      }
-
-      case "customer.subscription.deleted": {
-        const subscription = event.data.object as Stripe.Subscription;
-        const user = await findUserByEmail(subscription.metadata.email);
-        if (!user) break;
-
-        await user.ref.update({
-          plan: "free",
-          creditsRemaining: 0,
+      } else if (type === "full") {
+        await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/report/create`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ renterId, email }),
         });
-        console.log(
-          `✅ Subscription canceled for ${subscription.metadata.email}. Plan set to free.`
-        );
-        break;
       }
+
+      // Step 3: Trigger fraud detection pipeline
+      await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/fraud/detect`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ renterId }),
+      });
+
+      await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/fraud-insight`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ renterId }),
+      });
+
+      // Step 4: Send notification
+      await addDoc(collection(db, "notifications"), {
+        type: "fraudCheck",
+        title: `Fraud Analysis Complete`,
+        message: `Renter ${renterId} has been analyzed for fraud and AI risk.`,
+        createdAt: Timestamp.now(),
+        read: false,
+        level: "info",
+      });
     }
 
     return NextResponse.json({ received: true });
-  } catch (err) {
-    console.error("❌ Webhook handling error:", err);
-    return new NextResponse("Webhook Error", { status: 500 });
+  } catch (err: any) {
+    console.error("❌ Webhook Error:", err.message);
+    return NextResponse.json({ error: err.message }, { status: 400 });
   }
 }

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import Link from "next/link";
 import { Building2 } from "lucide-react";
@@ -17,11 +17,10 @@ const footerLinks = {
     { name: "Blog", href: "/blog" },
     { name: "Contact", href: "/contact" },
   ],
-  resources: [
-    { name: "Docs", href: "/docs" },
-    { name: "Help Center", href: "/help" },
-    { name: "Rules", href: "/rules" },
-    { name: "Security", href: "/legal/security" },
+  partners: [
+    { name: "For Collection Agencies", href: "/partners/agencies" },
+    { name: "For Legal Firms", href: "/partners/legal" },
+    { name: "Partner Login", href: "/partners/login" },
   ],
   legal: [
     { name: "Terms of Service", href: "/terms" },
@@ -31,31 +30,31 @@ const footerLinks = {
 
 export default function Footer() {
   return (
-    <footer className="bg-white border-t border-gray-200 mt-12">
-      <div className="container mx-auto py-8 px-4">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
+    <footer className='bg-white border-t border-gray-200 mt-12'>
+      <div className='container mx-auto py-8 px-4'>
+        <div className='grid grid-cols-2 md:grid-cols-5 gap-8'>
           {/* Logo and mission */}
-          <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <Building2 className="h-6 w-6 text-primary" />
-              <span className="font-headline text-xl font-bold text-black">
+          <div className='col-span-2 md:col-span-1'>
+            <div className='flex items-center gap-2 mb-4'>
+              <Building2 className='h-6 w-6 text-primary' />
+              <span className='font-headline text-xl font-bold text-black'>
                 RentFAX
               </span>
             </div>
-            <p className="text-sm text-gray-600">
+            <p className='text-sm text-gray-600'>
               Smarter Risk. Safer Rentals.
             </p>
           </div>
 
           {/* Links */}
           <div>
-            <h3 className="font-semibold mb-3 text-black">Product</h3>
-            <ul className="space-y-2">
+            <h3 className='font-semibold mb-3 text-black'>Product</h3>
+            <ul className='space-y-2'>
               {footerLinks.product.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-sm text-gray-600 hover:text-black"
+                    className='text-sm text-gray-600 hover:text-black'
                   >
                     {link.name}
                   </Link>
@@ -64,13 +63,13 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="font-semibold mb-3 text-black">Company</h3>
-            <ul className="space-y-2">
+            <h3 className='font-semibold mb-3 text-black'>Company</h3>
+            <ul className='space-y-2'>
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-sm text-gray-600 hover:text-black"
+                    className='text-sm text-gray-600 hover:text-black'
                   >
                     {link.name}
                   </Link>
@@ -79,13 +78,13 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="font-semibold mb-3 text-black">Resources</h3>
-            <ul className="space-y-2">
-              {footerLinks.resources.map((link) => (
+            <h3 className='font-semibold mb-3 text-black'>Partners</h3>
+            <ul className='space-y-2'>
+              {footerLinks.partners.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-sm text-gray-600 hover:text-black"
+                    className='text-sm text-gray-600 hover:text-black'
                   >
                     {link.name}
                   </Link>
@@ -94,13 +93,13 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="font-semibold mb-3 text-black">Legal</h3>
-            <ul className="space-y-2">
+            <h3 className='font-semibold mb-3 text-black'>Legal</h3>
+            <ul className='space-y-2'>
               {footerLinks.legal.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-sm text-gray-600 hover:text-black"
+                    className='text-sm text-gray-600 hover:text-black'
                   >
                     {link.name}
                   </Link>
@@ -111,8 +110,8 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-8 pt-6 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-gray-600">
+        <div className='mt-8 pt-6 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4'>
+          <p className='text-sm text-gray-600'>
             &copy; {new Date().getFullYear()} RentFAX, Inc. All rights reserved.
           </p>
           <ChatNowButton />

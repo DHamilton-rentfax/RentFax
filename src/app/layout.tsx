@@ -1,13 +1,12 @@
 import "./globals.css";
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Toaster } from "@/components/ui/toaster";
+import { AuthProvider } from "@/hooks/use-auth";
+import { ModalProvider } from "@/context/ModalContext";
 
-const inter = Inter({ subsets: ["latin"] });
-
-export const metadata: Metadata = {
-  title: "RentFAX",
+export const metadata = {
+  title: "RentFAX — Verify Renters Instantly",
   description:
-    "AI-powered renter verification and risk intelligence for rental companies and individuals worldwide.",
+    "RentFAX helps property managers and landlords verify renter reliability, detect fraud, and manage disputes with AI-powered insights.",
 };
 
 export default function RootLayout({
@@ -16,15 +15,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <head>
-        <meta
-          name="x-deployment-commit-sha"
-          content={process.env.NEXT_PUBLIC_GIT_COMMIT_SHA}
-        />
-      </head>
-      <body className={`${inter.className} bg-gray-50 text-slate-900`}>
-        {children}
+    <html lang="en" suppressHydrationWarning>
+      <body className="min-h-screen bg-background text-foreground antialiased">
+          <AuthProvider>
+            <ModalProvider>
+              {children}
+              <Toaster />
+            </ModalProvider>
+          </AuthProvider>
       </body>
     </html>
   );
