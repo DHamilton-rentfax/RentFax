@@ -1,0 +1,71 @@
+name: RentFAX CI + Playwright QA + Firebase Deploy
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: "0 3 * * *" # Run nightly at 3 AM UTC
+
+jobs:
+  build_test_deploy:
+    name: Build, QA, and Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      # 🧱 1. Checkout repo
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ⚙️ 2. Setup Node.js (v20)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      # 📦 3. Install project dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # 🏗️ 4. Build the Next.js app
+      - name: Build project
+        run: npm run build
+
+      # 🧩 5. Install Playwright dependencies (browser libs)
+      - name: Install Playwright system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libglib2.0-0 libnss3 libnspr4 libx11-6 libxcomposite1 libxdamage1 \
+            libxext6 libxfixes3 libxrandr2 libgbm1 libatk1.0-0 libatk-bridge2.0-0 \
+            libcups2 libdrm2 libexpat1 libxkbcommon0 libatspi2.0-0 libgtk-3-0 \
+            libasound2 libpango-1.0-0 libpangoft2-1.0-0 libcairo2
+
+      # 🧠 6. Install Playwright browsers
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      # 🧪 7. Run Playwright tests
+      - name: Run Playwright QA tests
+        run: npx playwright test --reporter=list
+
+      # 📤 8. Upload test report (for debugging if failed)
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+
+      # 🚀 9. Deploy to Firebase Hosting (only if tests passed)
+      - name: Deploy to Firebase Hosting
+        if: success()
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_RENTFAX }}'
+          projectId: rentfax-revamp
+          channelId: live

@@ -1,0 +1,45 @@
+# Node modules
+node_modules/
+
+# Build output
+.next/
+out/
+dist/
+build/
+
+# Firebase
+.firebase/
+functions/lib/
+functions/node_modules/
+
+# Logs and debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+
+# Test output
+coverage/
+playwright-report/
+test-results/
+
+# IDE settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Turbo / monorepo caches
+.turbo/
+.cache/
+
+# Misc
+.DS_Store
+Thumbs.db

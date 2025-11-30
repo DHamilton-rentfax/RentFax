@@ -1,0 +1,39 @@
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // ✅ Fix for Firebase Admin, OpenAI, and other Node-based modules
+  webpack: (config) => {
+    // Alias and fallback for "node:" built-in imports
+    config.resolve.alias = {
+      ...(config.resolve.alias || {}),
+      process: "process/browser",
+      "node:process": "process/browser",
+      "node:util": "util",
+      "node:path": "path-browserify",
+      "node:fs": false,
+      "node:os": false,
+    };
+
+    config.resolve.fallback = {
+      ...(config.resolve.fallback || {}),
+      process: require.resolve("process/browser"),
+      util: require.resolve("util/"),
+      path: require.resolve("path-browserify"),
+      fs: false,
+      os: false,
+    };
+
+    return config;
+  },
+
+  // ✅ Ensures smooth ESM compatibility for Firebase and OpenAI SDKs
+  experimental: {
+    esmExternals: "loose",
+  },
+
+  reactStrictMode: true,
+
+  // ✅ Optional: Disable Next telemetry if you want to keep builds clean
+  telemetry: false,
+};
+
+module.exports = nextConfig;

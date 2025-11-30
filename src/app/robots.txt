@@ -1,0 +1,14 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /api/
+Disallow: /checkout/
+Disallow: /dashboard/
+Disallow: /invite/
+Disallow: /login
+Disallow: /logout
+Disallow: /reset-password
+Disallow: /signup
+Disallow: /unauthorized
+Disallow: /verify
+
+Sitemap: https://rentfax.io/sitemap.xml

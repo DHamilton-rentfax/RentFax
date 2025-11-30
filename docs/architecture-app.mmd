@@ -1,0 +1,157 @@
+flowchart TD
+
+  subgraph app[app/ (Next.js)]
+    subgraph auth[(auth)]
+      LAYOUT_AUTH[layout.tsx]
+      LOGIN[login/page.tsx]
+      SIGNUP[signup/page.tsx]
+      VERIFY[(verify/[hash]/page.tsx)]
+    end
+
+    subgraph ai[(ai)]
+      AI_ANALYZE[(analyze/route.ts)]
+      AI_DETECT[(detect-fraud/route.ts)]
+      AI_SUMMARY[(summarize/route.ts)]
+    end
+
+    subgraph customerDash[(customer-dashboard)]
+      CD_LAYOUT[layout.tsx]
+      CD_RENTER[renter/*]
+      CD_DISPUTES[disputes/new/page.tsx]
+    end
+
+    subgraph dashboard[(dashboard)]
+      subgraph adminDash[admin]
+        ADMIN_LAYOUT[layout.tsx]
+        ADMIN_ANALYTICS[analytics/page.tsx]
+        ADMIN_BILLING[billing/page.tsx]
+        ADMIN_FRAUD[fraud/page.tsx]
+        ADMIN_INCIDENTS[incidents/page.tsx]
+        ADMIN_REPORTS[reports/page.tsx]
+      end
+
+      subgraph landlordDash[landlord]
+        LL_LAYOUT[layout.tsx]
+        LL_PAGE[page.tsx]
+        LL_ACTIVITY[activity/page.tsx]
+        LL_SEARCH[search/page.tsx]
+        LL_SUB[subscription/page.tsx]
+        LL_INCIDENTS[incidents/new/page.tsx]
+      end
+
+      subgraph companyDash[company]
+        CO_DASH[dashboard/page.tsx]
+      end
+
+      subgraph agencyDash[agency]
+        AG_LAYOUT[layout.tsx]
+        AG_DASH[dashboard/page.tsx]
+      end
+    end
+
+    subgraph marketing[(marketing)]
+      MK_ROOT[page.tsx]
+      MK_BLOG[blog/*]
+      MK_PRICING[pricing/page.tsx]
+      MK_ENTERPRISE[enterprise/*]
+      MK_LANDLORDS[landlords/page.tsx]
+      MK_LEGAL[legal/*]
+    end
+
+    subgraph renterApp[(renter)]
+      R_LAYOUT[layout.tsx]
+      R_DASH[dashboard/page.tsx]
+      R_INCIDENTS[incidents/page.tsx]
+      R_REPORT[report/page.tsx]
+      R_REPUTATION[reputation/page.tsx]
+      R_SETTINGS[settings/page.tsx]
+    end
+
+    SEARCH_RESULTS[search/renter/results/[sessionId]/page.tsx]
+    REPORT_SHARE[report/share/[shareId]/page.tsx]
+  end
+
+  subgraph api[app/api (routes)]
+    API_CHECKOUT[checkout/*/route.ts]
+    API_CHECKOUT_SEARCH[checkout/search/route.ts]
+    API_CHECKOUT_IDENTITY[checkout/identity/route.ts]
+    API_CHECKOUT_FULL[checkout/full-report/route.ts]
+    API_CHECKOUT_REPORT[checkout/report/route.ts]
+    API_CREATE_SESSION[create-checkout-session.ts]
+    API_WEBHOOK[checkout.session.completed.ts]
+  end
+
+  subgraph actions[src/actions]
+    ACT_INCIDENTS[incidents/*]
+    ACT_RENTER[get-renter-dashboard.ts]
+    ACT_REPORT[getFullReport.ts]
+    ACT_BILLING[get-billing-status.ts]
+    ACT_REVENUE[get-billing-forecast.ts]
+    ACT_FRAUD[get-fraud-analytics.ts]
+  end
+
+  subgraph lib[src/lib]
+    subgraph libBilling[billing]
+      ENFORCE[enforce.ts]
+      CHECKS[checks.ts]
+      UPDATE_PLAN[updateUserPlan.ts]
+      CREATE_INVOICE[createInvoice.ts]
+      BILL_LOG[log.ts]
+    end
+
+    subgraph libFraudEngine[fraudEngine]
+      FE_CORE[fraudEngine.ts]
+      FE_IDENT[identityResolver.ts]
+      FE_RISK[riskEngine.ts]
+      FE_SCORE_ID[scoreIdentity.ts]
+      FE_SCORE_FR[scoreFraud.ts]
+      FE_SCORE_PR[scorePublicRecords.ts]
+      FE_SYNC_INC[syncIncident.ts]
+      FE_SYNC_TL[syncTimeline.ts]
+    end
+
+    subgraph libPublicData[public-data]
+      PD_GET[getPublicData.ts]
+      PD_MATCH[matchScore.ts]
+      PD_NORM[normalizePublicData.ts]
+      PD_ADDR[addressMatch.ts]
+      PD_PROVIDERS[providers/*]
+    end
+
+    subgraph libPublicRecords[public-records]
+      PR_NORM[normalize.ts]
+      PR_PDL[pdl.ts]
+    end
+
+    subgraph libRisk[risk]
+      RS_INDEX[index.ts]
+      RS_FRAUD[scoreFraud.ts]
+      RS_ID_MATCH[scoreIdentityMatch.ts]
+      RS_PR_MATCH[scorePublicRecords.ts]
+    end
+
+    subgraph libSearch[search]
+      SRCH_NORMALIZE[normalizeResult.ts]
+      SRCH_TYPES[types.ts]
+    end
+
+    subgraph libServerAct[server-actions]
+      SA_ADMIN[admin/global/*]
+      SA_INCIDENTS[incidents.ts]
+      SA_RENTERS[renters.ts]
+      SA_FRAUD[fraud.ts]
+    end
+  end
+
+  %% connections
+  LL_SEARCH --> API_CHECKOUT_SEARCH
+  LL_SEARCH --> ACT_RENTER
+  renterApp --> ACT_RENTER
+  renterApp --> ACT_RENTER_DISPUTES[get-renter-disputes.ts]
+
+  actions --> lib
+  api --> libBilling
+  api --> libStripe[src/lib/stripe/server.ts]
+  actions --> libFraudEngine
+  actions --> libPublicData
+  actions --> libPublicRecords

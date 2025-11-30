@@ -1,0 +1,450 @@
+
+[
+  {
+    "reportId":"rpt_001",
+    "name":"Marissa Cole",
+    "email":"marissa.cole@example.com",
+    "phone":"555-312-9001",
+    "dob":"1990-04-12",
+    "ssnLast4":"1245",
+    "riskScore":28,
+    "riskCategory":"low",
+    "flags":{"banned":false,"openBalance":null,"priorEviction":false,"multipleIdentities":false,"accidents":0,"fraudSignals":0},
+    "categories":{"home":{"historyCount":2,"lastRentalDate":"2024-05-12","evictions":0,"notes":["On-time payments"]},"car":{"historyCount":0},"equipment":{"historyCount":0}},
+    "history":[
+      {"rentalId":"H-1001","type":"home","company":"BlueKey Rentals","startDate":"2023-02-01","endDate":"2023-07-31","status":"closed","summary":"6-month lease, no incidents","notes":["Paid early"],"amountOwed":0},
+      {"rentalId":"H-1004","type":"home","company":"UrbanStay","startDate":"2022-03-01","endDate":"2022-10-01","status":"closed","summary":"Stayed 7 months, no issues","notes":[],"amountOwed":0}
+    ],
+    "fraudSignalsList":[],
+    "attachments":[],
+    "suggestedAction":"Allow",
+    "createdAt":"2025-10-01T12:00:00Z",
+    "demo":true
+  },
+
+  {
+    "reportId":"rpt_002",
+    "name":"Jason Myers",
+    "email":"jason.myers@example.com",
+    "phone":"555-712-4433",
+    "dob":"1985-09-02",
+    "ssnLast4":"6677",
+    "riskScore":82,
+    "riskCategory":"high",
+    "flags":{"banned":true,"openBalance":1250,"priorEviction":true,"multipleIdentities":true,"accidents":2,"fraudSignals":3},
+    "categories":{
+      "home":{"historyCount":3,"lastRentalDate":"2024-09-10","evictions":1,"notes":["Evicted 2023 for non-payment"]},
+      "car":{"historyCount":2,"accidents":2,"accidentsDetails":[{"date":"2023-11-15","severity":"major","insurer":"Allied Auto"},{"date":"2022-04-10","severity":"minor","insurer":"Local Ins"}]},
+      "equipment":{"historyCount":0}
+    },
+    "history":[
+      {"rentalId":"C-209","type":"car","company":"CityWheels","startDate":"2023-08-01","endDate":"2023-12-01","status":"closed","summary":"Damage claim filed","amountOwed":400,"notes":["Insurance paid partial"]},
+      {"rentalId":"H-704","type":"home","company":"RentRight","startDate":"2022-01-01","endDate":"2023-03-01","status":"terminated","summary":"Evicted for non-payment","amountOwed":850,"notes":["Court summons"]},
+      {"rentalId":"H-821","type":"home","company":"QuickRent","startDate":"2021-05-01","endDate":"2021-12-01","status":"closed","summary":"Left early, deposit withheld","amountOwed":0}
+    ],
+    "fraudSignalsList":["Multiple SSN last4 discrepancies","Two identities with same phone","Disputed transactions"],
+    "attachments":[{"name":"EvictionNotice.pdf","type":"eviction"},{"name":"AccidentPhotos.zip","type":"image"}],
+    "suggestedAction":"Deny",
+    "createdAt":"2025-09-21T09:40:00Z",
+    "demo":true
+  },
+
+  {
+    "reportId":"rpt_003",
+    "name":"Alejandro Rivera",
+    "email":"ale.rivera@example.com",
+    "phone":"555-903-1100",
+    "dob":"1979-11-30",
+    "ssnLast4":"3399",
+    "riskScore":55,
+    "riskCategory":"medium",
+    "flags":{"banned":false,"openBalance":320,"priorEviction":false,"multipleIdentities":false,"accidents":1,"fraudSignals":1},
+    "categories":{"car":{"historyCount":3,"accidents":1,"accidentsDetails":[{"date":"2024-02-02","severity":"minor","insurer":"SafeDrive"}]},"home":{"historyCount":2},"equipment":{"historyCount":1,"lastDamageDate":"2023-10-15","damageReports":1}},
+    "history":[
+      {"rentalId":"C-301","type":"car","company":"Rent-a-Ride","startDate":"2023-10-01","endDate":"2024-03-01","status":"closed","summary":"Minor accident, paid deductible","amountOwed":0},
+      {"rentalId":"E-700","type":"equipment","company":"ToolShare","startDate":"2023-06-01","endDate":"2023-06-15","status":"closed","summary":"Returned with minor damage, fee charged","amountOwed":50,"notes":["Paid partially"]},
+      {"rentalId":"H-803","type":"home","company":"HavenHomes","startDate":"2022-01-01","endDate":"2022-12-01","status":"closed","summary":"Good standing","amountOwed":0}
+    ],
+    "fraudSignalsList":["One disputed payment 2023"],
+    "attachments":[{"name":"DamageInvoice.pdf","type":"invoice"}],
+    "suggestedAction":"Manual Review",
+    "createdAt":"2025-05-10T07:10:00Z",
+    "demo":true
+  },
+
+  {
+    "reportId":"rpt_004",
+    "name":"Zoe Carter",
+    "email":"zoe.carter@example.com",
+    "phone":"555-210-9900",
+    "dob":"1996-02-18",
+    "ssnLast4":"7744",
+    "riskScore":14,
+    "riskCategory":"low",
+    "flags":{"banned":false,"openBalance":null,"priorEviction":false,"multipleIdentities":false,"accidents":0,"fraudSignals":0},
+    "categories":{"home":{"historyCount":2},"car":{"historyCount":0},"equipment":{"historyCount":0}},
+    "history":[
+      {"rentalId":"H-200","type":"home","company":"GreenLeaf Rentals","startDate":"2024-01-01","endDate":"2024-08-01","status":"closed","summary":"No issues","amountOwed":0},
+      {"rentalId":"H-101","type":"home","company":"CozyStay","startDate":"2022-02-01","endDate":"2022-06-01","status":"closed","summary":"Short-term stay","amountOwed":0}
+    ],
+    "fraudSignalsList":[],
+    "attachments":[],
+    "suggestedAction":"Allow",
+    "createdAt":"2025-09-01T10:15:00Z",
+    "demo":true
+  },
+
+  {
+    "reportId":"rpt_005",
+    "name":"Devon Miller",
+    "email":"devon.miller@example.com",
+    "phone":"555-442-7701",
+    "dob":"1988-07-22",
+    "ssnLast4":"2211",
+    "riskScore":67,
+    "riskCategory":"high",
+    "flags":{"banned":false,"openBalance":600,"priorEviction":false,"multipleIdentities":true,"accidents":0,"fraudSignals":2},
+    "categories":{"home":{"historyCount":3,"evictions":0},"car":{"historyCount":0},"equipment":{"historyCount":0}},
+    "history":[
+      {"rentalId":"H-601","type":"home","company":"Sunset Rentals","startDate":"2021-04-01","endDate":"2022-04-01","status":"closed","summary":"Late payments throughout term","amountOwed":0,"notes":["Multiple late payments"]},
+      {"rentalId":"H-602","type":"home","company":"Sunset Rentals","startDate":"2022-05-01","endDate":"2023-05-01","status":"closed","summary":"Deposit partially withheld","amountOwed":600}
+    ],
+    "fraudSignalsList":["Phone number matches banned account","SSN mismatch across records"],
+    "attachments":[{"name":"RentLedger.csv","type":"document"}],
+    "suggestedAction":"Manual Review",
+    "createdAt":"2025-07-05T15:00:00Z",
+    "demo":true
+  },
+
+  {
+    "reportId":"rpt_006",
+    "name":"Priya Singh",
+    "email":"priya.singh@example.com",
+    "phone":"555-903-4451",
+    "dob":"1992-12-11",
+    "ssnLast4":"9900",
+    "riskScore":39,
+    "riskCategory":"medium",
+    "flags":{"banned":false,"openBalance":0,"priorEviction":false,"multipleIdentities":false,"accidents":0,"fraudSignals":0},
+    "categories":{"car":{"historyCount":2},"home":{"historyCount":2}},
+    "history":[
+      {"rentalId":"C-101","type":"car","company":"CityDrive","startDate":"2023-03-01","endDate":"2023-06-01","status":"closed","summary":"Short-term rental, no incidents","amountOwed":0},
+      {"rentalId":"H-111","type":"home","company":"UrbanNest","startDate":"2022-02-01","endDate":"2022-12-01","status":"closed","summary":"One late payment","amountOwed":0}
+    ],
+    "fraudSignalsList":[],
+    "attachments":[],
+    "suggestedAction":"Allow",
+    "createdAt":"2025-10-02T09:00:00Z",
+    "demo":true
+  },
+
+  {
+    "reportId":"rpt_007",
+    "name":"Marcus Lee",
+    "email":"marcus.lee@example.com",
+    "phone":"555-611-0098",
+    "dob":"1980-06-04",
+    "ssnLast4":"5544",
+    "riskScore":73,
+    "riskCategory":"high",
+    "flags":{"banned":true,"openBalance":2400,"priorEviction":true,"multipleIdentities":false,"accidents":0,"fraudSignals":4},
+    "categories":{"car":{"historyCount":0},"home":{"historyCount":4,"evictions":1},"equipment":{"historyCount":2,"damageReports":2}},
+    "history":[
+      {"rentalId":"H-900","type":"home","company":"LandlordCo","startDate":"2020-01-01","endDate":"2021-06-01","status":"terminated","summary":"Eviction filed","amountOwed":1400},
+      {"rentalId":"E-201","type":"equipment","company":"LiftRentals","startDate":"2022-02-01","endDate":"2022-02-07","status":"closed","summary":"Returned with major damage","amountOwed":1000}
+    ],
+    "fraudSignalsList":["Multiple charge disputes","Linked to banned profile"],
+    "attachments":[{"name":"CourtRecord.pdf","type":"eviction"}],
+    "suggestedAction":"Deny",
+    "createdAt":"2025-04-02T08:30:00Z",
+    "demo":true
+  },
+
+  {
+    "reportId":"rpt_008",
+    "name":"Hannah O'Neil",
+    "email":"hannah.oneil@example.com",
+    "phone":"555-777-3322",
+    "dob":"1994-10-10",
+    "ssnLast4":"8822",
+    "riskScore":22,
+    "riskCategory":"low",
+    "flags":{"banned":false,"openBalance":null,"priorEviction":false,"multipleIdentities":false,"accidents":0,"fraudSignals":0},
+    "categories":{"home":{"historyCount":2},"car":{"historyCount":1},"equipment":{"historyCount":0}},
+    "history":[
+      {"rentalId":"H-500","type":"home","company":"HarborLet","startDate":"2023-05-01","endDate":"2023-11-01","status":"closed","summary":"No issues","amountOwed":0},
+      {"rentalId":"C-410","type":"car","company":"EZ-Rent","startDate":"2024-06-01","endDate":"2024-06-10","status":"closed","summary":"Short trip rental","amountOwed":0}
+    ],
+    "fraudSignalsList":[],
+    "attachments":[],
+    "suggestedAction":"Allow",
+    "createdAt":"2025-06-12T12:12:00Z",
+    "demo":true
+  },
+
+  {
+    "reportId":"rpt_009",
+    "name":"Omar Khalid",
+    "email":"omar.k@example.com",
+    "phone":"555-223-4411",
+    "dob":"1975-03-22",
+    "ssnLast4":"3322",
+    "riskScore":49,
+    "riskCategory":"medium",
+    "flags":{"banned":false,"openBalance":120,"priorEviction":false,"multipleIdentities":false,"accidents":1,"fraudSignals":1},
+    "categories":{"car":{"historyCount":4,"accidents":1},"home":{"historyCount":2}},
+    "history":[
+      {"rentalId":"C-701","type":"car","company":"RentFast","startDate":"2023-01-01","endDate":"2023-06-01","status":"closed","summary":"Minor accident, deductible paid","amountOwed":0},
+      {"rentalId":"H-404","type":"home","company":"SafeHomes","startDate":"2022-03-01","endDate":"2022-05-01","status":"closed","summary":"Short term, no issues"}
+    ],
+    "fraudSignalsList":["One bounce check reported 2022"],
+    "attachments":[{"name":"PoliceReport_2023-01.pdf","type":"police"}],
+    "suggestedAction":"Manual Review",
+    "createdAt":"2025-02-05T11:00:00Z",
+    "demo":true
+  },
+
+  {
+    "reportId":"rpt_010",
+    "name":"Emily Grant",
+    "email":"emily.g@example.com",
+    "phone":"555-409-9002",
+    "dob":"1991-08-08",
+    "ssnLast4":"1188",
+    "riskScore":18,
+    "riskCategory":"low",
+    "flags":{"banned":false,"openBalance":null,"priorEviction":false,"multipleIdentities":false,"accidents":0,"fraudSignals":0},
+    "categories":{"home":{"historyCount":2},"equipment":{"historyCount":1}},
+    "history":[
+      {"rentalId":"E-1001","type":"equipment","company":"GearPro","startDate":"2024-07-01","endDate":"2024-07-14","status":"closed","summary":"Returned on time","amountOwed":0},
+      {"rentalId":"H-321","type":"home","company":"HomeFlex","startDate":"2022-01-01","endDate":"2022-08-01","status":"closed","summary":"Good standing"}
+    ],
+    "fraudSignalsList":[],
+    "attachments":[],
+    "suggestedAction":"Allow",
+    "createdAt":"2025-03-01T09:30:00Z",
+    "demo":true
+  },
+
+  {
+    "reportId":"rpt_011",
+    "name":"Carlos Mendes",
+    "email":"carlos.mendes@example.com",
+    "phone":"555-202-7000",
+    "dob":"1983-01-19",
+    "ssnLast4":"9933",
+    "riskScore":59,
+    "riskCategory":"medium",
+    "flags":{"banned":false,"openBalance":450,"priorEviction":false,"multipleIdentities":false,"accidents":0,"fraudSignals":2},
+    "categories":{"home":{"historyCount":2},"car":{"historyCount":1},"equipment":{"historyCount":1}},
+    "history":[
+      {"rentalId":"H-720","type":"home","company":"MetroHomes","startDate":"2021-04-01","endDate":"2022-05-01","status":"closed","summary":"Some late payments","amountOwed":0},
+      {"rentalId":"E-351","type":"equipment","company":"BuildRent","startDate":"2023-09-01","endDate":"2023-09-15","status":"closed","summary":"Missing accessory fee charged","amountOwed":50},
+      {"rentalId":"C-502","type":"car","company":"RoadRent","startDate":"2024-11-01","endDate":"2024-11-04","status":"closed","summary":"Rental with no incidents","amountOwed":0}
+    ],
+    "fraudSignalsList":["Two charge disputes 2024","Phone used with multiple accounts"],
+    "attachments":[{"name":"Invoice_MissingPart.pdf","type":"invoice"}],
+    "suggestedAction":"Manual Review",
+    "createdAt":"2025-06-05T08:25:00Z",
+    "demo":true
+  },
+
+  {
+    "reportId":"rpt_012",
+    "name":"Naomi Brooks",
+    "email":"naomi.brooks@example.com",
+    "phone":"555-909-4431",
+    "dob":"1999-05-06",
+    "ssnLast4":"7766",
+    "riskScore":33,
+    "riskCategory":"low",
+    "flags":{"banned":false,"openBalance":null,"priorEviction":false,"multipleIdentities":false,"accidents":0,"fraudSignals":0},
+    "categories":{"home":{"historyCount":2},"car":{"historyCount":1}},
+    "history":[
+      {"rentalId":"H-221","type":"home","company":"CityRent","startDate":"2023-02-01","endDate":"2023-12-01","status":"closed","summary":"OK record"},
+      {"rentalId":"C-320","type":"car","company":"DriveNow","startDate":"2024-04-01","endDate":"2024-04-05","status":"closed","summary":"Short trip"}
+    ],
+    "fraudSignalsList":[],
+    "attachments":[],
+    "suggestedAction":"Allow",
+    "createdAt":"2025-01-12T10:00:00Z",
+    "demo":true
+  },
+
+  {
+    "reportId":"rpt_013",
+    "name":"Igor Petrov",
+    "email":"igor.petrov@example.com",
+    "phone":"555-121-9090",
+    "dob":"1970-12-12",
+    "ssnLast4":"5543",
+    "riskScore":88,
+    "riskCategory":"high",
+    "flags":{"banned":true,"openBalance":4800,"priorEviction":true,"multipleIdentities":true,"accidents":3,"fraudSignals":6},
+    "categories":{"car":{"historyCount":4,"accidents":3},"home":{"historyCount":4,"evictions":1},"equipment":{"historyCount":2,"damageReports":3}},
+    "history":[
+      {"rentalId":"C-999","type":"car","company":"SpeedRent","startDate":"2024-06-01","endDate":"2024-10-01","status":"closed","summary":"Multiple accidents, claims outstanding","amountOwed":2000},
+      {"rentalId":"H-990","type":"home","company":"BudgetHomes","startDate":"2019-01-01","endDate":"2020-01-01","status":"terminated","summary":"Evicted for non-payment","amountOwed":2800}
+    ],
+    "fraudSignalsList":["Stolen identity reports","Multiple chargebacks","Known to partner blacklist"],
+    "attachments":[{"name":"BlacklistedNote.txt","type":"note"}],
+    "suggestedAction":"Deny",
+    "createdAt":"2025-08-12T14:50:00Z",
+    "demo":true
+  },
+
+  {
+    "reportId":"rpt_014",
+    "name":"Grace Turner",
+    "email":"grace.turner@example.com",
+    "phone":"555-333-2121",
+    "dob":"1986-11-11",
+    "ssnLast4":"6655",
+    "riskScore":26,
+    "riskCategory":"low",
+    "flags":{"banned":false,"openBalance":null,"priorEviction":false,"multipleIdentities":false,"accidents":0,"fraudSignals":0},
+    "categories":{"home":{"historyCount":2},"equipment":{"historyCount":1}},
+    "history":[
+      {"rentalId":"H-450","type":"home","company":"NestNow","startDate":"2024-02-01","endDate":"2024-08-01","status":"closed","summary":"All clear"},
+      {"rentalId":"E-145","type":"equipment","company":"ToolRent","startDate":"2023-12-01","endDate":"2023-12-07","status":"closed","summary":"Returned clean"}
+    ],
+    "fraudSignalsList":[],
+    "attachments":[],
+    "suggestedAction":"Allow",
+    "createdAt":"2025-03-14T13:10:00Z",
+    "demo":true
+  },
+
+  {
+    "reportId":"rpt_015",
+    "name":"Tariq Hassan",
+    "email":"tariq.hassan@example.com",
+    "phone":"555-718-2233",
+    "dob":"1993-09-09",
+    "ssnLast4":"4411",
+    "riskScore":48,
+    "riskCategory":"medium",
+    "flags":{"banned":false,"openBalance":75,"priorEviction":false,"multipleIdentities":false,"accidents":0,"fraudSignals":1},
+    "categories":{"car":{"historyCount":2},"home":{"historyCount":2}},
+    "history":[
+      {"rentalId":"C-210","type":"car","company":"MetroCars","startDate":"2024-01-10","endDate":"2024-01-15","status":"closed","summary":"No issues"},
+      {"rentalId":"H-678","type":"home","company":"RentFlow","startDate":"2022-06-01","endDate":"2023-05-01","status":"closed","summary":"Payment dispute 2023","amountOwed":75}
+    ],
+    "fraudSignalsList":["One account mismatch"],
+    "attachments":[],
+    "suggestedAction":"Manual Review",
+    "createdAt":"2025-06-18T16:00:00Z",
+    "demo":true
+  },
+
+  {
+    "reportId":"rpt_016",
+    "name":"Sofia Alvarez",
+    "email":"sofia.alvarez@example.com",
+    "phone":"555-908-1107",
+    "dob":"1997-07-17",
+    "ssnLast4":"2299",
+    "riskScore":32,
+    "riskCategory":"low",
+    "flags":{"banned":false,"openBalance":0,"priorEviction":false,"multipleIdentities":false,"accidents":0,"fraudSignals":0},
+    "categories":{"home":{"historyCount":3},"car":{"historyCount":1}},
+    "history":[
+      {"rentalId":"H-1111","type":"home","company":"CityNest","startDate":"2023-01-01","endDate":"2023-12-01","status":"closed","summary":"Good tenant"},
+      {"rentalId":"H-1212","type":"home","company":"CityNest","startDate":"2024-02-01","endDate":"2024-06-01","status":"closed","summary":"Good standing"},
+      {"rentalId":"C-111","type":"car","company":"FastRent","startDate":"2024-05-01","endDate":"2024-05-10","status":"closed","summary":"Short trip, no incidents"}
+    ],
+    "fraudSignalsList":[],
+    "attachments":[],
+    "suggestedAction":"Allow",
+    "createdAt":"2025-07-07T07:07:00Z",
+    "demo":true
+  },
+
+  {
+    "reportId":"rpt_017",
+    "name":"Ethan Brooks",
+    "email":"ethan.brooks@example.com",
+    "phone":"555-202-9199",
+    "dob":"1989-10-10",
+    "ssnLast4":"3344",
+    "riskScore":61,
+    "riskCategory":"medium",
+    "flags":{"banned":false,"openBalance":1500,"priorEviction":true,"multipleIdentities":false,"accidents":1,"fraudSignals":3},
+    "categories":{"home":{"historyCount":3,"evictions":1},"car":{"historyCount":2,"accidents":1}},
+    "history":[
+      {"rentalId":"H-300","type":"home","company":"RentWise","startDate":"2020-02-01","endDate":"2021-12-01","status":"terminated","summary":"Collection and eviction","amountOwed":1500},
+      {"rentalId":"C-601","type":"car","company":"CityDrive","startDate":"2023-01-01","endDate":"2023-03-01","status":"closed","summary":"Minor accident"}
+    ],
+    "fraudSignalsList":["Chargeback cluster","Phone reused in fraud cases"],
+    "attachments":[{"name":"CollectionNotice.pdf","type":"document"}],
+    "suggestedAction":"Deny",
+    "createdAt":"2025-08-01T10:00:00Z",
+    "demo":true
+  },
+
+  {
+    "reportId":"rpt_018",
+    "name":"Lina Park",
+    "email":"lina.park@example.com",
+    "phone":"555-555-0011",
+    "dob":"1995-06-06",
+    "ssnLast4":"6678",
+    "riskScore":29,
+    "riskCategory":"low",
+    "flags":{"banned":false,"openBalance":0,"priorEviction":false,"multipleIdentities":false,"accidents":0,"fraudSignals":0},
+    "categories":{"home":{"historyCount":2},"equipment":{"historyCount":2,"damageReports":0},"car":{"historyCount":0}},
+    "history":[
+      {"rentalId":"E-401","type":"equipment","company":"ProTools","startDate":"2023-04-01","endDate":"2023-04-10","status":"closed","summary":"No issues"},
+      {"rentalId":"H-111","type":"home","company":"HomePro","startDate":"2022-03-01","endDate":"2022-11-01","status":"closed","summary":"OK"}
+    ],
+    "fraudSignalsList":[],
+    "attachments":[],
+    "suggestedAction":"Allow",
+    "createdAt":"2025-08-21T12:00:00Z",
+    "demo":true
+  },
+
+  {
+    "reportId":"rpt_019",
+    "name":"Noah Williams",
+    "email":"noah.w@example.com",
+    "phone":"555-800-4242",
+    "dob":"1982-02-02",
+    "ssnLast4":"2244",
+    "riskScore":71,
+    "riskCategory":"high",
+    "flags":{"banned":false,"openBalance":3200,"priorEviction":true,"multipleIdentities":true,"accidents":2,"fraudSignals":5},
+    "categories":{"home":{"historyCount":2,"evictions":1},"car":{"historyCount":3,"accidents":2},"equipment":{"historyCount":1,"damageReports":1}},
+    "history":[
+      {"rentalId":"C-330","type":"car","company":"RentDrive","startDate":"2022-05-01","endDate":"2022-09-01","status":"closed","summary":"Multiple damages, cases open","amountOwed":1500},
+      {"rentalId":"H-611","type":"home","company":"CityLiving","startDate":"2019-05-01","endDate":"2020-03-01","status":"terminated","summary":"Evicted for unpaid rent","amountOwed":1700}
+    ],
+    "fraudSignalsList":["High cluster of disputes","Linked to stolen identity"],
+    "attachments":[{"name":"AccidentClaims.zip","type":"archive"}],
+    "suggestedAction":"Deny",
+    "createdAt":"2025-07-30T09:10:00Z",
+    "demo":true
+  },
+
+  {
+    "reportId":"rpt_020",
+    "name":"Olivia King",
+    "email":"olivia.king@example.com",
+    "phone":"555-999-1001",
+    "dob":"1998-03-03",
+    "ssnLast4":"9911",
+    "riskScore":41,
+    "riskCategory":"medium",
+    "flags":{"banned":false,"openBalance":45,"priorEviction":false,"multipleIdentities":false,"accidents":0,"fraudSignals":1},
+    "categories":{"home":{"historyCount":2},"car":{"historyCount":0},"equipment":{"historyCount":0}},
+    "history":[
+      {"rentalId":"H-222","type":"home","company":"GoodHomes","startDate":"2023-03-01","endDate":"2023-09-01","status":"closed","summary":"One small balance outstanding","amountOwed":45},
+      {"rentalId":"H-112","type":"home","company":"GoodHomes","startDate":"2022-02-01","endDate":"2022-07-01","status":"closed","summary":"Good"}
+    ],
+    "fraudSignalsList":["One payment dispute in 2024"],
+    "attachments":[],
+    "suggestedAction":"Manual Review",
+    "createdAt":"2025-05-22T12:45:00Z",
+    "demo":true
+  }
+]

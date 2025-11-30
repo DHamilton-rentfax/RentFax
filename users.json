@@ -1,0 +1,10 @@
+{
+  "users": [
+    {
+      "localId": "info@rentfax.io",
+      "email": "info@rentfax.io",
+      "passwordHash": "password123",
+      "emailVerified": true
+    }
+  ]
+}

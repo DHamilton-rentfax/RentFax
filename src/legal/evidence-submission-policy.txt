@@ -1,0 +1,13 @@
+Evidence Submission Policy for RentFAX
+
+Last Updated: [Date]
+
+This Policy governs the submission of all evidence, documentation, and other materials (collectively, "Evidence") to the RentFAX platform. By uploading or submitting any Evidence, you agree to comply with this Policy.
+
+1. Prohibited Content: You are strictly prohibited from uploading any Evidence that contains Protected Health Information (PHI) as defined by the Health Insurance Portability and Accountability Act (HIPAA), or any other medical, health, or insurance-related information. This includes but is not limited to medical records, doctor's notes, lab results, prescriptions, and insurance cards.
+
+2. Personally Identifiable Information (PII): While some PII is necessary for the functioning of the RentFAX platform, you agree not to submit excessive or unnecessary PII. You also agree to redact sensitive information where possible.
+
+3. Verification: RentFAX uses AI-powered tools to scan all submitted Evidence for prohibited content. Any Evidence found to be in violation of this Policy will be automatically blocked from the platform.
+
+4. Consequences of Violation: Violation of this Policy may result in the immediate suspension or termination of your account, at RentFAX's sole discretion. A record of all violations will be maintained.

@@ -1,0 +1,10 @@
+{
+  "blog": {
+    "riskScore": {
+      "src": "https://picsum.photos/seed/blog1/1200/630",
+      "width": 1200,
+      "height": 630,
+      "hint": "data analytics"
+    }
+  }
+}

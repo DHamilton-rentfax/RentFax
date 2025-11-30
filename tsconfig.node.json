@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "es2020",
+    "moduleResolution": "node",
+    "noEmit": false,
+    "outDir": "dist"
+  },
+  "include": [
+    "scripts/mockStripeEvents.ts",
+    "scripts/seedDemoStripeData.ts",
+    "scripts/seed-demo-reports.ts",
+    "src/firebase/client.ts",
+    "src/firebase/server.ts",
+    "src/lib/firebase-admin.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts"
+  ]
+}

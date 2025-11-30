@@ -1,0 +1,62 @@
+// src/app/(public-website)/layout.tsx
+
+// Correctly importing the provider for client components
+import { NextIntlClientProvider } from "next-intl";
+// Correctly importing server-side functions to fetch locale data
+import { getLocale, getMessages } from "next-intl/server";
+
+// ... other imports
+import { Header } from "@/components/layout/header";
+import Footer from "@/components/layout/footer";
+
+// This is a Server Component, which is the right place to fetch data
+export default async function PublicLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  // 1. Fetch the user's locale and the corresponding messages on the server.
+  const locale = await getLocale();
+  const messages = await getMessages();
+
+  return (
+    // 2. Set the HTML lang attribute for accessibility and SEO.
+    <html lang={locale}>
+      <body>
+        {/*
+          3. Wrap the client-side part of your app in the provider.
+             This makes the translations available to all client components
+             rendered within this layout.
+        */}
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <AuthProvider>
+            <ModalProvider>
+              <Header />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </ModalProvider>
+            <Toaster />
+          </AuthProvider>
+        </NextIntlClientProvider>
+      </body>
+    </html>
+  );
+}
+# ✅ Use Microsoft’s official Playwright image (includes all dependencies)
+FROM mcr.microsoft.com/playwright:v1.45.0-focal
+
+# Set working directory inside container
+WORKDIR /app
+
+# Copy only the necessary files for faster build caching
+COPY package*.json ./
+RUN npm ci
+
+# Copy the rest of the project
+COPY . .
+
+# Run Playwright test installation (ensures all browsers + deps are available)
+RUN npx playwright install --with-deps
+
+# Default command to run tests with full report output
+CMD ["npx", "playwright", "test", "--reporter=list"]

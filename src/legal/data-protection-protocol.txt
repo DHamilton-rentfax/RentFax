@@ -1,0 +1,15 @@
+Data Protection Protocol for RentFAX
+
+Last Updated: [Date]
+
+This protocol outlines the measures RentFAX takes to protect user data and ensure the security and privacy of our platform.
+
+1. Data Encryption: All data, both in transit and at rest, is encrypted using industry-standard encryption protocols.
+
+2. Access Control: Access to user data is strictly limited to authorized personnel and is logged and audited. Multi-factor authentication is required for all internal access.
+
+3. Data Minimization: We only collect and store data that is essential for the provision of our services. We do not store any prohibited content, such as health information.
+
+4. Regular Audits: We conduct regular security audits to identify and address potential vulnerabilities.
+
+5. Incident Response: We have a comprehensive incident response plan in place to address any potential data breaches in a timely and effective manner.
