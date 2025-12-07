@@ -1,21 +1,5 @@
-import axios from "axios";
+import { loadStripe } from "@stripe/stripe-js";
 
-export async function purchaseIdentityCheck() {
-  try {
-    const res = await axios.post("/api/stripe/identity-check");
-    return res.data;
-  } catch (e) {
-    console.error(e);
-    return null;
-  }
-}
-
-export async function purchaseFullReport() {
-  try {
-    const res = await axios.post("/api/stripe/full-report");
-    return res.data;
-  } catch (e) {
-    console.error(e);
-    return null;
-  }
-}
+export const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
+);

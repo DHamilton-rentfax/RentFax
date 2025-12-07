@@ -1,0 +1,8 @@
+export const INDUSTRIES = [
+  "HOUSING",
+  "CAR_RENTAL",
+  "EQUIPMENT",
+  "STORAGE",
+  "HOSPITALITY",
+  "COWORKING"
+];

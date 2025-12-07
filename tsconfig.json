@@ -24,28 +24,75 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@/actions/*": ["src/actions/*"],
-      "@/ai/*": ["src/ai/*"],
-      "@/app/*": ["src/app/*"],
-      "@/components/*": ["src/components/*"],
-      "@/config/*": ["src/config/*"],
-      "@/constants/*": ["src/constants/*"],
-      "@/contexts/*": ["src/contexts/*"],
-      "@/data/*": ["src/data/*"],
-      "@/emails/*": ["src/emails/*"],
-      "@/firebase/*": ["src/firebase/*"],
-      "@/hooks/*": ["src/hooks/*"],
-      "@/legal/*": ["src/legal/*"],
-      "@/lib/*": ["src/lib/*"],
-      "@/lib/billing/*": ["src/lib/billing/*"],
-      "@/lib/fraudEngine/*": ["src/lib/fraudEngine/*"],
-      "@/lib/public-data/*": ["src/lib/public-data/*"],
-      "@/lib/public-records/*": ["src/lib/public-records/*"],
-      "@/lib/risk/*": ["src/lib/risk/*"],
-      "@/lib/search/*": ["src/lib/search/*"],
-      "@/pdf/*": ["src/pdf/*"],
-      "@/schemas/*": ["src/schemas/*"],
-      "@/types/*": ["src/types/*"]
+      "@/actions/*": [
+        "src/actions/*"
+      ],
+      "@/ai/*": [
+        "src/ai/*"
+      ],
+      "@/app/*": [
+        "src/app/*"
+      ],
+      "@/components/*": [
+        "src/components/*"
+      ],
+      "@/config/*": [
+        "src/config/*"
+      ],
+      "@/constants/*": [
+        "src/constants/*"
+      ],
+      "@/contexts/*": [
+        "src/contexts/*"
+      ],
+      "@/data/*": [
+        "src/data/*"
+      ],
+      "@/emails/*": [
+        "src/emails/*"
+      ],
+      "@/firebase/*": [
+        "src/firebase/*"
+      ],
+      "@/hooks/*": [
+        "src/hooks/*"
+      ],
+      "@/legal/*": [
+        "src/legal/*"
+      ],
+      "@/lib/*": [
+        "src/lib/*"
+      ],
+      "@/lib/billing/*": [
+        "src/lib/billing/*"
+      ],
+      "@/lib/fraudEngine/*": [
+        "src/lib/fraudEngine/*"
+      ],
+      "@/lib/public-data/*": [
+        "src/lib/public-data/*"
+      ],
+      "@/lib/public-records/*": [
+        "src/lib/public-records/*"
+      ],
+      "@/lib/risk/*": [
+        "src/lib/risk/*"
+      ],
+      "@/lib/search/*": [
+        "src/lib/search/*"
+      ],
+      "@/pdf/*": [
+        "src/pdf/*"
+      ],
+      "@/schemas/*": [
+        "src/schemas/*"
+      ],
+      "@/types/*": [
+        "src/types/*"
+      ],
+      "@/*": [
+        "src/*"
+      ]
     }
   },
   "include": [

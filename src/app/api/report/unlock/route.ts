@@ -1,16 +1,15 @@
+import { adminDb } from "@/firebase/server";
 import { NextRequest, NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe";
 
 export async function POST(req: NextRequest) {
-  const { renterId, userId } = await req.json();
+  const { companyId, renterId, purchaseId } = await req.json();
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/report?r=${renterId}`,
-    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/search`,
-    line_items: [{ price: process.env.REPORT_PRICE_ID!, quantity: 1 }],
-    metadata: { renterId, userId, type: "full-report" },
+  await adminDb.collection("reportUnlocks").add({
+    companyId,
+    renterId,
+    purchaseId,
+    createdAt: Date.now(),
   });
 
-  return NextResponse.json({ url: session.url });
+  return NextResponse.json({ success: true });
 }

@@ -1,55 +1,56 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { adminDb } from "@/firebase/server";
 import { sendEmail } from "@/lib/notifications/email";
 import { sendSMS } from "@/lib/notifications/sms";
 import crypto from "crypto";
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const { email, phone, renterData } = await req.json();
+    const { searchSessionId, renter } = await req.json();
 
-    if (!email && !phone) {
+    const { fullName, email, phone } = renter;
+    if (!fullName || (!email && !phone)) {
       return NextResponse.json(
-        { error: "Email or phone required." },
+        { error: "Name and at least one contact method required." },
         { status: 400 }
       );
     }
 
-    // Create 24-hour token
-    const token = crypto.randomBytes(24).toString("hex");
+    // Generate secure token
+    const token = crypto.randomUUID();
+    const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify?id=${token}`;
 
-    await adminDb.collection("renter_verification_links").doc(token).set({
-      renterData,
-      email: email || null,
-      phone: phone || null,
+    // Save in Firestore
+    await adminDb.collection("identityRequests").doc(token).set({
+      token,
+      searchSessionId: searchSessionId ?? null,
+      renterName: fullName,
+      renterEmail: email ?? null,
+      renterPhone: phone ?? null,
+      status: "PENDING",
       createdAt: Date.now(),
-      expiresAt: Date.now() + 1000 * 60 * 60 * 24,
     });
 
-    const url = `https://rentfax.io/verify?id=${token}`;
-
-    if (email) {
-      await sendEmail({
-        to: email,
-        subject: "RentFAX — Complete Your Verification",
-        html: `
-          <p>Hello,</p>
-          <p>Please verify your identity to continue:</p>
-          <a href="${url}">${url}</a>
-        `,
+    // Send SMS
+    if (phone) {
+      await sendSMS(phone, {
+        message: `Your RentFAX verification link: ${verifyUrl}`,
       });
     }
 
-    if (phone) {
-      await sendSMS(phone, `Complete your RentFAX verification: ${url}`);
+    // Send email
+    if (email) {
+      await sendEmail(email, "Verify your identity", {
+        verifyUrl,
+        renterName: fullName,
+      });
     }
 
-    return NextResponse.json({ ok: true, url });
-
+    return NextResponse.json({ ok: true, verifyUrl });
   } catch (err: any) {
-    console.error("SEND SELF-VERIFY ERROR:", err);
+    console.error(err);
     return NextResponse.json(
-      { error: "Failed to send verification link." },
+      { error: err.message || "Failed to send verification" },
       { status: 500 }
     );
   }

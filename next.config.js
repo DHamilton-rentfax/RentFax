@@ -33,6 +33,9 @@ const nextConfig = {
       allowedOrigins: ["*"],
     },
   },
+
+  // Add this to allow cross-origin requests in development
+  allowedDevOrigins: ["https://*.cloudworkstations.dev"],
 };
 
 export default nextConfig;

@@ -1,46 +1,41 @@
-import { NextRequest, NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe";
+import Stripe from "stripe";
+import { NextResponse } from "next/server";
 import { adminDb } from "@/firebase/server";
 
-export async function POST(req: NextRequest) {
-  const raw = await req.text();
-  const sig = req.headers.get("stripe-signature");
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2023-10-16",
+});
+const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
-  let event;
+export async function POST(req: Request) {
+  const payload = await req.text();
+  const sig = req.headers.get("stripe-signature")!;
+
+  let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(
-      raw,
-      sig!,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
+    event = stripe.webhooks.constructEvent(payload, sig, endpointSecret);
   } catch (err: any) {
     return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
   }
 
-  const data = event.data.object;
+  switch (event.type) {
+    case "invoice.created":
+      console.log("🧾 Invoice created:", event.data.object.id);
+      break;
 
-  if (event.type === "checkout.session.completed") {
-    const renterId = data.metadata.renterId;
-    const userId = data.metadata.userId;
-    const type = data.metadata.type;
+    case "invoice.finalized":
+      console.log("📌 Invoice finalized with metered usage.");
+      break;
 
-    if (type === "identity-check") {
-      await adminDb.collection("renter_identity_status").doc(renterId).set({
-        verified: true,
-        verifiedAt: Date.now(),
-        method: "payment",
-      });
-    }
+    case "invoice.payment_succeeded":
+      console.log("💰 Metered invoice paid.");
+      break;
 
-    if (type === "full-report") {
-      await adminDb.collection("renter_report_access").add({
-        renterId,
-        userId,
-        purchasedAt: Date.now(),
-        validUntil: Date.now() + 1000 * 60 * 60 * 24 * 30, // 30 days
-      });
-    }
+    case "customer.subscription.deleted":
+      console.log("❌ Subscription canceled");
+      // You may disable account access here
+      break;
   }
 
   return NextResponse.json({ received: true });

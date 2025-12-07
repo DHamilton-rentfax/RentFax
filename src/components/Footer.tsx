@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Building2 } from "lucide-react";
 
 import ChatNowButton from "./ChatNowButton";
+import StartScreeningButton from "./StartScreeningButton";
 
 const footerLinks = {
   product: [
@@ -61,6 +62,7 @@ export default function Footer() {
             <p className='text-sm text-gray-600'>
               Smarter Risk. Safer Rentals.
             </p>
+            <StartScreeningButton className="w-full md:w-auto mt-6" />
           </div>
 
           {/* Link Columns */}

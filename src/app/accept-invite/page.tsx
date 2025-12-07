@@ -1,47 +1,50 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useSearchParams } from 'next/navigation';
+import { useState } from 'react';
 
 export default function AcceptInvitePage() {
-  const [inviteId, setInviteId] = useState("");
-  const [loading, setLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const companyId = searchParams.get('companyId');
+  const [status, setStatus] = useState('');
 
-  async function acceptInvite() {
-    setLoading(true);
-    const res = await fetch("/api/accept-invite", {
-      method: "POST",
-      body: JSON.stringify({
-        inviteId,
-        userId: "authedUser123", // replace with real UID from useAuth
-        email: "authedEmail@test.com",
-      }),
+  const acceptInvite = async () => {
+    // This is a placeholder for the actual invite ID
+    // In a real application, this would come from a user-specific link
+    const inviteId = prompt('Enter your invite ID');
+    if (!inviteId) return;
+
+    // This is a placeholder for the current user's ID
+    const userId = prompt('Enter your user ID');
+    if (!userId) return;
+
+    const res = await fetch('/api/company/team/accept', {
+      method: 'POST',
+      body: JSON.stringify({ inviteId, userId }),
     });
-    const data = await res.json();
-    setLoading(false);
-    if (data.success) {
-      alert("Invite accepted! You’ve joined the team.");
+
+    if (res.ok) {
+      setStatus('Invite accepted successfully!');
     } else {
-      alert("Error: " + data.error);
+      const data = await res.json();
+      setStatus(`Error: ${data.error}`);
     }
-  }
+  };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold">Accept Invitation</h1>
-      <input
-        type="text"
-        placeholder="Paste invite ID"
-        className="border px-3 py-2 rounded w-64 mt-4"
-        value={inviteId}
-        onChange={(e) => setInviteId(e.target.value)}
-      />
+    <div className="max-w-4xl mx-auto p-10 space-y-6">
+      <h1 className="text-3xl font-semibold">Accept Invitation</h1>
+      <p>You have been invited to join a team on RentFAX.</p>
+      {companyId && <p>Company ID: {companyId}</p>}
+
       <button
+        className="bg-blue-600 text-white px-5 py-3 rounded"
         onClick={acceptInvite}
-        disabled={loading}
-        className="ml-2 bg-green-600 text-white px-4 py-2 rounded"
       >
-        {loading ? "Joining..." : "Join Team"}
+        Accept Invite
       </button>
+
+      {status && <p>{status}</p>}
     </div>
   );
 }

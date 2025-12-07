@@ -5,86 +5,95 @@ import {
   useCallback,
   useContext,
   useState,
-  ReactNode,
+  type ReactNode,
 } from "react";
-import { modalRegistry } from "@/components/modals/modal.registry";
 
-export type ModalType = keyof typeof modalRegistry;
+type ModalId = "searchRenter" | string;
 
-interface OpenOptions {
-  analyticsEventName?: string;
+interface SearchFormState {
+  fullName: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  countryCode: string;
+  stateCode: string;
+  licenseNumber: string;
 }
 
-interface ModalContextProps {
-  isOpen: boolean;
-  modalType: ModalType | null;
-  modalProps: any;
-  openModal: (type: ModalType, props?: any, options?: OpenOptions) => void;
+interface ModalContextValue {
+  activeModal: ModalId | null;
+  modalData: any;
+
+  openModal: (id: ModalId, data?: any) => void;
   closeModal: () => void;
-  queueModal: (type: ModalType, props?: any, options?: OpenOptions) => void;
+
+  searchForm: SearchFormState;
+  updateSearchForm: (fields: Partial<SearchFormState>) => void;
+  resetSearchForm: () => void;
 }
 
-const ModalContext = createContext<ModalContextProps | undefined>(undefined);
+const defaultSearchForm: SearchFormState = {
+  fullName: "",
+  email: "",
+  phone: "",
+  address: "",
+  city: "",
+  postalCode: "",
+  countryCode: "US",
+  stateCode: "",
+  licenseNumber: "",
+};
 
-export const ModalProvider = ({ children }: { children: ReactNode }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [modalType, setModalType] = useState<ModalType | null>(null);
-  const [modalProps, setModalProps] = useState<any>({});
-  const [queued, setQueued] = useState<{
-    type: ModalType;
-    props: any;
-    options?: OpenOptions;
-  } | null>(null);
+const ModalContext = createContext<ModalContextValue | undefined>(undefined);
 
-  const openModal = useCallback(
-    (type: ModalType, props = {}, options: OpenOptions = {}) => {
-      setModalType(type);
-      setModalProps(props);
-      setIsOpen(true);
-    },
-    []
-  );
+export function ModalProvider({ children }: { children: ReactNode }) {
+  const [activeModal, setActiveModal] = useState<ModalId | null>(null);
+  const [modalData, setModalData] = useState<any>(null);
+
+  const [searchForm, setSearchForm] =
+    useState<SearchFormState>(defaultSearchForm);
+
+  const openModal = useCallback((id: ModalId, data?: any) => {
+    setActiveModal(id);
+    setModalData(data ?? null);
+  }, []);
 
   const closeModal = useCallback(() => {
-    setIsOpen(false);
-    setModalType(null);
-    setModalProps({});
+    setActiveModal(null);
+    setModalData(null);
+  }, []);
 
-    // Handle queue
-    if (queued) {
-      const next = queued;
-      setQueued(null);
-      setTimeout(() => {
-        openModal(next.type, next.props, next.options);
-      }, 50);
-    }
-  }, [queued, openModal]);
+  const updateSearchForm = useCallback((fields: Partial<SearchFormState>) => {
+    setSearchForm((prev) => ({ ...prev, ...fields }));
+  }, []);
 
-  const queueModal = useCallback(
-    (type: ModalType, props = {}, options = {}) => {
-      setQueued({ type, props, options });
-    },
-    []
-  );
+  const resetSearchForm = useCallback(() => {
+    setSearchForm(defaultSearchForm);
+  }, []);
 
   return (
     <ModalContext.Provider
       value={{
-        isOpen,
-        modalType,
-        modalProps,
+        activeModal,
+        modalData,
         openModal,
         closeModal,
-        queueModal,
+        searchForm,
+        updateSearchForm,
+        resetSearchForm,
       }}
     >
       {children}
     </ModalContext.Provider>
   );
-};
+}
 
-export const useModal = () => {
+export function useModal() {
   const ctx = useContext(ModalContext);
-  if (!ctx) throw new Error("useModal must be used within ModalProvider");
+  if (!ctx) {
+    throw new Error("useModal must be used within ModalProvider");
+  }
   return ctx;
-};
+}

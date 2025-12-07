@@ -1,0 +1,7 @@
+export const CompanyReputationWeights = {
+  DISPUTE_RESOLUTION: 0.30,
+  INCIDENT_BEHAVIOR: 0.25,
+  OPERATIONAL_QUALITY: 0.20,
+  COMPLIANCE: 0.15,
+  TRANSPARENCY: 0.10,
+};

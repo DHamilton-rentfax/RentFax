@@ -1,42 +1,120 @@
-import { NextResponse } from "next/server";
-import Stripe from "stripe";
+import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/firebase/server";
-import { doc, updateDoc } from "firebase/firestore";
+import Stripe from "stripe";
+import { v4 as uuid } from "uuid";
 
+/* -------------------------------------------------------------------------------------------------
+ *  STRIPE INIT
+ * ------------------------------------------------------------------------------------------------*/
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2023-10-16",
 });
 
-export async function POST(req: Request) {
-  const { reportId, renterId, userId } = await req.json();
+/* -------------------------------------------------------------------------------------------------
+ *  POST — Create Checkout Session for Full Report Unlock
+ * ------------------------------------------------------------------------------------------------*/
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
 
-  if (!reportId || !renterId || !userId) {
-    return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
-  }
+    const {
+      reportId,          // The renter report to unlock
+      renterName,
+      renterEmail,
+      userId,
+      companyId,
+    } = body;
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    payment_method_types: ["card"],
+    if (!reportId) {
+      return NextResponse.json(
+        { error: "Missing reportId" },
+        { status: 400 }
+      );
+    }
 
-    line_items: [
-      {
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: "Full Renter Report",
-            description: `Report for renter ${renterId}`,
-          },
-          unit_amount: 2000, // $20
-        },
-        quantity: 1,
+    /* ---------------------------------------------------------------------------
+     * 1. Validate that the report exists
+     * --------------------------------------------------------------------------*/
+    const reportRef = adminDb.collection("internalReports").doc(reportId);
+    const reportSnap = await reportRef.get();
+
+    if (!reportSnap.exists) {
+      return NextResponse.json(
+        { error: "Invalid report - does not exist" },
+        { status: 404 }
+      );
+    }
+
+    const reportData = reportSnap.data() || {};
+
+    /* ---------------------------------------------------------------------------
+     * 2. Check if this landlord already unlocked this report
+     * --------------------------------------------------------------------------*/
+    const unlockRef = adminDb
+      .collection("reportUnlocks")
+      .where("reportId", "==", reportId)
+      .where("userId", "==", userId || null);
+
+    const unlockSnap = await unlockRef.get();
+
+    if (!unlockSnap.empty) {
+      // Already purchased — allow instant access
+      return NextResponse.json({
+        alreadyUnlocked: true,
+        url: `/report/${reportId}`,
+      });
+    }
+
+    /* ---------------------------------------------------------------------------
+     * 3. Create a Checkout Session
+     * --------------------------------------------------------------------------*/
+    const unlockId = uuid(); // This will be referenced in webhook
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/search?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/search?cancel=1`,
+
+      customer_email: renterEmail || undefined,
+
+      metadata: {
+        unlockId,
+        reportId,
+        userId: userId || "",
+        companyId: companyId || "",
+        renterName: renterName || "",
+        type: "full-report",
       },
-    ],
 
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/report/${reportId}?success=1`,
-    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/report/${reportId}?canceled=1`,
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: `Full Report Unlock – ${renterName}`,
+              description: "Full access to incident timeline, disputes, fraud signals, payments, and AI risk summary.",
+            },
+            unit_amount: 2000, // $20.00
+          },
+          quantity: 1,
+        },
+      ],
+    });
 
-    metadata: { reportId, renterId, userId },
-  });
+    /* ---------------------------------------------------------------------------
+     * 4. Return the checkout URL
+     * --------------------------------------------------------------------------*/
+    return NextResponse.json({
+      url: session.url,
+      sessionId: session.id,
+      alreadyUnlocked: false,
+    });
 
-  return NextResponse.json({ url: session.url });
+  } catch (err: any) {
+    console.error("Full report checkout error:", err);
+    return NextResponse.json(
+      { error: err.message || "Failed to create checkout session" },
+      { status: 500 }
+    );
+  }
 }

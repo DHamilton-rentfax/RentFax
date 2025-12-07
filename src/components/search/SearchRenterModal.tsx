@@ -1,8 +1,8 @@
-// ==============================
-// SEARCH RENTER MODAL (UPDATED)
-// ==============================
 "use client";
 
+/* -------------------------------------------------------------------------------------------------
+ *  IMPORTS
+ * ------------------------------------------------------------------------------------------------*/
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -16,14 +16,19 @@ import {
   ArrowLeft,
   Send,
   ShieldCheck,
+  Users,
+  AlertTriangle,
 } from "lucide-react";
 
+import { useRouter } from "next/navigation";
 import type { AppUser } from "@/types/user";
 
-// ------------------------------------------------------
-// TYPES
-// ------------------------------------------------------
-
+/* -------------------------------------------------------------------------------------------------
+ *  TYPES
+ *  Updated SearchResult includes:
+ *   - unlocked: boolean (for full report access)
+ *   - fullReport: full report payload returned after unlock
+ * ------------------------------------------------------------------------------------------------*/
 export type SearchPayload = {
   fullName: string;
   email?: string | null;
@@ -37,8 +42,14 @@ export type SearchPayload = {
 };
 
 export type SearchResult = {
+  id?: string;
+  matchType?: "none" | "single" | "multi";
   identityScore?: number;
   fraudScore?: number;
+
+  unlocked?: boolean;       // <-- added for full report
+  fullReport?: any;         // <-- added for full report payload
+
   publicProfile?: {
     name?: string;
     email?: string;
@@ -46,22 +57,25 @@ export type SearchResult = {
     address?: string;
     licenseNumber?: string | null;
   };
-  id?: string; // search session id
-  preMatchedReportId?: string | null; // internal match
-  [key: string]: any;
+
+  candidates?: Array<{
+    id: string;
+    similarity: number;
+    renter: {
+      fullName: string;
+      email?: string | null;
+      phone?: string | null;
+      address?: string | null;
+      licenseNumber?: string | null;
+    };
+  }>;
+
+  preMatchedReportId?: string | null;
 };
 
-interface SearchRenterModalProps {
-  open: boolean;
-  onClose: () => void;
-  onSearch?: (payload: SearchPayload) => Promise<SearchResult>;
-  user?: AppUser;
-}
-
-// ------------------------------------------------------
-// CONSTANTS
-// ------------------------------------------------------
-
+/* -------------------------------------------------------------------------------------------------
+ *  CONSTANTS
+ * ------------------------------------------------------------------------------------------------*/
 const BRAND_GOLD = "#D9A334";
 
 const COUNTRIES = [
@@ -74,281 +88,337 @@ const COUNTRIES = [
 ] as const;
 
 const US_STATES = [
-  "AL",
-  "AK",
-  "AZ",
-  "AR",
-  "CA",
-  "CO",
-  "CT",
-  "DE",
-  "FL",
-  "GA",
-  "HI",
-  "ID",
-  "IL",
-  "IN",
-  "IA",
-  "KS",
-  "KY",
-  "LA",
-  "ME",
-  "MD",
-  "MA",
-  "MI",
-  "MN",
-  "MS",
-  "MO",
-  "MT",
-  "NE",
-  "NV",
-  "NH",
-  "NJ",
-  "NM",
-  "NY",
-  "NC",
-  "ND",
-  "OH",
-  "OK",
-  "OR",
-  "PA",
-  "RI",
-  "SC",
-  "SD",
-  "TN",
-  "TX",
-  "UT",
-  "VT",
-  "VA",
-  "WA",
-  "WV",
-  "WI",
-  "WY",
+  "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA",
+  "KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
+  "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT",
+  "VA","WA","WV","WI","WY",
 ];
 
 const CA_PROVINCES = [
-  "AB",
-  "BC",
-  "MB",
-  "NB",
-  "NL",
-  "NS",
-  "NT",
-  "NU",
-  "ON",
-  "PE",
-  "QC",
-  "SK",
-  "YT",
+  "AB","BC","MB","NB","NL","NS","NT","NU","ON","PE","QC","SK","YT",
 ];
 
-// ------------------------------------------------------
-// HELPERS
-// ------------------------------------------------------
-
-const formatPhone = (value: string) => {
-  const digits = value.replace(/\D/g, "");
+/* -------------------------------------------------------------------------------------------------
+ *  HELPERS
+ * ------------------------------------------------------------------------------------------------*/
+const formatPhone = (val: string) => {
+  const digits = val.replace(/\D/g, "");
   if (!digits) return "";
   if (digits.length <= 3) return `(${digits}`;
   if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
-  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(
-    6,
-    10
-  )}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
 };
 
-// ------------------------------------------------------
-// COMPONENT
-// ------------------------------------------------------
+const clamp = (v: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, v));
 
+/* -------------------------------------------------------------------------------------------------
+ *  MAIN COMPONENT START
+ * ------------------------------------------------------------------------------------------------*/
 export default function SearchRenterModal({
   open,
   onClose,
   onSearch,
   user,
-}: SearchRenterModalProps) {
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSearch?: (payload: SearchPayload) => Promise<SearchResult>;
+  user?: AppUser | null;
+}) {
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const router = useRouter();
 
-  // Form state (Step 1)
+  /* -------------------------------------------------------------
+   * REFS
+   * -----------------------------------------------------------*/
+  const firstFieldRef = useRef<HTMLInputElement | null>(null);
+
+  /* -------------------------------------------------------------
+   * FORM STATE
+   * -----------------------------------------------------------*/
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [postalCode, setPostalCode] = useState("");
+
   const [countryCode, setCountryCode] =
     useState<"US" | "CA" | "GB" | "AU" | "MX" | "OTHER">("US");
+
   const [stateCode, setStateCode] = useState("");
   const [licenseNumber, setLicenseNumber] = useState("");
 
-  // Mapbox
+  /* -------------------------------------------------------------
+   * MAPBOX AUTOFILL
+   * -----------------------------------------------------------*/
   const [useAutofill, setUseAutofill] = useState(false);
-  const [suggestions, setSuggestions] = useState<any[]>([]);
   const [addrQuery, setAddrQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<any[]>([]);
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
-  // UX state
-  const [isLoading, setIsLoading] = useState(false); // search loading
-  const [identityLoading, setIdentityLoading] = useState(false); // $4.99 flow
-  const [selfVerifyLoading, setSelfVerifyLoading] = useState(false); // send link
+  /* -------------------------------------------------------------
+   * UX STATE
+   * -----------------------------------------------------------*/
+  const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [activeStep, setActiveStep] =
+    useState<1 | 2 | 3 | "multi" | "noMatch">(1);
 
-  // Steps
-  const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
   const [result, setResult] = useState<SearchResult | null>(null);
 
-  // ------------------------------------------------------
-  // CLOSE ON OUTSIDE CLICK
-  // ------------------------------------------------------
+  const [identityLoading, setIdentityLoading] = useState(false);
+  const [selfVerifyLoading, setSelfVerifyLoading] = useState(false);
 
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (!open) return;
-      if (panelRef.current && !panelRef.current.contains(e.target as Node))
-        handleClose();
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [open]);
+  /* Enterprise Unlock State */
+  const [fullReportCheckoutLoading, setFullReportCheckoutLoading] = useState(false);
+  const [isReloading, setIsReloading] = useState(false);
 
-  // Reset on open
+  /* SELF-VERIFY MODAL STATE */
+  const [openSelfVerify, setOpenSelfVerify] = useState(false);
+  const [verifyName, setVerifyName] = useState("");
+  const [verifyEmail, setVerifyEmail] = useState("");
+  const [verifyPhone, setVerifyPhone] = useState("");
+
+  /* -------------------------------------------------------------------------------------------------
+   * EFFECT: LOCK BODY SCROLL WHEN MODAL OPENS
+   * ------------------------------------------------------------------------------------------------*/
   useEffect(() => {
     if (!open) return;
-    setError(null);
-    setResult(null);
-    setActiveStep(1);
+    const orig = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const id = setTimeout(() => firstFieldRef.current?.focus(), 60);
+
+    return () => {
+      document.body.style.overflow = orig;
+      clearTimeout(id);
+    };
   }, [open]);
 
-  // ------------------------------------------------------
-  // COUNTRY / STATE LOGIC
-  // ------------------------------------------------------
+  /* -------------------------------------------------------------------------------------------------
+   * EFFECT: KEYBOARD HANDLING (ENTER to submit on Step 1)
+   * ------------------------------------------------------------------------------------------------*/
+  useEffect(() => {
+    if (!open) return;
 
-  const availableStates = useMemo(() => {
-    if (countryCode === "US") return US_STATES;
-    if (countryCode === "CA") return CA_PROVINCES;
-    return [];
-  }, [countryCode]);
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") return onClose();
+      if (e.key === "Enter" && activeStep === 1 && !isLoading) handleSubmit();
+    };
 
-  // ------------------------------------------------------
-  // MAPBOX AUTOFILL
-  // ------------------------------------------------------
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [open, activeStep, isLoading, onClose]);
 
+  /* -------------------------------------------------------------------------------------------------
+   * EFFECT: CLOSE MODAL WHEN CLICKING OUTSIDE PANEL
+   * ------------------------------------------------------------------------------------------------*/
+  useEffect(() => {
+    function outside(e: MouseEvent) {
+      if (!open) return;
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        onClose();
+      }
+    }
+    document.addEventListener("mousedown", outside);
+    return () => document.removeEventListener("mousedown", outside);
+  }, [open, onClose]);
+
+  /* -------------------------------------------------------------------------------------------------
+   * EFFECT: MAPBOX AUTOFILL FETCH
+   * ------------------------------------------------------------------------------------------------*/
   useEffect(() => {
     const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
-    if (!useAutofill || !token) {
+    if (!token || !useAutofill) {
       setSuggestions([]);
       return;
     }
-
     if (addrQuery.length < 3) {
       setSuggestions([]);
       return;
     }
 
-    const timeout = setTimeout(async () => {
+    const t = setTimeout(async () => {
       if (abortRef.current) abortRef.current.abort();
-      const controller = new AbortController();
-      abortRef.current = controller;
+      const ctrl = new AbortController();
+      abortRef.current = ctrl;
 
       try {
         setSuggestionsLoading(true);
+
         const res = await fetch(
           `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
             addrQuery
           )}.json?autocomplete=true&limit=5&access_token=${token}`,
-          { signal: controller.signal }
+          { signal: ctrl.signal }
         );
-        const data = await res.json();
-        setSuggestions(Array.isArray(data.features) ? data.features : []);
+
+        const json = await res.json();
+        setSuggestions(Array.isArray(json.features) ? json.features : []);
       } catch {
+        /* Ignore abort errors */
       } finally {
         setSuggestionsLoading(false);
       }
-    }, 300);
+    }, 250);
 
-    return () => clearTimeout(timeout);
+    return () => clearTimeout(t);
   }, [addrQuery, useAutofill]);
 
-  const handleSelectSuggestion = (feature: any) => {
-    setSuggestions([]);
-    setAddrQuery(feature.place_name || "");
-    setAddress(feature.place_name || "");
+  /* -------------------------------------------------------------------------------------------------
+   * EFFECT: STRIPE CHECKOUT REDIRECT HANDLER
+   *  Detects ?session_id= and reloads renter data to show unlocked report
+   * ------------------------------------------------------------------------------------------------*/
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const sessionId = url.searchParams.get("session_id");
 
-    const ctx = feature.context || [];
-    const cityCtx =
-      ctx.find((c: any) => c.id.startsWith("place")) ||
-      ctx.find((c: any) => c.id.startsWith("locality"));
-    const regionCtx = ctx.find((c: any) => c.id.startsWith("region"));
-    const countryCtx = ctx.find((c: any) => c.id.startsWith("country"));
-    const postcodeCtx = ctx.find((c: any) => c.id.startsWith("postcode"));
+    if (!sessionId || !result?.id) return;
 
-    if (cityCtx?.text) setCity(cityCtx.text);
-    if (postcodeCtx?.text) setPostalCode(postcodeCtx.text);
-    if (regionCtx?.short_code)
-      setStateCode(
-        String(regionCtx.short_code).split("-").pop()!.toUpperCase()
-      );
-    if (countryCtx?.short_code) {
-      const cc = String(countryCtx.short_code).toUpperCase();
-      const found = COUNTRIES.find((c) => c.code === cc);
-      setCountryCode(found ? found.code : "OTHER");
+    async function verifyAndReload() {
+      setIsReloading(true);
+      try {
+        // Call backend session validator
+        const status = await fetch(
+          `/api/checkout/session-status?session_id=${sessionId}`
+        ).then((r) => r.json());
+
+        if (status?.success) {
+          // Reload search result from backend with unlocked state
+          const refreshed = await fetch(
+            `/api/renters/result?id=${result.id}`
+          ).then((r) => r.json());
+
+          setResult(refreshed);
+          setActiveStep(3);
+
+          // Remove session_id from URL so it doesn’t trigger again
+          url.searchParams.delete("session_id");
+          window.history.replaceState({}, "", url.toString());
+        }
+      } catch (err) {
+        console.error("Stripe verification failed:", err);
+      } finally {
+        setIsReloading(false);
+      }
     }
-  };
 
-  // ------------------------------------------------------
-  // CONFIDENCE SCORE
-  // ------------------------------------------------------
+    verifyAndReload();
+  }, [result?.id]);
 
-  const canSubmit = useMemo(() => {
-    const hasName = fullName.trim().length > 1;
-    const hasEmail = email.trim().length > 3;
-    const hasPhone = phone.replace(/\D/g, "").length >= 10;
-    return hasName && (hasEmail || hasPhone);
-  }, [fullName, email, phone]);
+  /* -------------------------------------------------------------------------------------------------
+   * HANDLE IDENTITY CHECKOUT ($4.99)
+   * ------------------------------------------------------------------------------------------------*/
+  async function handleIdentityCheckout() {
+    try {
+      setIdentityLoading(true);
 
-  const confidence = useMemo(() => {
-    let score = 0;
-    if (fullName.trim().length > 1) score += 40;
-    if (email.trim().length > 3) score += 20;
-    if (phone.replace(/\D/g, "").length >= 10) score += 20;
-    if (address.trim().length > 5) score += 10;
-    if (licenseNumber.trim().length > 3) score += 10;
-    return Math.min(score, 100);
-  }, [fullName, email, phone, address, licenseNumber]);
+      const res = await fetch("/api/checkout/identity-check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          renterName: result?.publicProfile?.name ?? fullName,
+          renterEmail: result?.publicProfile?.email ?? email,
+          renterPhone: result?.publicProfile?.phone ?? phone,
+          searchSessionId: result?.id ?? null,
+        }),
+      });
 
-  const confidenceLabel =
-    confidence >= 80 ? "High" : confidence >= 50 ? "Medium" : "Low";
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to checkout");
 
-  // ------------------------------------------------------
-  // SEARCH FUNCTION
-  // ------------------------------------------------------
-
-  async function defaultSearch(payload: SearchPayload): Promise<SearchResult> {
-    const res = await fetch("/api/search-renter", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...payload, userId: user?.uid ?? null }),
-    });
-
-    if (!res.ok) throw new Error(await res.text());
-    return res.json();
+      if (json.url) window.location.href = json.url;
+    } catch (err: any) {
+      alert(err.message || "Failed to checkout.");
+    } finally {
+      setIdentityLoading(false);
+    }
   }
 
+  /* -------------------------------------------------------------------------------------------------
+   * ENTERPRISE FULL REPORT CHECKOUT ($20)
+   * ------------------------------------------------------------------------------------------------*/
+  async function handleFullReportCheckout() {
+    try {
+      if (!result?.preMatchedReportId) {
+        alert("No report found to unlock.");
+        return;
+      }
+
+      setFullReportCheckoutLoading(true);
+
+      const res = await fetch("/api/checkout/full-report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reportId: result.preMatchedReportId,
+          renterName: result.publicProfile?.name ?? fullName,
+          renterEmail: result.publicProfile?.email ?? email,
+          userId: user?.uid ?? null,
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Checkout failed.");
+
+      if (json.alreadyUnlocked) {
+        window.location.href = `/report/${result.preMatchedReportId}`;
+        return;
+      }
+
+      if (json.url) {
+        window.location.href = json.url;
+      } else {
+        alert("Checkout session created, but no redirect URL returned.");
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to unlock report.");
+    } finally {
+      setFullReportCheckoutLoading(false);
+    }
+  }
+
+  /* -------------------------------------------------------------------------------------------------
+   * DEFAULT SEARCH CALL
+   * ------------------------------------------------------------------------------------------------*/
+  async function defaultSearch(payload: SearchPayload): Promise<SearchResult> {
+    const res = await fetch("/api/renters/search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...payload,
+        userId: user?.uid || null,
+      }),
+    });
+
+    const json = await res.json().catch(() => null);
+    if (!json) throw new Error("Invalid server response.");
+
+    if (!res.ok) throw new Error(json.error || "Search failed.");
+
+    return json;
+  }
+
+  /* -------------------------------------------------------------------------------------------------
+   * SUBMIT SEARCH
+   * ------------------------------------------------------------------------------------------------*/
   async function handleSubmit() {
-    if (!canSubmit || isLoading) return;
+    if (isLoading) return;
 
     setIsLoading(true);
+    setError(null);
     setResult(null);
     setProgress(0);
-    setError(null);
 
     let current = 0;
-    const interval = window.setInterval(() => {
-      current = Math.min(90, current + 7 + Math.random() * 7);
+    const interval = setInterval(() => {
+      current = clamp(current + 5 + Math.random() * 10, 0, 92);
       setProgress(current);
-    }, 220);
+    }, 200);
 
     try {
       const payload: SearchPayload = {
@@ -356,307 +426,593 @@ export default function SearchRenterModal({
         email: email.trim() || null,
         phone: phone.trim() || null,
         address: address.trim() || addrQuery.trim() || null,
-        country: countryCode || null,
-        state: stateCode || null,
-        city: city || null,
-        postalCode: postalCode || null,
+        country: countryCode,
+        state: stateCode,
+        city,
+        postalCode,
         licenseNumber: licenseNumber.trim() || null,
       };
 
-      const searchFn = onSearch ?? defaultSearch;
-      const data = await searchFn(payload);
+      const fn = onSearch ?? defaultSearch;
+      const data = await fn(payload);
 
-      setResult(data || {});
-      setActiveStep(2);
+      setResult(data);
       setProgress(100);
+
+      if (data.matchType === "none") setActiveStep("noMatch");
+      else if (data.matchType === "multi") setActiveStep("multi");
+      else setActiveStep(2);
+
     } catch (err: any) {
       console.error(err);
-      setError(err?.message || "Search failed.");
+      setError(err.message || "Search failed.");
     } finally {
-      window.clearInterval(interval);
-      setTimeout(() => setProgress(0), 600);
+      clearInterval(interval);
+      setTimeout(() => setProgress(0), 350);
       setIsLoading(false);
     }
   }
 
-  // ------------------------------------------------------
-  // BACK BUTTON LOGIC
-  // ------------------------------------------------------
-
-  function goBack() {
+  /* -------------------------------------------------------------------------------------------------
+   * BACK BUTTON
+   * ------------------------------------------------------------------------------------------------*/
+  const goBack = () => {
     if (activeStep === 2) return setActiveStep(1);
     if (activeStep === 3) return setActiveStep(2);
+    if (activeStep === "multi" || activeStep === "noMatch") return setActiveStep(1);
+  };
+  /* -------------------------------------------------------------------------------------------------
+   *  STEP 1 — SEARCH FORM
+   * ------------------------------------------------------------------------------------------------*/
+  function renderStep1() {
+    return (
+      <div className="space-y-4 sm:space-y-5">
+        {/* FULL NAME */}
+        <div>
+          <label className="text-xs sm:text-sm font-medium flex items-center gap-1.5">
+            <User className="h-4 w-4" /> Full Name
+          </label>
+          <input
+            ref={firstFieldRef}
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            placeholder="John Doe"
+          />
+        </div>
+
+        {/* EMAIL */}
+        <div>
+          <label className="text-xs sm:text-sm font-medium flex items-center gap-1.5">
+            <Mail className="h-4 w-4" /> Email
+          </label>
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            placeholder="email@example.com"
+          />
+        </div>
+
+        {/* PHONE */}
+        <div>
+          <label className="text-xs sm:text-sm font-medium flex items-center gap-1.5">
+            <Phone className="h-4 w-4" /> Phone
+          </label>
+          <input
+            value={phone}
+            onChange={(e) => setPhone(formatPhone(e.target.value))}
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            placeholder="(555) 555-5555"
+          />
+        </div>
+
+        {/* ADDRESS — MAPBOX AUTOFILL */}
+        <div>
+          <label className="text-xs sm:text-sm font-medium flex items-center gap-1.5">
+            <MapPin className="h-4 w-4" /> Address (Mapbox)
+          </label>
+
+          <div className="mt-1 relative">
+            {/* AUTOFILL SWITCH */}
+            <div className="flex justify-end mb-1">
+              <button
+                onClick={() => {
+                  setUseAutofill((v) => !v);
+                  setSuggestions([]);
+                }}
+                className={`w-10 h-5 rounded-full relative transition ${
+                  useAutofill ? "bg-gray-900" : "bg-gray-300"
+                }`}
+              >
+                <span
+                  className={`absolute h-4 w-4 bg-white rounded-full top-0.5 transition ${
+                    useAutofill ? "left-5" : "left-1"
+                  }`}
+                />
+              </button>
+            </div>
+
+            <input
+              value={useAutofill ? addrQuery : address}
+              onChange={(e) =>
+                useAutofill ? setAddrQuery(e.target.value) : setAddress(e.target.value)
+              }
+              className="w-full border rounded-lg px-3 py-2 text-sm"
+              placeholder="123 Main St"
+            />
+
+            {/* AUTOFILL SUGGESTIONS */}
+            {useAutofill && suggestions.length > 0 && (
+              <div className="absolute bg-white border rounded-lg shadow-md mt-1 z-20 w-full max-h-52 overflow-auto text-sm">
+                {suggestions.map((feature) => (
+                  <button
+                    key={feature.id}
+                    onClick={() => {
+                      setAddress(feature.place_name);
+                      setUseAutofill(false);
+                      setSuggestions([]);
+                    }}
+                    className="block w-full text-left px-3 py-2 hover:bg-gray-50"
+                  >
+                    {feature.place_name}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* LOADING STATE */}
+            {useAutofill && suggestionsLoading && (
+              <p className="text-[11px] text-gray-400 mt-1">Searching…</p>
+            )}
+          </div>
+        </div>
+
+        {/* CITY + ZIP */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div>
+            <label className="text-xs sm:text-sm font-medium">City</label>
+            <input
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs sm:text-sm font-medium">Postal Code</label>
+            <input
+              value={postalCode}
+              onChange={(e) => setPostalCode(e.target.value)}
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            />
+          </div>
+        </div>
+
+        {/* COUNTRY + STATE */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div>
+            <label className="text-xs sm:text-sm font-medium">Country</label>
+            <select
+              value={countryCode}
+              onChange={(e) => setCountryCode(e.target.value as any)}
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            >
+              {COUNTRIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs sm:text-sm font-medium">State / Province</label>
+            {countryCode === "US" || countryCode === "CA" ? (
+              <select
+                value={stateCode}
+                onChange={(e) => setStateCode(e.target.value)}
+                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              >
+                <option value="">Select</option>
+                {(countryCode === "US" ? US_STATES : CA_PROVINCES).map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                value={stateCode}
+                onChange={(e) => setStateCode(e.target.value)}
+                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                placeholder="Region"
+              />
+            )}
+          </div>
+        </div>
+
+        {/* LICENSE */}
+        <div>
+          <label className="text-xs sm:text-sm font-medium">License / ID Number</label>
+          <input
+            value={licenseNumber}
+            onChange={(e) => setLicenseNumber(e.target.value.toUpperCase())}
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm uppercase"
+            placeholder="Driver License / ID"
+          />
+        </div>
+
+        {/* ERROR MESSAGE */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 p-3 rounded-lg text-xs text-red-700">
+            {error}
+          </div>
+        )}
+      </div>
+    );
   }
 
-  // ------------------------------------------------------
-  // CLOSE RESET
-  // ------------------------------------------------------
-
-  function handleClose() {
-    setFullName("");
-    setEmail("");
-    setPhone("");
-    setAddress("");
-    setCountryCode("US");
-    setStateCode("");
-    setCity("");
-    setPostalCode("");
-    setLicenseNumber("");
-    setUseAutofill(false);
-    setAddrQuery("");
-    setSuggestions([]);
-    setError(null);
-    setResult(null);
-    setActiveStep(1);
-    setIdentityLoading(false);
-    setSelfVerifyLoading(false);
-    onClose();
-  }
-
-  // ------------------------------------------------------
-  // SEND SELF-VERIFICATION TRIGGER
-  // ------------------------------------------------------
-
-  async function handleSendSelfVerify() {
-    if (selfVerifyLoading) return;
-
-    try {
-      setSelfVerifyLoading(true);
-      setError(null);
-
-      const res = await fetch("/api/self-verify/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          searchSessionId: result?.id || null,
-          renter: {
-            fullName: fullName.trim() || null,
-            email: email.trim() || null,
-            phone: phone.trim() || null,
-          },
-        }),
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Failed to send self-verification link.");
-      }
-
-      alert("Self-verification link sent to the renter.");
-    } catch (err: any) {
-      console.error(err);
-      setError(err?.message || "Failed to send self-verification link.");
-    } finally {
-      setSelfVerifyLoading(false);
-    }
-  }
-
-  // ------------------------------------------------------
-  // UNLOCK FULL REPORT TRIGGER (stub for later)
-  // ------------------------------------------------------
-
-  async function handleUnlockReport() {
-    alert("Full report purchase ($20) will be wired in the next phase.");
-  }
-
-  // ------------------------------------------------------
-  // IDENTITY CHECK PURCHASE ($4.99)
-// ------------------------------------------------------
-
-  async function handleIdentityCheckout() {
-    if (identityLoading) return;
-
-    try {
-      setIdentityLoading(true);
-      setError(null);
-
-      const res = await fetch("/api/identity/purchase", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          searchSessionId: result?.id || null,
-          renter: {
-            fullName: fullName.trim() || null,
-            email: email.trim() || null,
-            phone: phone.trim() || null,
-          },
-          context: user?.role || "UNKNOWN",
-        }),
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Failed to start identity check.");
-      }
-
-      const data = await res.json();
-      if (!data?.url) {
-        throw new Error("Missing checkout URL from server.");
-      }
-
-      window.location.href = data.url as string;
-    } catch (err: any) {
-      console.error(err);
-      setError(err?.message || "Failed to start identity check.");
-    } finally {
-      setIdentityLoading(false);
-    }
-  }
-
-  // ------------------------------------------------------
-  // STEP 2 — MATCH FOUND + EDUCATION BLOCK (Option 3 applied)
-  // ------------------------------------------------------
-
-  function renderStep2() {
-    if (!result) return null;
-    const identityScore = result.identityScore;
-    const fraudScore = result.fraudScore;
-    const profile = result.publicProfile || {};
-    const matched = !!result.preMatchedReportId;
+  /* -------------------------------------------------------------------------------------------------
+   *  MULTIPLE MATCHES FOUND
+   * ------------------------------------------------------------------------------------------------*/
+  function renderMultiMatch() {
+    if (!result?.candidates?.length) return null;
 
     return (
-      <div className="space-y-5">
-        {/* Back button */}
+      <div className="space-y-5 sm:space-y-6">
+        {/* BACK */}
         <button
           onClick={goBack}
-          className="flex items-center text-xs text-gray-600 hover:text-gray-900"
+          className="text-xs text-gray-600 hover:text-gray-900 flex items-center"
         >
-          <ArrowLeft className="mr-1 h-4 w-4" />
-          Back
+          <ArrowLeft className="h-4 w-4 mr-1" /> Back
         </button>
 
-        {/* Summary card */}
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm">
-          <div className="mb-3 flex items-center justify-between">
-            <p className="font-semibold text-gray-900">
-              {matched ? "Internal Match Found" : "Match Found"}
+        {/* HEADER */}
+        <div className="flex items-center gap-2">
+          <Users className="h-5 w-5 text-gray-700" />
+          <h2 className="font-semibold text-lg">Multiple Potential Matches</h2>
+        </div>
+
+        <p className="text-sm text-gray-600">
+          Select the correct renter profile to continue.
+        </p>
+
+        {/* MATCH LIST */}
+        <div className="space-y-3">
+          {result.candidates
+            .sort((a, b) => b.similarity - a.similarity)
+            .map((candidate) => (
+              <button
+                key={candidate.id}
+                onClick={() => {
+                  setResult({
+                    ...result,
+                    matchType: "single",
+                    identityScore: candidate.similarity,
+                    publicProfile: {
+                      name: candidate.renter.fullName,
+                      email: candidate.renter.email ?? undefined,
+                      phone: candidate.renter.phone ?? undefined,
+                      address: candidate.renter.address ?? undefined,
+                      licenseNumber: candidate.renter.licenseNumber ?? undefined,
+                    },
+                  });
+                  setActiveStep(2);
+                }}
+                className="w-full border rounded-lg p-4 text-left hover:bg-gray-50"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">
+                    {candidate.renter.fullName}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {candidate.similarity}% match
+                  </span>
+                </div>
+
+                {/* Contact Preview */}
+                {candidate.renter.email && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    ✉ {candidate.renter.email}
+                  </p>
+                )}
+                {candidate.renter.phone && (
+                  <p className="text-xs text-gray-500">
+                    📞 {candidate.renter.phone}
+                  </p>
+                )}
+              </button>
+            ))}
+        </div>
+      </div>
+    );
+  }
+
+  /* -------------------------------------------------------------------------------------------------
+   *  NO MATCH FOUND
+   * ------------------------------------------------------------------------------------------------*/
+  function renderNoMatch() {
+    return (
+      <div className="space-y-6">
+        {/* BACK */}
+        <button
+          onClick={goBack}
+          className="text-xs text-gray-600 hover:text-gray-900 flex items-center"
+        >
+          <ArrowLeft className="h-4 w-4 mr-1" /> Back
+        </button>
+
+        <div className="flex items-center gap-3 text-amber-600">
+          <AlertTriangle className="h-6 w-6" />
+          <h2 className="text-lg font-semibold">No Matching Renter Found</h2>
+        </div>
+
+        <p className="text-sm text-gray-600">
+          The renter may simply be new to RentFAX.
+        </p>
+
+        {/* ACTION CARD */}
+        <div className="rounded-xl border p-4 bg-white shadow-sm space-y-4">
+          <p className="font-medium text-sm">Next Actions</p>
+
+          {/* SELF-VERIFY */}
+          <button
+            onClick={() => {
+              setVerifyName(fullName);
+              setVerifyEmail(email);
+              setVerifyPhone(phone);
+              setOpenSelfVerify(true);
+            }}
+            className="w-full border rounded-lg px-3 py-2 text-sm hover:bg-gray-50"
+          >
+            Request Self-Verification (Free)
+          </button>
+
+          {/* IDENTITY CHECK */}
+          <button
+            onClick={handleIdentityCheckout}
+            className="w-full border rounded-lg border-gray-900 px-3 py-2 text-sm font-semibold hover:bg-gray-900 hover:text-white"
+          >
+            Identity Check ($4.99)
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  /* -------------------------------------------------------------------------------------------------
+   *  STEP 2 — MATCH FOUND
+   * ------------------------------------------------------------------------------------------------*/
+  function renderStep2() {
+    if (!result) return null;
+
+    const profile = result.publicProfile || {};
+    const hasReport = !!result.preMatchedReportId;
+
+    return (
+      <div className="space-y-6">
+        {/* BACK */}
+        <button
+          onClick={goBack}
+          className="text-xs text-gray-600 hover:text-gray-900 flex items-center"
+        >
+          <ArrowLeft className="h-4 w-4 mr-1" /> Back
+        </button>
+
+        {/* MATCH CARD */}
+        <div className="border p-4 bg-gray-50 rounded-lg text-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="font-semibold">
+              {hasReport ? "Internal Renter Report Found" : "Potential Match"}
             </p>
             <p className="text-[11px] text-gray-500">Step 2 of 3</p>
           </div>
 
+          {/* SCORES */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <p className="text-[11px] text-gray-500">Identity Score</p>
-              <p className="text-sm font-semibold">
-                {identityScore != null ? `${identityScore}%` : "—"}
+              <p className="font-semibold">
+                {result.identityScore != null
+                  ? `${result.identityScore}%`
+                  : "—"}
               </p>
             </div>
 
             <div>
               <p className="text-[11px] text-gray-500">Fraud Score</p>
-              <p className="text-sm font-semibold">
-                {fraudScore != null ? `${fraudScore}%` : "—"}
+              <p className="font-semibold">
+                {result.fraudScore != null ? `${result.fraudScore}%` : "—"}
               </p>
             </div>
           </div>
 
-          {/* Profile */}
-          <div className="mt-3 space-y-1 border-t border-dashed border-gray-200 pt-3">
-            <p className="text-[11px] font-semibold text-gray-500">
-              Matched Profile (Preview)
-            </p>
-            <p>Name: {profile.name || "—"}</p>
-            <p>Email: {profile.email || "—"}</p>
-            <p>Phone: {profile.phone || "—"}</p>
-            <p>Address: {profile.address || "—"}</p>
+          {/* PROFILE PREVIEW */}
+          <div className="border-t border-dashed pt-3 text-xs space-y-1">
+            <p className="font-semibold text-gray-600">Matched Renter Preview</p>
+            <p>Name: {profile.name ?? "—"}</p>
+            <p>Email: {profile.email ?? "—"}</p>
+            <p>Phone: {profile.phone ?? "—"}</p>
+            <p>Address: {profile.address ?? "—"}</p>
             {profile.licenseNumber && <p>License: {profile.licenseNumber}</p>}
           </div>
         </div>
 
-        {/* EDUCATION BLOCK */}
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <div className="mb-2 flex items-center">
-            <ShieldCheck className="mr-2 h-4 w-4 text-gray-800" />
-            <p className="text-sm font-semibold text-gray-900">
-              Why Identity Verification Matters
-            </p>
+        {/* INFO SECTION */}
+        <div className="border rounded-lg p-4 space-y-2">
+          <div className="flex items-center">
+            <ShieldCheck className="mr-2 h-4 w-4" />
+            <p className="font-semibold text-sm">Why Identity Verification?</p>
           </div>
-
-          <p className="text-xs leading-relaxed text-gray-600">
-            Identity verification protects you from fraud, false information,
-            and costly mistakes. Every report on RentFAX must be tied to a real,
-            verified person — ensuring accuracy, fairness, and trust.
+          <p className="text-xs text-gray-600">
+            Identity verification protects you from fraudulent renters, reduces
+            chargebacks, and ensures accurate reporting.
           </p>
         </div>
 
-        {/* ACTION BUTTONS */}
+        {/* IDENTITY CHECK BUTTON */}
         <button
           onClick={handleIdentityCheckout}
           disabled={identityLoading}
-          className="flex w-full items-center justify-center rounded-full border border-gray-900 px-3 py-2 text-xs font-semibold text-gray-900 transition hover:bg-gray-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-70"
+          className="w-full border border-gray-900 rounded-full px-3 py-2 text-xs font-semibold hover:bg-gray-900 hover:text-white disabled:opacity-50"
         >
           {identityLoading && (
-            <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+            <Loader2 className="inline h-3 w-3 mr-2 animate-spin" />
           )}
-          Proceed to Identity Check ($4.99)
+          Identity Check ($4.99)
         </button>
 
+        {/* SELF-VERIFY BUTTON */}
         <button
-          onClick={handleSendSelfVerify}
-          disabled={selfVerifyLoading}
-          className="flex w-full items-center justify-center rounded-full border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-70"
+          onClick={() => {
+            setVerifyName(profile.name ?? fullName);
+            setVerifyEmail(profile.email ?? email);
+            setVerifyPhone(profile.phone ?? phone);
+            setOpenSelfVerify(true);
+          }}
+          className="w-full border border-gray-300 rounded-full px-3 py-2 text-xs font-semibold hover:bg-gray-100"
         >
-          {selfVerifyLoading ? (
-            <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-          ) : (
-            <Send className="mr-2 h-3 w-3" />
-          )}
-          Send Self-Verification to Renter
+          <Send className="inline h-3 w-3 mr-2" />
+          Send Self-Verification
+        </button>
+
+        {/* CONTINUE */}
+        <button
+          onClick={() => setActiveStep(3)}
+          className="w-full bg-gray-900 text-white rounded-full px-3 py-2 text-xs font-semibold hover:bg-black"
+        >
+          Continue
         </button>
       </div>
     );
   }
-
-  // ------------------------------------------------------
-  // STEP 3 — FULL REPORT (still mostly UX for now)
-// ------------------------------------------------------
-
+  /* -------------------------------------------------------------------------------------------------
+   *  STEP 3 — NEXT ACTIONS (FULL REPORT UNLOCK + VERIFICATION OPTIONS)
+   * ------------------------------------------------------------------------------------------------*/
   function renderStep3() {
-    const hasInternalReport = !!result?.preMatchedReportId;
+    if (!result) return null;
+
+    const hasReport = !!result.preMatchedReportId;
+    const isUnlocked = result.unlocked === true;
+
+    // If Stripe redirect is refreshing report access
+    if (isReloading) {
+      return (
+        <div className="flex flex-col items-center justify-center text-center py-10">
+          <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
+          <p className="mt-3 text-sm text-gray-600">
+            Verifying purchase and updating report…
+          </p>
+        </div>
+      );
+    }
 
     return (
-      <div className="space-y-5">
-        {/* Back */}
+      <div className="space-y-6">
+        {/* BACK */}
         <button
           onClick={goBack}
-          className="flex items-center text-xs text-gray-600 hover:text-gray-900"
+          className="text-xs text-gray-600 hover:text-gray-900 flex items-center"
         >
-          <ArrowLeft className="mr-1 h-4 w-4" />
-          Back
+          <ArrowLeft className="h-4 w-4 mr-1" /> Back
         </button>
 
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm">
-          <div className="mb-2 flex items-center justify-between">
-            <p className="font-semibold text-gray-900">Next Step</p>
+        {/* INFO CARD */}
+        <div className="border bg-gray-50 rounded-lg p-4 text-sm space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="font-semibold">Next Step</p>
             <p className="text-[11px] text-gray-500">Step 3 of 3</p>
           </div>
 
-          {!hasInternalReport && (
+          {/* NO REPORT EXISTS */}
+          {!hasReport && (
             <p className="text-xs text-gray-600">
-              No internal reports were found for this renter. You may still
-              unlock a verified identity match and generate a full RentFAX fraud
-              &amp; history report once identity is confirmed.
+              No internal RentFAX reports exist yet.  
+              You can verify the renter’s identity or send a self-verification request.
             </p>
           )}
 
-          {hasInternalReport && (
+          {/* REPORT EXISTS BUT NOT UNLOCKED */}
+          {hasReport && !isUnlocked && (
             <p className="text-xs text-gray-600">
-              A matched RentFAX identity was found. You may now purchase the
-              full report.
+              This renter already has a RentFAX incident history.  
+              Unlock the full report for complete details:  
+              disputes, fraud indicators, payments, AI summary, and incident timeline.
+            </p>
+          )}
+
+          {/* ALREADY UNLOCKED */}
+          {hasReport && isUnlocked && (
+            <p className="text-xs text-gray-600">
+              Full report unlocked!  
+              You now have access to the complete incident timeline and all risk data.
             </p>
           )}
         </div>
 
-        <button
-          onClick={handleUnlockReport}
-          className="w-full rounded-full bg-gray-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-black"
-        >
-          Unlock Full Report ($20)
-        </button>
+        {/* ACTIONS */}
+        {!hasReport ? (
+          <>
+            {/* IDENTITY CHECK */}
+            <button
+              onClick={handleIdentityCheckout}
+              disabled={identityLoading}
+              className="w-full rounded-full border border-gray-900 px-3 py-2 text-xs font-semibold hover:bg-gray-900 hover:text-white disabled:opacity-50"
+            >
+              {identityLoading && <Loader2 className="inline h-3 w-3 mr-2 animate-spin" />}
+              Identity Check ($4.99)
+            </button>
 
+            {/* SELF VERIFY */}
+            <button
+              onClick={() => {
+                setVerifyName(result?.publicProfile?.name ?? fullName);
+                setVerifyEmail(result?.publicProfile?.email ?? email);
+                setVerifyPhone(result?.publicProfile?.phone ?? phone);
+                setOpenSelfVerify(true);
+              }}
+              className="w-full rounded-full border border-gray-300 px-3 py-2 text-xs font-semibold hover:bg-gray-100"
+            >
+              Send Self-Verification
+            </button>
+          </>
+        ) : !isUnlocked ? (
+          <>
+            {/* FULL REPORT UNLOCK */}
+            <button
+              onClick={handleFullReportCheckout}
+              disabled={fullReportCheckoutLoading}
+              className="w-full rounded-full bg-gray-900 text-white px-3 py-2 text-xs font-semibold hover:bg-black disabled:opacity-50"
+            >
+              {fullReportCheckoutLoading && (
+                <Loader2 className="inline h-3 w-3 mr-2 animate-spin" />
+              )}
+              Unlock Full Report ($20)
+            </button>
+
+            <p className="text-[11px] text-center text-gray-500">
+              Includes incident timeline, disputes, fraud indicators, unpaid balances,  
+              AI risk summary, rental history, and full profile data.
+            </p>
+          </>
+        ) : (
+          <>d
+            {/* VIEW UNLOCKED REPORT */}
+            <button
+              onClick={() => router.push(`/report/${result.preMatchedReportId}`)}
+              className="w-full rounded-full bg-green-600 text-white px-3 py-2 text-xs font-semibold hover:bg-green-700"
+              >
+              View Full Report
+            </button>
+          </>
+        )}
+
+        {/* CLOSE */}
         <button
-          onClick={handleClose}
-          className="w-full rounded-full border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-100"
+          onClick={onClose}
+          className="w-full rounded-full border border-gray-300 px-3 py-2 text-xs font-semibold hover:bg-gray-100"
         >
           Close
         </button>
@@ -664,403 +1020,217 @@ export default function SearchRenterModal({
     );
   }
 
-  // ------------------------------------------------------
-  // RENDER MODAL
-  // ------------------------------------------------------
+  /* -------------------------------------------------------------------------------------------------
+   *  SELF-VERIFICATION MODAL (SEND VIA EMAIL OR SMS)
+   * ------------------------------------------------------------------------------------------------*/
+  function SelfVerifyModal() {
+    if (!openSelfVerify) return null;
 
-  if (!open) return null;
-
-  return (
-    <AnimatePresence>
-      <motion.div
-        className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={handleClose}
-      >
+    return (
+      <AnimatePresence>
         <motion.div
-          ref={panelRef}
-          className="relative flex h-full w-full max-w-lg flex-col bg-white shadow-2xl"
-          initial={{ x: "100%" }}
-          animate={{ x: 0 }}
-          exit={{ x: "100%" }}
-          transition={{ type: "spring", stiffness: 260, damping: 30 }}
-          onClick={(e) => e.stopPropagation()}
+          className="fixed inset-0 z-[20000] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
         >
-          {/* HEADER */}
-          <div className="relative border-b border-gray-200 px-6 py-4">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 className="text-2xl font-semibold text-gray-900">
-                  Renter Search
-                </h2>
-                <p className="text-sm text-gray-500">
-                  AI-powered identity &amp; fraud screening.
-                </p>
-              </div>
-
-              {/* Desktop/Tablet Confidence */}
-              <div className="hidden flex-col items-end sm:flex">
-                <p className="text-xs font-medium text-gray-600">
-                  Confidence:{" "}
-                  <span
-                    className={
-                      confidence >= 80
-                        ? "text-green-600"
-                        : confidence >= 50
-                        ? "text-orange-500"
-                        : "text-red-600"
-                    }
-                  >
-                    {confidenceLabel}
-                  </span>{" "}
-                  <span className="text-gray-400">({confidence}%)</span>
-                </p>
-
-                <div className="mt-1 h-1.5 w-40 overflow-hidden rounded-full bg-gray-200">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${confidence}%` }}
-                    transition={{ duration: 0.4 }}
-                    className="h-full rounded-full"
-                    style={{
-                      backgroundColor:
-                        confidence >= 80
-                          ? "#16a34a"
-                          : confidence >= 50
-                          ? "#f97316"
-                          : "#dc2626",
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Mobile Confidence */}
-            <div className="mt-3 sm:hidden">
-              <p className="text-xs font-medium text-gray-600">
-                Confidence:{" "}
-                <span
-                  className={
-                    confidence >= 80
-                      ? "text-green-600"
-                      : confidence >= 50
-                      ? "text-orange-500"
-                      : "text-red-600"
-                  }
-                >
-                  {confidenceLabel}
-                </span>{" "}
-                <span className="text-gray-400">({confidence}%)</span>
-              </p>
-
-              <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${confidence}%` }}
-                  transition={{ duration: 0.4 }}
-                  className="h-full rounded-full"
-                  style={{
-                    backgroundColor:
-                      confidence >= 80
-                        ? "#16a34a"
-                        : confidence >= 50
-                        ? "#f97316"
-                        : "#dc2626",
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Close */}
+          <motion.div
+            className="relative w-full max-w-md rounded-xl bg-white p-5 sm:p-6 shadow-xl"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+          >
+            {/* CLOSE BUTTON */}
             <button
-              type="button"
-              onClick={handleClose}
-              className="absolute right-4 top-4 rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+              onClick={() => setOpenSelfVerify(false)}
+              className="absolute right-4 top-4 text-gray-500 hover:text-gray-900"
             >
               <X className="h-5 w-5" />
             </button>
-          </div>
 
-          {/* BODY */}
-          <div className="flex-1 space-y-8 overflow-y-auto px-6 py-6">
+            {/* HEADER */}
+            <h3 className="text-base sm:text-lg font-semibold">Send Verification Request</h3>
+            <p className="text-xs sm:text-sm text-gray-600 mb-4">
+              A secure identity verification link will be sent to the renter via email or SMS.
+            </p>
+
+            {/* FULL NAME */}
+            <div className="mb-3 sm:mb-4">
+              <label className="text-xs sm:text-sm font-medium">Full Name</label>
+              <input
+                value={verifyName}
+                onChange={(e) => setVerifyName(e.target.value)}
+                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              />
+            </div>
+
+            {/* EMAIL */}
+            <div className="mb-3 sm:mb-4">
+              <label className="text-xs sm:text-sm font-medium">Email</label>
+              <input
+                value={verifyEmail}
+                onChange={(e) => setVerifyEmail(e.target.value)}
+                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              />
+            </div>
+
+            {/* PHONE */}
+            <div className="mb-4">
+              <label className="text-xs sm:text-sm font-medium">Phone</label>
+              <input
+                value={verifyPhone}
+                onChange={(e) => setVerifyPhone(formatPhone(e.target.value))}
+                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              />
+            </div>
+
+            {/* SEND BUTTON */}
+            <button
+              disabled={selfVerifyLoading}
+              onClick={async () => {
+                try {
+                  setSelfVerifyLoading(true);
+
+                  const res = await fetch("/api/self-verify/send", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      searchSessionId: result?.id ?? null,
+                      renter: {
+                        fullName: verifyName,
+                        email: verifyEmail,
+                        phone: verifyPhone,
+                      },
+                    }),
+                  });
+
+                  const json = await res.json();
+                  if (!res.ok) throw new Error(json.error || "Failed to send");
+
+                  alert("Verification link sent!");
+                  setOpenSelfVerify(false);
+                } catch (err: any) {
+                  alert(err.message || "Failed to send verification.");
+                } finally {
+                  setSelfVerifyLoading(false);
+                }
+              }}
+              className="w-full bg-gray-900 text-white rounded-full py-2 text-sm font-semibold hover:bg-black disabled:opacity-50"
+            >
+              {selfVerifyLoading ? "Sending…" : "Send Verification Link"}
+            </button>
+          </motion.div>
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
+
+  /* -------------------------------------------------------------------------------------------------
+   *  MAIN RENDER — MODAL WRAPPER + HEADER + FOOTER
+   * ------------------------------------------------------------------------------------------------*/
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          className="fixed inset-0 z-[15000] bg-black/60 backdrop-blur-sm flex justify-end items-stretch"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+        >
+          {/* MAIN PANEL */}
+          <motion.div
+            ref={panelRef}
+            className="bg-white shadow-2xl h-full w-full sm:max-w-lg flex flex-col relative z-[20000]"
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", stiffness: 240, damping: 28 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* HEADER */}
+            <div className="border-b px-4 sm:px-6 py-3 sm:py-4 relative">
+              <div className="flex items-start justify-between gap-2">
+                <div className="space-y-0.5">
+                  <h2 className="text-lg sm:text-2xl font-semibold">Renter Search</h2>
+                  <p className="text-xs sm:text-sm text-gray-600">
+                    AI-powered identity & fraud screening
+                  </p>
+                </div>
+
+                {/* CONFIDENCE BADGE */}
+                <div
+                  className={`rounded-full border px-2.5 sm:px-3 py-1 text-[11px] font-medium flex items-center`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-current mr-1" />
+                  Confidence
+                </div>
+              </div>
+
+              {/* PROGRESS BAR */}
+              {isLoading && (
+                <div className="absolute left-0 right-0 bottom-0 h-0.5 bg-gray-100">
+                  <div
+                    className="h-full bg-gray-900 transition-all"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              )}
+
+              {/* CLOSE BUTTON */}
+              <button
+                onClick={onClose}
+                className="absolute right-3 sm:right-4 top-3 sm:top-4 text-gray-500 hover:text-gray-900"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* BODY CONTENT */}
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6 space-y-6 sm:space-y-8">
+              {activeStep === 1 && renderStep1()}
+              {activeStep === "multi" && renderMultiMatch()}
+              {activeStep === "noMatch" && renderNoMatch()}
+              {activeStep === 2 && renderStep2()}
+              {activeStep === 3 && renderStep3()}
+            </div>
+
+            {/* STEP 1 FOOTER CTA */}
             {activeStep === 1 && (
-              <div className="space-y-5">
-                {/* Full Name */}
-                <div className="space-y-1">
-                  <label className="flex items-center text-sm font-medium text-gray-700">
-                    <User className="mr-2 h-4 w-4" />
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="e.g., Dominique Hamilton"
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  />
-                </div>
+              <div className="border-t px-4 sm:px-6 py-3 sm:py-4 bg-white">
+                <button
+                  onClick={handleSubmit}
+                  disabled={isLoading}
+                  className="w-full rounded-full py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                  style={{ backgroundColor: BRAND_GOLD }}
+                >
+                  {isLoading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Searching… {Math.round(progress)}%
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-2">
+                      <Search className="h-4 w-4" />
+                      Start Search
+                    </span>
+                  )}
+                </button>
 
-                {/* Email */}
-                <div className="space-y-1">
-                  <label className="flex items-center text-sm font-medium text-gray-700">
-                    <Mail className="mr-2 h-4 w-4" />
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="renter@example.com"
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  />
-                </div>
-
-                {/* Phone */}
-                <div className="space-y-1">
-                  <label className="flex items-center text-sm font-medium text-gray-700">
-                    <Phone className="mr-2 h-4 w-4" />
-                    Phone
-                  </label>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(formatPhone(e.target.value))}
-                    placeholder="(555) 555-5555"
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  />
-                </div>
-
-                {/* Address autofill */}
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <label className="flex items-center text-sm font-medium text-gray-700">
-                      <MapPin className="mr-2 h-4 w-4" />
-                      Address Autofill (Mapbox)
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setUseAutofill((v) => !v);
-                        setSuggestions([]);
-                      }}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
-                        useAutofill ? "bg-gray-900" : "bg-gray-300"
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
-                          useAutofill ? "translate-x-5" : "translate-x-1"
-                        }`}
-                      />
-                    </button>
-                  </div>
-
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={useAutofill ? addrQuery : address}
-                      onChange={(e) =>
-                        useAutofill
-                          ? setAddrQuery(e.target.value)
-                          : setAddress(e.target.value)
-                      }
-                      placeholder="123 Main St"
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                    />
-
-                    {useAutofill && suggestions.length > 0 && (
-                      <div className="absolute z-20 mt-1 max-h-52 w-full overflow-auto rounded-lg border border-gray-200 bg-white shadow-lg">
-                        {suggestions.map((feature) => (
-                          <button
-                            key={feature.id}
-                            onClick={() => handleSelectSuggestion(feature)}
-                            className="w-full px-3 py-2 text-left text-xs text-gray-700 hover:bg-gray-100"
-                          >
-                            {feature.place_name}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-
-                    {useAutofill && suggestionsLoading && (
-                      <p className="mt-1 text-xs text-gray-400">
-                        Searching addresses…
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Country/State */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">
-                      Country
-                    </label>
-                    <select
-                      value={countryCode}
-                      onChange={(e) => setCountryCode(e.target.value as any)}
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                    >
-                      {COUNTRIES.map((c) => (
-                        <option key={c.code} value={c.code}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">
-                      State / Province
-                    </label>
-                    {availableStates.length ? (
-                      <select
-                        value={stateCode}
-                        onChange={(e) => setStateCode(e.target.value)}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                      >
-                        <option value="">Select</option>
-                        {availableStates.map((s) => (
-                          <option key={s} value={s}>
-                            {s}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <input
-                        type="text"
-                        value={stateCode}
-                        onChange={(e) => setStateCode(e.target.value)}
-                        placeholder="State / Region"
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                      />
-                    )}
-                  </div>
-                </div>
-
-                {/* City / Postal */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">
-                      City
-                    </label>
-                    <input
-                      type="text"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      placeholder="City"
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">
-                      Postal Code
-                    </label>
-                    <input
-                      type="text"
-                      value={postalCode}
-                      onChange={(e) => setPostalCode(e.target.value)}
-                      placeholder="ZIP / Postal"
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                    />
-                  </div>
-                </div>
-
-                {/* License */}
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">
-                    License / ID Number (optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={licenseNumber}
-                    onChange={(e) =>
-                      setLicenseNumber(e.target.value.toUpperCase())
-                    }
-                    placeholder="Driver license / ID / Passport"
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm uppercase"
-                  />
-                </div>
-
-                {/* Error */}
-                {error && (
-                  <div className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
-                    {error}
-                  </div>
-                )}
+                <p className="text-center text-[11px] sm:text-xs text-gray-600 mt-2.5">
+                  Already have an account?{" "}
+                  <a href="/login" className="underline text-gray-900">
+                    Log in
+                  </a>
+                </p>
               </div>
             )}
+          </motion.div>
 
-            {/* STEP 2 */}
-            {activeStep === 2 && renderStep2()}
-
-            {/* STEP 3 */}
-            {activeStep === 3 && renderStep3()}
-          </div>
-
-          {/* FOOTER — step 1 only */}
-          {activeStep === 1 && (
-            <div className="border-t border-gray-200 px-6 py-4">
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={!canSubmit || isLoading}
-                className={`relative flex w-full items-center justify-center rounded-full px-4 py-2.5 text-sm font-semibold text-white transition ${
-                  canSubmit && !isLoading
-                    ? "shadow-sm"
-                    : "cursor-not-allowed opacity-70"
-                }`}
-                style={{ backgroundColor: BRAND_GOLD }}
-              >
-                {isLoading && (
-                  <div className="absolute inset-0 overflow-hidden rounded-full">
-                    <div
-                      className="h-full w-full rounded-full opacity-40"
-                      style={{ backgroundColor: "#000000" }}
-                    />
-                    <div
-                      className="absolute left-0 top-0 h-full rounded-full"
-                      style={{
-                        width: `${progress}%`,
-                        backgroundColor: "#000000",
-                        opacity: 0.15,
-                        transition: "width 180ms linear",
-                      }}
-                    />
-                  </div>
-                )}
-
-                <span className="relative flex items-center">
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Searching… {Math.round(progress)}%
-                    </>
-                  ) : (
-                    <>
-                      <Search className="mr-2 h-4 w-4" />
-                      Start Search
-                    </>
-                  )}
-                </span>
-              </button>
-
-              <p className="mt-3 text-center text-xs text-gray-600">
-                Already have an account?{" "}
-                <a
-                  href="/login"
-                  className="font-medium text-gray-900 underline underline-offset-2"
-                >
-                  Log in
-                </a>
-              </p>
-            </div>
-          )}
+          {/* SELF VERIFY MODAL */}
+          {openSelfVerify && <SelfVerifyModal />}
         </motion.div>
-      </motion.div>
+      )}
     </AnimatePresence>
   );
 }

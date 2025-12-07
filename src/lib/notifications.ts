@@ -1,31 +1,14 @@
-import nodemailer from "nodemailer";
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.NOTIFY_EMAIL,
-    pass: process.env.NOTIFY_PASS,
-  },
-});
+export async function sendEmail({ to, subject, html }: { to: string, subject: string, html: string }) {
+  // In a real app, you'''d use a service like SendGrid, Postmark, or AWS SES
+  console.log(`--- SENDING EMAIL to ${to} ---`);
+  console.log(`Subject: ${subject}`);
+  return Promise.resolve();
+}
 
-export async function sendDisputeNotification({
-  to,
-  subject,
-  message,
-}: {
-  to: string;
-  subject: string;
-  message: string;
-}) {
-  try {
-    await transporter.sendMail({
-      from: `"RentFAX Notifications" <${process.env.NOTIFY_EMAIL}>`,
-      to,
-      subject,
-      html: message,
-    });
-    console.log("✅ Notification sent to", to);
-  } catch (err) {
-    console.error("❌ Failed to send email:", err);
-  }
+export async function sendSMS(to: string, body: string) {
+  // In a real app, you'''d use a service like Twilio or Vonage
+  console.log(`--- SENDING SMS to ${to} ---`);
+  console.log(`Body: ${body}`);
+  return Promise.resolve();
 }

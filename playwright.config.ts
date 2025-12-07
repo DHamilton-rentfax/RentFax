@@ -21,7 +21,6 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        executablePath: '/home/user/.cache/ms-playwright/chromium_headless_shell-1181/chrome-linux/headless_shell',
       },
     },
   ],

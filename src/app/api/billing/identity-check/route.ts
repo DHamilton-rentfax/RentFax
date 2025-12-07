@@ -1,30 +1,38 @@
-// src/app/api/billing/identity-check/route.ts
+
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { adminDb } from "@/firebase/server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2023-10-16",
+  apiVersion: "2024-06-20",
 });
 
 export async function POST(req: Request) {
-  const { renterId } = await req.json();
+  try {
+    const { renterId } = await req.json();
 
-  if (!renterId) {
-    return NextResponse.json({ error: "Missing renterId" }, { status: 400 });
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: { name: "Identity Check" },
+            unit_amount: 499,
+          },
+          quantity: 1,
+        },
+      ],
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/verify?id=${renterId}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/identity-check?renter=${renterId}`,
+      metadata: { renterId },
+    });
+
+    return NextResponse.json({ url: session.url });
+  } catch (error) {
+    console.error("IDENTITY CHECK BILLING ERROR:", error);
+    return NextResponse.json(
+      { error: "Failed to start checkout." },
+      { status: 500 }
+    );
   }
-
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    line_items: [
-      {
-        price: "identity_check_single", // lookup key
-        quantity: 1,
-      },
-    ],
-    success_url: `${process.env.BASE_URL}/verification/success?renter=${renterId}`,
-    cancel_url: `${process.env.BASE_URL}/verification/cancel`,
-  });
-
-  return NextResponse.json({ url: session.url });
 }

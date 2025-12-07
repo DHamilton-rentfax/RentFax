@@ -1,22 +1,19 @@
-import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { trackUsage } from "@/lib/billing/track-usage";
 
 export async function POST(req: Request) {
-  const body = await req.json();
-  const { matchedRenterId, userId, role, payload } = body;
+  try {
+    const body = await req.json();
+    const { companyId } = body;
 
-  const reportId = crypto.randomUUID();
+    if (companyId) {
+      await trackUsage(companyId, "fullReport");
+    }
 
-  await setDoc(doc(db, "reports", reportId), {
-    reportId,
-    renterId: matchedRenterId,
-    createdBy: userId,
-    role,
-    status: "COMPLETE",
-    ...payload,
-    createdAt: serverTimestamp(),
-  });
+    // ... existing report creation logic ...
 
-  return NextResponse.json({ reportId });
+    return NextResponse.json({ success: true });
+  } catch (e) {
+    console.error(e);
+    return NextResponse.json({ error: "Failed to create report." });
+  }
 }

@@ -2,24 +2,44 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // Tenant logo uploads
-    match /tenant-logos/{tenantId}/{fileName} {
-      allow write: if request.auth != null 
-                   && request.auth.token.companyId == tenantId;
+    function isSignedIn() {
+      return request.auth != null;
+    }
 
+    function role() {
+      return request.auth.token.role;
+    }
+
+    function isSuperAdmin() {
+      return isSignedIn() && role() == "SUPER_ADMIN";
+    }
+
+    function isRenter(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // ---------------------------------------------------
+    // INCIDENT EVIDENCE UPLOAD
+    // ---------------------------------------------------
+    match /evidence/{incidentId}/{filename} {
+      allow read: if isSuperAdmin() || isSignedIn();
+      allow write: if isSignedIn();    // companies upload
+    }
+
+    // ---------------------------------------------------
+    // RENTER VERIFY (ID + SELFIE)
+    // ---------------------------------------------------
+    match /verify/{renterId}/{filename} {
+      allow write: if isRenter(renterId);
+      allow read: if isSuperAdmin() || isRenter(renterId);
+    }
+
+    // ---------------------------------------------------
+    // PUBLIC REPORT ASSETS (AUTO GENERATED)
+    // ---------------------------------------------------
+    match /publicReports/{id}/{filename} {
       allow read: if true;
-    }
-
-    // Public renter verification uploads (secured by token)
-    match /verifications/{userId}/{fileName} {
-      allow write: if request.auth != null && request.auth.uid == userId;
-      allow read: if false; // never publicly readable
-    }
-
-    // Default block everything else
-    match /{allPaths=**} {
-      allow read: if false;
-      allow write: if false;
+      allow write: if isSuperAdmin();
     }
   }
 }

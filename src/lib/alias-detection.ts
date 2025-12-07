@@ -1,50 +1,40 @@
-import { generateIdentityHash, normalize } from './identity-hash';
+import { Firestore } from "firebase-admin/firestore";
 
-// Function to generate potential aliases
-export function generateAliases(fullName: string) {
-  const names = fullName.split(' ').map(normalize);
-  const aliases = new Set<string>();
+export async function findAliasMatches(db: Firestore, renter: any) {
+  const { fullName, email, phone } = renter;
 
-  // Basic permutations
-  for (let i = 0; i < names.length; i++) {
-    for (let j = 0; j < names.length; j++) {
-      if (i !== j) {
-        aliases.add(`${names[i]} ${names[j]}`);
-        aliases.add(`${names[j]} ${names[i]}`);
-      }
-    }
+  const queries = [];
+
+  if (fullName) {
+    queries.push(
+      db
+        .collection("renters")
+        .where("searchName", "==", fullName.toLowerCase().trim())
+        .get()
+    );
   }
 
-  // Initials
-  if (names.length > 1) {
-    const firstName = names[0];
-    const lastName = names[names.length - 1];
-    const middleNames = names.slice(1, -1);
-
-    // J. Smith
-    aliases.add(`${firstName[0]} ${lastName}`);
-
-    // John F. Smith
-    if (middleNames.length > 0) {
-      aliases.add(`${firstName} ${middleNames.map((n) => n[0]).join(' ')} ${lastName}`);
-    }
+  if (email) {
+    queries.push(
+      db.collection("renters").where("email", "==", email.toLowerCase()).get()
+    );
   }
 
-  return Array.from(aliases);
-}
-
-// Function to find potential matches based on aliases
-export async function findAliasMatches(db, renter) {
-  const aliases = generateAliases(renter.fullName);
-  const matches = [];
-
-  for (const alias of aliases) {
-    const hash = generateIdentityHash({ ...renter, fullName: alias });
-    const query = await db.collection('renters').where('identityHash', '==', hash).get();
-    if (!query.empty) {
-      matches.push(...query.docs.map((doc) => doc.data()));
-    }
+  if (phone) {
+    queries.push(
+      db.collection("renters").where("phone", "==", phone).get()
+    );
   }
 
-  return matches;
+  const results = await Promise.all(queries);
+
+  const matches: any[] = [];
+  for (const snap of results) snap.forEach((doc) => matches.push(doc.data()));
+
+  // unique
+  const unique = matches.filter(
+    (v, i, a) => a.findIndex((t) => t.id === v.id) === i
+  );
+
+  return unique;
 }

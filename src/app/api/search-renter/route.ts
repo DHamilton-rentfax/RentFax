@@ -1,44 +1,58 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { adminDb } from "@/firebase/server";
+import { generateIdentityHash } from "@/lib/identity-hash";
+import { findAliasMatches } from "@/lib/alias-detection";
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { fullName, email, phone } = body;
+    const { fullName, dob, licenseNumber, nationality, emails, phones } = body;
 
-    // Search internal renters first
-    const snap = await adminDb
+    if (!fullName) {
+      return NextResponse.json(
+        { error: "Full name is required" },
+        { status: 400 }
+      );
+    }
+
+    // 1️⃣ Generate secure identity hash
+    const identityHash = generateIdentityHash({
+      fullName,
+      dob: dob || null,
+      licenseNumber: licenseNumber || null,
+      nationality: nationality || null,
+      emails: emails || [],
+      phones: phones || [],
+    });
+
+    // 2️⃣ Query Firestore for direct match
+    const directMatchSnap = await adminDb
       .collection("renters")
-      .where("email", "==", email || "")
-      .limit(1)
+      .where("identityHash", "==", identityHash)
       .get();
 
-    let internalMatch = null;
+    const directMatches = directMatchSnap.docs.map((d) => ({
+      id: d.id,
+      ...d.data(),
+    }));
 
-    if (!snap.empty) {
-      const doc = snap.docs[0];
-      internalMatch = {
-        id: doc.id,
-        ...doc.data(),
-      };
+    // 3️⃣ Alias detection (safe)
+    let aliasMatches = [];
+    try {
+      aliasMatches = await findAliasMatches(adminDb, body);
+    } catch (err) {
+      console.warn("Alias matching failed:", err);
+      aliasMatches = [];
     }
 
     return NextResponse.json({
-      id: internalMatch?.id || null,
-      preMatchedReportId: internalMatch?.id || null,
-      identityScore: internalMatch ? 90 : 40,
-      fraudScore: internalMatch ? 10 : 30,
-      publicProfile: {
-        name: fullName,
-        email,
-        phone,
-        address: body.address,
-        licenseNumber: body.licenseNumber,
-      },
+      ok: true,
+      directMatches,
+      aliasMatches,
     });
+  } catch (error: any) {
+    console.error("SEARCH RENTER ERROR:", error);
 
-  } catch (err: any) {
-    console.error("SEARCH RENTER ERROR:", err);
     return NextResponse.json(
       { error: "Failed to search renter." },
       { status: 500 }

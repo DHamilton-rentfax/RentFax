@@ -1,66 +1,94 @@
 "use client";
 
-import LayoutWrapper from "@/components/dashboard/LayoutWrapper";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { collection, getDocs, orderBy, query, DocumentData } from "firebase/firestore";
+import { db } from "@/firebase/client";
+
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
-// Mock data for blog posts
-const blogPosts = [
-  { id: "1", title: "The Ultimate Guide to Renter Background Checks", status: "published", author: "Admin", views: 1204, date: "2023-10-20" },
-  { id: "2", title: "Understanding Your Rights as a Renter", status: "published", author: "Admin", views: 2345, date: "2023-10-15" },
-  { id: "3", title: "How to Handle a Dispute with Your Landlord", status: "draft", author: "Admin", views: 0, date: "2023-10-27" },
-  { id: "4", title: "New Feature: Introducing Real-Time Fraud Alerts", status: "published", author: "Admin", views: 850, date: "2023-10-25" },
-];
-
-export default function BlogManagerPage() {
-  return (
-    <LayoutWrapper role="superadmin">
-      <div className="p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Blog Manager</h1>
-          <Button>Create New Post</Button>
-        </div>
-        <Card>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-center">Views</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {blogPosts.map((post) => (
-                  <TableRow key={post.id}>
-                    <TableCell className="font-medium">{post.title}</TableCell>
-                    <TableCell>
-                      <Badge variant={post.status === 'published' ? 'success' : 'outline'}>
-                        {post.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-center">{post.views.toLocaleString()}</TableCell>
-                    <TableCell>{post.date}</TableCell>
-                    <TableCell className="space-x-2">
-                        <Button variant="outline" size="sm">Edit</Button>
-                        {post.status === 'draft' && <Button variant="success" size="sm">Publish</Button>}
-                        <Button variant="destructive" size="sm">Delete</Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </div>
-    </LayoutWrapper>
-  );
+interface BlogPost extends DocumentData {
+  id: string;
+  title: string;
+  slug: string;
+  published: boolean;
+  createdAt?: { seconds: number };
 }
 
-// Mock UI components for structural presentation
-const Card = ({ children }) => <div className="bg-white rounded-lg shadow">{children}</div>;
-const CardContent = ({ children }) => <div className="p-0">{children}</div>;
+export default function AdminBlogList() {
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+
+      const snap = await getDocs(
+        query(collection(db, "blogPosts"), orderBy("createdAt", "desc"))
+      );
+
+      setPosts(snap.docs.map((d) => ({ id: d.id, ...d.data() } as BlogPost)));
+      setLoading(false);
+    };
+
+    load();
+  }, []);
+
+  if (loading)
+    return (
+      <div className="flex justify-center py-20">
+        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+      </div>
+    );
+
+  return (
+    <div className="space-y-8">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Blog Posts</h1>
+        <Link href="/admin/blog/new">
+          <Button>Create New Post</Button>
+        </Link>
+      </div>
+
+      <Card className="p-6">
+        <div className="space-y-4">
+          {posts.map((post) => (
+            <div
+              key={post.id}
+              className="border-b pb-4 flex items-center justify-between"
+            >
+              <div>
+                <h2 className="font-semibold text-xl">{post.title}</h2>
+                <p className="text-gray-500 text-sm">/{post.slug}</p>
+                <p className="text-xs text-gray-400">
+                  {post.createdAt?.seconds
+                    ? new Date(post.createdAt.seconds * 1000).toLocaleDateString()
+                    : "—"}
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <Link
+                  href={`/admin/blog/${post.id}`}
+                  className="text-blue-600 hover:underline"
+                >
+                  Edit
+                </Link>
+
+                <span
+                  className={`text-sm px-2 py-1 rounded ${
+                    post.published ? "bg-green-200 text-green-800" : "bg-gray-200"
+                  }`}
+                >
+                  {post.published ? "Published" : "Draft"}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+}
