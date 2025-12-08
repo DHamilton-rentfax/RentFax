@@ -1,8 +1,9 @@
 interface Props {
   incidents: any[];
+  behavioralFlags: string[];
 }
 
-export function BehavioralInsights({ incidents }: Props) {
+export function BehavioralInsights({ incidents, behavioralFlags }: Props) {
   const positiveBehaviors =
     incidents.length === 0 ? ["No incidents reported"] : [];
   const riskSignals = incidents.map((i) => i.type);
@@ -37,6 +38,24 @@ export function BehavioralInsights({ incidents }: Props) {
             ))
           ) : (
             <li>No specific risk signals identified.</li>
+          )}
+        </ul>
+      </div>
+
+      {/* Behavioral Flags */}
+      <div className="bg-white p-6 rounded-lg shadow-md md:col-span-2">
+        <h3 className="text-lg font-semibold text-blue-700 mb-3">
+          Behavioral Flags
+        </h3>
+        <ul className="space-y-2">
+          {behavioralFlags.length > 0 ? (
+            behavioralFlags.map((item, i) => (
+              <li key={i} className="flex items-center">
+                <span className="text-blue-500 mr-2">⚑</span> {item}
+              </li>
+            ))
+          ) : (
+            <li>No behavioral flags identified.</li>
           )}
         </ul>
       </div>

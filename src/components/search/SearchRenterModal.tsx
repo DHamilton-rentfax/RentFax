@@ -3,7 +3,7 @@
 /* -------------------------------------------------------------------------------------------------
  *  IMPORTS
  * ------------------------------------------------------------------------------------------------*/
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   X,
@@ -23,11 +23,14 @@ import {
 import { useRouter } from "next/navigation";
 import type { AppUser } from "@/types/user";
 
+/* NEW RISK ENGINE IMPORTS */
+import { convertToCreditRange } from "@/lib/risk/convertScore";
+import type { RiskScoreResult } from "@/lib/risk/computeRiskScore";
+import type { ConfidenceScoreResult } from "@/lib/risk/computeConfidenceScore";
+import type { Signal } from "@/lib/risk/detectSignals";
+
 /* -------------------------------------------------------------------------------------------------
  *  TYPES
- *  Updated SearchResult includes:
- *   - unlocked: boolean (for full report access)
- *   - fullReport: full report payload returned after unlock
  * ------------------------------------------------------------------------------------------------*/
 export type SearchPayload = {
   fullName: string;
@@ -45,10 +48,16 @@ export type SearchResult = {
   id?: string;
   matchType?: "none" | "single" | "multi";
   identityScore?: number;
-  fraudScore?: number;
 
-  unlocked?: boolean;       // <-- added for full report
-  fullReport?: any;         // <-- added for full report payload
+  /* Unified risk object */
+  risk?: {
+    riskScore: RiskScoreResult;
+    confidenceScore: ConfidenceScoreResult;
+    signals: Signal[];
+  };
+
+  unlocked?: boolean;
+  fullReport?: any;
 
   publicProfile?: {
     name?: string;
@@ -74,7 +83,7 @@ export type SearchResult = {
 };
 
 /* -------------------------------------------------------------------------------------------------
- *  CONSTANTS
+ *  CONSTANTS + HELPERS
  * ------------------------------------------------------------------------------------------------*/
 const BRAND_GOLD = "#D9A334";
 
@@ -98,9 +107,6 @@ const CA_PROVINCES = [
   "AB","BC","MB","NB","NL","NS","NT","NU","ON","PE","QC","SK","YT",
 ];
 
-/* -------------------------------------------------------------------------------------------------
- *  HELPERS
- * ------------------------------------------------------------------------------------------------*/
 const formatPhone = (val: string) => {
   const digits = val.replace(/\D/g, "");
   if (!digits) return "";
@@ -113,7 +119,7 @@ const clamp = (v: number, min: number, max: number) =>
   Math.min(max, Math.max(min, v));
 
 /* -------------------------------------------------------------------------------------------------
- *  MAIN COMPONENT START
+ *  MAIN COMPONENT
  * ------------------------------------------------------------------------------------------------*/
 export default function SearchRenterModal({
   open,
@@ -129,14 +135,7 @@ export default function SearchRenterModal({
   const panelRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
 
-  /* -------------------------------------------------------------
-   * REFS
-   * -----------------------------------------------------------*/
-  const firstFieldRef = useRef<HTMLInputElement | null>(null);
-
-  /* -------------------------------------------------------------
-   * FORM STATE
-   * -----------------------------------------------------------*/
+  /* FORM STATE */
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -150,18 +149,14 @@ export default function SearchRenterModal({
   const [stateCode, setStateCode] = useState("");
   const [licenseNumber, setLicenseNumber] = useState("");
 
-  /* -------------------------------------------------------------
-   * MAPBOX AUTOFILL
-   * -----------------------------------------------------------*/
+  /* MAPBOX AUTOFILL */
   const [useAutofill, setUseAutofill] = useState(false);
   const [addrQuery, setAddrQuery] = useState("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
-  /* -------------------------------------------------------------
-   * UX STATE
-   * -----------------------------------------------------------*/
+  /* UX STATE */
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -173,25 +168,24 @@ export default function SearchRenterModal({
   const [identityLoading, setIdentityLoading] = useState(false);
   const [selfVerifyLoading, setSelfVerifyLoading] = useState(false);
 
-  /* Enterprise Unlock State */
+  /* Full Report Checkout */
   const [fullReportCheckoutLoading, setFullReportCheckoutLoading] = useState(false);
   const [isReloading, setIsReloading] = useState(false);
 
-  /* SELF-VERIFY MODAL STATE */
+  /* SELF VERIFY MODAL */
   const [openSelfVerify, setOpenSelfVerify] = useState(false);
   const [verifyName, setVerifyName] = useState("");
   const [verifyEmail, setVerifyEmail] = useState("");
   const [verifyPhone, setVerifyPhone] = useState("");
 
   /* -------------------------------------------------------------------------------------------------
-   * EFFECT: LOCK BODY SCROLL WHEN MODAL OPENS
+   * EFFECT: LOCK BODY SCROLL
    * ------------------------------------------------------------------------------------------------*/
   useEffect(() => {
     if (!open) return;
     const orig = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-
-    const id = setTimeout(() => firstFieldRef.current?.focus(), 60);
+    const id = setTimeout(() => {}, 60);
 
     return () => {
       document.body.style.overflow = orig;
@@ -200,22 +194,7 @@ export default function SearchRenterModal({
   }, [open]);
 
   /* -------------------------------------------------------------------------------------------------
-   * EFFECT: KEYBOARD HANDLING (ENTER to submit on Step 1)
-   * ------------------------------------------------------------------------------------------------*/
-  useEffect(() => {
-    if (!open) return;
-
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") return onClose();
-      if (e.key === "Enter" && activeStep === 1 && !isLoading) handleSubmit();
-    };
-
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [open, activeStep, isLoading, onClose]);
-
-  /* -------------------------------------------------------------------------------------------------
-   * EFFECT: CLOSE MODAL WHEN CLICKING OUTSIDE PANEL
+   * EFFECT: CLOSE ON OUTSIDE CLICK
    * ------------------------------------------------------------------------------------------------*/
   useEffect(() => {
     function outside(e: MouseEvent) {
@@ -229,7 +208,7 @@ export default function SearchRenterModal({
   }, [open, onClose]);
 
   /* -------------------------------------------------------------------------------------------------
-   * EFFECT: MAPBOX AUTOFILL FETCH
+   * EFFECT: MAPBOX AUTOFILL QUERY
    * ------------------------------------------------------------------------------------------------*/
   useEffect(() => {
     const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -249,159 +228,22 @@ export default function SearchRenterModal({
 
       try {
         setSuggestionsLoading(true);
-
         const res = await fetch(
           `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
             addrQuery
           )}.json?autocomplete=true&limit=5&access_token=${token}`,
           { signal: ctrl.signal }
         );
-
         const json = await res.json();
         setSuggestions(Array.isArray(json.features) ? json.features : []);
-      } catch {
-        /* Ignore abort errors */
-      } finally {
+      } catch {}
+      finally {
         setSuggestionsLoading(false);
       }
     }, 250);
 
     return () => clearTimeout(t);
   }, [addrQuery, useAutofill]);
-
-  /* -------------------------------------------------------------------------------------------------
-   * EFFECT: STRIPE CHECKOUT REDIRECT HANDLER
-   *  Detects ?session_id= and reloads renter data to show unlocked report
-   * ------------------------------------------------------------------------------------------------*/
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    const sessionId = url.searchParams.get("session_id");
-
-    if (!sessionId || !result?.id) return;
-
-    async function verifyAndReload() {
-      setIsReloading(true);
-      try {
-        // Call backend session validator
-        const status = await fetch(
-          `/api/checkout/session-status?session_id=${sessionId}`
-        ).then((r) => r.json());
-
-        if (status?.success) {
-          // Reload search result from backend with unlocked state
-          const refreshed = await fetch(
-            `/api/renters/result?id=${result.id}`
-          ).then((r) => r.json());
-
-          setResult(refreshed);
-          setActiveStep(3);
-
-          // Remove session_id from URL so it doesn’t trigger again
-          url.searchParams.delete("session_id");
-          window.history.replaceState({}, "", url.toString());
-        }
-      } catch (err) {
-        console.error("Stripe verification failed:", err);
-      } finally {
-        setIsReloading(false);
-      }
-    }
-
-    verifyAndReload();
-  }, [result?.id]);
-
-  /* -------------------------------------------------------------------------------------------------
-   * HANDLE IDENTITY CHECKOUT ($4.99)
-   * ------------------------------------------------------------------------------------------------*/
-  async function handleIdentityCheckout() {
-    try {
-      setIdentityLoading(true);
-
-      const res = await fetch("/api/checkout/identity-check", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          renterName: result?.publicProfile?.name ?? fullName,
-          renterEmail: result?.publicProfile?.email ?? email,
-          renterPhone: result?.publicProfile?.phone ?? phone,
-          searchSessionId: result?.id ?? null,
-        }),
-      });
-
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Failed to checkout");
-
-      if (json.url) window.location.href = json.url;
-    } catch (err: any) {
-      alert(err.message || "Failed to checkout.");
-    } finally {
-      setIdentityLoading(false);
-    }
-  }
-
-  /* -------------------------------------------------------------------------------------------------
-   * ENTERPRISE FULL REPORT CHECKOUT ($20)
-   * ------------------------------------------------------------------------------------------------*/
-  async function handleFullReportCheckout() {
-    try {
-      if (!result?.preMatchedReportId) {
-        alert("No report found to unlock.");
-        return;
-      }
-
-      setFullReportCheckoutLoading(true);
-
-      const res = await fetch("/api/checkout/full-report", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          reportId: result.preMatchedReportId,
-          renterName: result.publicProfile?.name ?? fullName,
-          renterEmail: result.publicProfile?.email ?? email,
-          userId: user?.uid ?? null,
-        }),
-      });
-
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Checkout failed.");
-
-      if (json.alreadyUnlocked) {
-        window.location.href = `/report/${result.preMatchedReportId}`;
-        return;
-      }
-
-      if (json.url) {
-        window.location.href = json.url;
-      } else {
-        alert("Checkout session created, but no redirect URL returned.");
-      }
-    } catch (err: any) {
-      alert(err.message || "Failed to unlock report.");
-    } finally {
-      setFullReportCheckoutLoading(false);
-    }
-  }
-
-  /* -------------------------------------------------------------------------------------------------
-   * DEFAULT SEARCH CALL
-   * ------------------------------------------------------------------------------------------------*/
-  async function defaultSearch(payload: SearchPayload): Promise<SearchResult> {
-    const res = await fetch("/api/renters/search", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...payload,
-        userId: user?.uid || null,
-      }),
-    });
-
-    const json = await res.json().catch(() => null);
-    if (!json) throw new Error("Invalid server response.");
-
-    if (!res.ok) throw new Error(json.error || "Search failed.");
-
-    return json;
-  }
 
   /* -------------------------------------------------------------------------------------------------
    * SUBMIT SEARCH
@@ -444,7 +286,6 @@ export default function SearchRenterModal({
       else setActiveStep(2);
 
     } catch (err: any) {
-      console.error(err);
       setError(err.message || "Search failed.");
     } finally {
       clearInterval(interval);
@@ -453,34 +294,40 @@ export default function SearchRenterModal({
     }
   }
 
+  /* DEFAULT SEARCH FALLBACK */
+  async function defaultSearch(payload: SearchPayload): Promise<SearchResult> {
+    const res = await fetch("/api/renters/search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...payload, userId: user?.uid || null }),
+    });
+
+    const json = await res.json().catch(() => null);
+    if (!json) throw new Error("Invalid server response.");
+    if (!res.ok) throw new Error(json.error || "Search failed.");
+
+    return json;
+  }
+
   /* -------------------------------------------------------------------------------------------------
-   * BACK BUTTON
-   * ------------------------------------------------------------------------------------------------*/
-  const goBack = () => {
-    if (activeStep === 2) return setActiveStep(1);
-    if (activeStep === 3) return setActiveStep(2);
-    if (activeStep === "multi" || activeStep === "noMatch") return setActiveStep(1);
-  };
-  /* -------------------------------------------------------------------------------------------------
-   *  STEP 1 — SEARCH FORM
+   * STEP 1 (SEARCH FORM)
    * ------------------------------------------------------------------------------------------------*/
   function renderStep1() {
     return (
       <div className="space-y-4 sm:space-y-5">
+
         {/* FULL NAME */}
         <div>
           <label className="text-xs sm:text-sm font-medium flex items-center gap-1.5">
             <User className="h-4 w-4" /> Full Name
           </label>
           <input
-            ref={firstFieldRef}
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
             placeholder="John Doe"
           />
         </div>
-
         {/* EMAIL */}
         <div>
           <label className="text-xs sm:text-sm font-medium flex items-center gap-1.5">
@@ -514,6 +361,7 @@ export default function SearchRenterModal({
           </label>
 
           <div className="mt-1 relative">
+
             {/* AUTOFILL SWITCH */}
             <div className="flex justify-end mb-1">
               <button
@@ -561,14 +409,13 @@ export default function SearchRenterModal({
               </div>
             )}
 
-            {/* LOADING STATE */}
             {useAutofill && suggestionsLoading && (
               <p className="text-[11px] text-gray-400 mt-1">Searching…</p>
             )}
           </div>
         </div>
 
-        {/* CITY + ZIP */}
+        {/* CITY + POSTAL */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div>
             <label className="text-xs sm:text-sm font-medium">City</label>
@@ -643,7 +490,7 @@ export default function SearchRenterModal({
           />
         </div>
 
-        {/* ERROR MESSAGE */}
+        {/* ERROR */}
         {error && (
           <div className="bg-red-50 border border-red-200 p-3 rounded-lg text-xs text-red-700">
             {error}
@@ -654,136 +501,7 @@ export default function SearchRenterModal({
   }
 
   /* -------------------------------------------------------------------------------------------------
-   *  MULTIPLE MATCHES FOUND
-   * ------------------------------------------------------------------------------------------------*/
-  function renderMultiMatch() {
-    if (!result?.candidates?.length) return null;
-
-    return (
-      <div className="space-y-5 sm:space-y-6">
-        {/* BACK */}
-        <button
-          onClick={goBack}
-          className="text-xs text-gray-600 hover:text-gray-900 flex items-center"
-        >
-          <ArrowLeft className="h-4 w-4 mr-1" /> Back
-        </button>
-
-        {/* HEADER */}
-        <div className="flex items-center gap-2">
-          <Users className="h-5 w-5 text-gray-700" />
-          <h2 className="font-semibold text-lg">Multiple Potential Matches</h2>
-        </div>
-
-        <p className="text-sm text-gray-600">
-          Select the correct renter profile to continue.
-        </p>
-
-        {/* MATCH LIST */}
-        <div className="space-y-3">
-          {result.candidates
-            .sort((a, b) => b.similarity - a.similarity)
-            .map((candidate) => (
-              <button
-                key={candidate.id}
-                onClick={() => {
-                  setResult({
-                    ...result,
-                    matchType: "single",
-                    identityScore: candidate.similarity,
-                    publicProfile: {
-                      name: candidate.renter.fullName,
-                      email: candidate.renter.email ?? undefined,
-                      phone: candidate.renter.phone ?? undefined,
-                      address: candidate.renter.address ?? undefined,
-                      licenseNumber: candidate.renter.licenseNumber ?? undefined,
-                    },
-                  });
-                  setActiveStep(2);
-                }}
-                className="w-full border rounded-lg p-4 text-left hover:bg-gray-50"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">
-                    {candidate.renter.fullName}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    {candidate.similarity}% match
-                  </span>
-                </div>
-
-                {/* Contact Preview */}
-                {candidate.renter.email && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    ✉ {candidate.renter.email}
-                  </p>
-                )}
-                {candidate.renter.phone && (
-                  <p className="text-xs text-gray-500">
-                    📞 {candidate.renter.phone}
-                  </p>
-                )}
-              </button>
-            ))}
-        </div>
-      </div>
-    );
-  }
-
-  /* -------------------------------------------------------------------------------------------------
-   *  NO MATCH FOUND
-   * ------------------------------------------------------------------------------------------------*/
-  function renderNoMatch() {
-    return (
-      <div className="space-y-6">
-        {/* BACK */}
-        <button
-          onClick={goBack}
-          className="text-xs text-gray-600 hover:text-gray-900 flex items-center"
-        >
-          <ArrowLeft className="h-4 w-4 mr-1" /> Back
-        </button>
-
-        <div className="flex items-center gap-3 text-amber-600">
-          <AlertTriangle className="h-6 w-6" />
-          <h2 className="text-lg font-semibold">No Matching Renter Found</h2>
-        </div>
-
-        <p className="text-sm text-gray-600">
-          The renter may simply be new to RentFAX.
-        </p>
-
-        {/* ACTION CARD */}
-        <div className="rounded-xl border p-4 bg-white shadow-sm space-y-4">
-          <p className="font-medium text-sm">Next Actions</p>
-
-          {/* SELF-VERIFY */}
-          <button
-            onClick={() => {
-              setVerifyName(fullName);
-              setVerifyEmail(email);
-              setVerifyPhone(phone);
-              setOpenSelfVerify(true);
-            }}
-            className="w-full border rounded-lg px-3 py-2 text-sm hover:bg-gray-50"
-          >
-            Request Self-Verification (Free)
-          </button>
-
-          {/* IDENTITY CHECK */}
-          <button
-            onClick={handleIdentityCheckout}
-            className="w-full border rounded-lg border-gray-900 px-3 py-2 text-sm font-semibold hover:bg-gray-900 hover:text-white"
-          >
-            Identity Check ($4.99)
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  /* -------------------------------------------------------------------------------------------------
-   *  STEP 2 — MATCH FOUND
+   * STEP 2 — MATCH FOUND (Updated to remove FRAUD SCORE)
    * ------------------------------------------------------------------------------------------------*/
   function renderStep2() {
     if (!result) return null;
@@ -793,9 +511,10 @@ export default function SearchRenterModal({
 
     return (
       <div className="space-y-6">
+
         {/* BACK */}
         <button
-          onClick={goBack}
+          onClick={() => setActiveStep(1)}
           className="text-xs text-gray-600 hover:text-gray-900 flex items-center"
         >
           <ArrowLeft className="h-4 w-4 mr-1" /> Back
@@ -803,6 +522,7 @@ export default function SearchRenterModal({
 
         {/* MATCH CARD */}
         <div className="border p-4 bg-gray-50 rounded-lg text-sm space-y-3">
+
           <div className="flex items-center justify-between">
             <p className="font-semibold">
               {hasReport ? "Internal Renter Report Found" : "Potential Match"}
@@ -810,21 +530,12 @@ export default function SearchRenterModal({
             <p className="text-[11px] text-gray-500">Step 2 of 3</p>
           </div>
 
-          {/* SCORES */}
+          {/* SCORES — only Identity Score remains here */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <p className="text-[11px] text-gray-500">Identity Score</p>
               <p className="font-semibold">
-                {result.identityScore != null
-                  ? `${result.identityScore}%`
-                  : "—"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-[11px] text-gray-500">Fraud Score</p>
-              <p className="font-semibold">
-                {result.fraudScore != null ? `${result.fraudScore}%` : "—"}
+                {result.identityScore != null ? `${result.identityScore}%` : "—"}
               </p>
             </div>
           </div>
@@ -840,7 +551,7 @@ export default function SearchRenterModal({
           </div>
         </div>
 
-        {/* INFO SECTION */}
+        {/* INFO */}
         <div className="border rounded-lg p-4 space-y-2">
           <div className="flex items-center">
             <ShieldCheck className="mr-2 h-4 w-4" />
@@ -852,19 +563,17 @@ export default function SearchRenterModal({
           </p>
         </div>
 
-        {/* IDENTITY CHECK BUTTON */}
+        {/* IDENTITY CHECK */}
         <button
           onClick={handleIdentityCheckout}
           disabled={identityLoading}
           className="w-full border border-gray-900 rounded-full px-3 py-2 text-xs font-semibold hover:bg-gray-900 hover:text-white disabled:opacity-50"
         >
-          {identityLoading && (
-            <Loader2 className="inline h-3 w-3 mr-2 animate-spin" />
-          )}
+          {identityLoading && <Loader2 className="inline h-3 w-3 mr-2 animate-spin" />}
           Identity Check ($4.99)
         </button>
 
-        {/* SELF-VERIFY BUTTON */}
+        {/* SELF VERIFY */}
         <button
           onClick={() => {
             setVerifyName(profile.name ?? fullName);
@@ -885,11 +594,13 @@ export default function SearchRenterModal({
         >
           Continue
         </button>
+
       </div>
     );
   }
+
   /* -------------------------------------------------------------------------------------------------
-   *  STEP 3 — NEXT ACTIONS (FULL REPORT UNLOCK + VERIFICATION OPTIONS)
+   * STEP 3 — RISK SCORE MODULE INSERTED HERE
    * ------------------------------------------------------------------------------------------------*/
   function renderStep3() {
     if (!result) return null;
@@ -897,28 +608,74 @@ export default function SearchRenterModal({
     const hasReport = !!result.preMatchedReportId;
     const isUnlocked = result.unlocked === true;
 
-    // If Stripe redirect is refreshing report access
+    /* Stripe reload state */
     if (isReloading) {
       return (
         <div className="flex flex-col items-center justify-center text-center py-10">
           <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
-          <p className="mt-3 text-sm text-gray-600">
-            Verifying purchase and updating report…
-          </p>
+          <p className="mt-3 text-sm text-gray-600">Verifying purchase…</p>
         </div>
       );
     }
 
     return (
       <div className="space-y-6">
+
+        {/* -------------------------------------------------------------- */}
+        {/*  ⭐ INSERTED: RENTER RISK SCORE MODULE (300–900 scale) */}
+        {/* -------------------------------------------------------------- */}
+        {result.risk?.riskScore?.score !== undefined && (
+          <div className="border rounded-lg p-4 bg-white shadow-sm space-y-3">
+            <p className="text-xs font-semibold text-gray-700">
+              Renter Risk Score
+            </p>
+
+            <div className="flex items-center justify-between">
+              <p className="text-3xl font-bold">
+                {convertToCreditRange(result.risk.riskScore.score)}
+              </p>
+
+              <div
+                className={`px-2 py-1 rounded-full text-[10px] font-medium ${
+                  result.risk.riskScore.score > 75
+                    ? "bg-green-100 text-green-800"
+                    : result.risk.riskScore.score > 50
+                    ? "bg-yellow-100 text-yellow-800"
+                    : "bg-red-100 text-red-800"
+                }`}
+              >
+                {result.risk.riskScore.score > 75
+                  ? "Low Risk"
+                  : result.risk.riskScore.score > 50
+                  ? "Moderate Risk"
+                  : "High Risk"}
+              </div>
+            </div>
+
+            {/* Confidence Score */}
+            {result.risk?.confidenceScore?.score !== undefined && (
+              <div className="border-t pt-3">
+                <p className="text-xs font-semibold text-gray-700">
+                  Confidence Score
+                </p>
+                <p className="text-md font-medium text-gray-900">
+                  {convertToCreditRange(result.risk.confidenceScore.score)}
+                </p>
+                <p className="text-[11px] text-gray-600">
+                  Based on identity verification, patterns & behavioral signals.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* BACK */}
         <button
-          onClick={goBack}
+          onClick={() => setActiveStep(2)}
           className="text-xs text-gray-600 hover:text-gray-900 flex items-center"
         >
           <ArrowLeft className="h-4 w-4 mr-1" /> Back
         </button>
-
         {/* INFO CARD */}
         <div className="border bg-gray-50 rounded-lg p-4 text-sm space-y-2">
           <div className="flex items-center justify-between">
@@ -926,88 +683,94 @@ export default function SearchRenterModal({
             <p className="text-[11px] text-gray-500">Step 3 of 3</p>
           </div>
 
-          {/* NO REPORT EXISTS */}
           {!hasReport && (
             <p className="text-xs text-gray-600">
-              No internal RentFAX reports exist yet.  
+              No internal RentFAX report exists yet.  
               You can verify the renter’s identity or send a self-verification request.
             </p>
           )}
 
-          {/* REPORT EXISTS BUT NOT UNLOCKED */}
           {hasReport && !isUnlocked && (
             <p className="text-xs text-gray-600">
-              This renter already has a RentFAX incident history.  
-              Unlock the full report for complete details:  
-              disputes, fraud indicators, payments, AI summary, and incident timeline.
+              This renter has a RentFAX history.  
+              Unlock the full report to view incidents, disputes, payments, and AI insights.
             </p>
           )}
 
-          {/* ALREADY UNLOCKED */}
           {hasReport && isUnlocked && (
             <p className="text-xs text-gray-600">
               Full report unlocked!  
-              You now have access to the complete incident timeline and all risk data.
+              View incident timeline and risk analytics.
             </p>
           )}
         </div>
 
-        {/* ACTIONS */}
-        {!hasReport ? (
-          <>
-            {/* IDENTITY CHECK */}
-            <button
-              onClick={handleIdentityCheckout}
-              disabled={identityLoading}
-              className="w-full rounded-full border border-gray-900 px-3 py-2 text-xs font-semibold hover:bg-gray-900 hover:text-white disabled:opacity-50"
-            >
-              {identityLoading && <Loader2 className="inline h-3 w-3 mr-2 animate-spin" />}
-              Identity Check ($4.99)
-            </button>
+        {/* ACTION BUTTONS */}
+          {!hasReport ? (
+        <>
+          {/* IDENTITY CHECK */}
+          <button
+            onClick={handleIdentityCheckout}
+            disabled={identityLoading}
+            className="w-full rounded-full border border-gray-900 px-3 py-2 text-xs font-semibold hover:bg-gray-900 hover:text-white disabled:opacity-50"
+          >
+            {identityLoading && (
+              <Loader2 className="inline h-3 w-3 mr-2 animate-spin" />
+            )}
+            Identity Check ($4.99)
+          </button>
 
-            {/* SELF VERIFY */}
-            <button
-              onClick={() => {
-                setVerifyName(result?.publicProfile?.name ?? fullName);
-                setVerifyEmail(result?.publicProfile?.email ?? email);
-                setVerifyPhone(result?.publicProfile?.phone ?? phone);
-                setOpenSelfVerify(true);
-              }}
-              className="w-full rounded-full border border-gray-300 px-3 py-2 text-xs font-semibold hover:bg-gray-100"
-            >
-              Send Self-Verification
-            </button>
-          </>
-        ) : !isUnlocked ? (
-          <>
-            {/* FULL REPORT UNLOCK */}
-            <button
-              onClick={handleFullReportCheckout}
-              disabled={fullReportCheckoutLoading}
-              className="w-full rounded-full bg-gray-900 text-white px-3 py-2 text-xs font-semibold hover:bg-black disabled:opacity-50"
-            >
-              {fullReportCheckoutLoading && (
-                <Loader2 className="inline h-3 w-3 mr-2 animate-spin" />
-              )}
-              Unlock Full Report ($20)
-            </button>
+    {/* SELF VERIFY */}
+        <button
+      onClick={() => {
+        setVerifyName(result?.publicProfile?.name ?? fullName);
+        setVerifyEmail(result?.publicProfile?.email ?? email);
+        setVerifyPhone(result?.publicProfile?.phone ?? phone);
+        setOpenSelfVerify(true);
+      }}
+      className="w-full rounded-full border border-gray-300 px-3 py-2 text-xs font-semibold hover:bg-gray-100"
+    >
+      Send Self-Verification
+    </button>
+  </>
+) : !isUnlocked ? (
+  <>
+    {/* FULL REPORT UNLOCK */}
+    <button
+      onClick={handleFullReportCheckout}
+      disabled={fullReportCheckoutLoading}
+      className="w-full rounded-full bg-gray-900 text-white px-3 py-2 text-xs font-semibold hover:bg-black disabled:opacity-50"
+    >
+      {fullReportCheckoutLoading && (
+        <Loader2 className="inline h-3 w-3 mr-2 animate-spin" />
+      )}
+      Unlock Full Report ($20)
+    </button>
 
-            <p className="text-[11px] text-center text-gray-500">
-              Includes incident timeline, disputes, fraud indicators, unpaid balances,  
-              AI risk summary, rental history, and full profile data.
-            </p>
-          </>
-        ) : (
-          <>d
-            {/* VIEW UNLOCKED REPORT */}
-            <button
-              onClick={() => router.push(`/report/${result.preMatchedReportId}`)}
-              className="w-full rounded-full bg-green-600 text-white px-3 py-2 text-xs font-semibold hover:bg-green-700"
-              >
-              View Full Report
-            </button>
-          </>
-        )}
+    <p className="text-[11px] text-center text-gray-500">
+      Includes incidents, disputes, balances owed, and AI-powered summary.
+    </p>
+  </>
+) : (
+  <>
+    {/* VIEW REPORT */}
+    <button
+      onClick={() => router.push(`/report/${result.preMatchedReportId}`)}
+      className="w-full rounded-full bg-green-600 text-white px-3 py-2 text-xs font-semibold hover:bg-green-700"
+    >
+      View Full Report
+    </button>
+  </>
+)}
+
+/* ⭐ SAMPLE REPORT MUST BE OUTSIDE OF ALL CONDITION BLOCKS */
+<button
+  onClick={() => router.push("/report/sample")}
+  className="w-full rounded-full border border-gray-300 px-3 py-2 text-xs font-semibold hover:bg-gray-100 mt-2"
+>
+  View Sample Report (Demo)
+</button>
+
 
         {/* CLOSE */}
         <button
@@ -1021,7 +784,7 @@ export default function SearchRenterModal({
   }
 
   /* -------------------------------------------------------------------------------------------------
-   *  SELF-VERIFICATION MODAL (SEND VIA EMAIL OR SMS)
+   * SELF-VERIFICATION MODAL
    * ------------------------------------------------------------------------------------------------*/
   function SelfVerifyModal() {
     if (!openSelfVerify) return null;
@@ -1035,12 +798,12 @@ export default function SearchRenterModal({
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="relative w-full max-w-md rounded-xl bg-white p-5 sm:p-6 shadow-xl"
+            className="relative w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
           >
-            {/* CLOSE BUTTON */}
+            {/* CLOSE */}
             <button
               onClick={() => setOpenSelfVerify(false)}
               className="absolute right-4 top-4 text-gray-500 hover:text-gray-900"
@@ -1048,15 +811,14 @@ export default function SearchRenterModal({
               <X className="h-5 w-5" />
             </button>
 
-            {/* HEADER */}
-            <h3 className="text-base sm:text-lg font-semibold">Send Verification Request</h3>
-            <p className="text-xs sm:text-sm text-gray-600 mb-4">
-              A secure identity verification link will be sent to the renter via email or SMS.
+            <h3 className="text-lg font-semibold">Send Verification Request</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              A secure verification link will be sent via email or SMS.
             </p>
 
-            {/* FULL NAME */}
-            <div className="mb-3 sm:mb-4">
-              <label className="text-xs sm:text-sm font-medium">Full Name</label>
+            {/* NAME */}
+            <div className="mb-3">
+              <label className="text-xs font-medium">Full Name</label>
               <input
                 value={verifyName}
                 onChange={(e) => setVerifyName(e.target.value)}
@@ -1065,8 +827,8 @@ export default function SearchRenterModal({
             </div>
 
             {/* EMAIL */}
-            <div className="mb-3 sm:mb-4">
-              <label className="text-xs sm:text-sm font-medium">Email</label>
+            <div className="mb-3">
+              <label className="text-xs font-medium">Email</label>
               <input
                 value={verifyEmail}
                 onChange={(e) => setVerifyEmail(e.target.value)}
@@ -1076,7 +838,7 @@ export default function SearchRenterModal({
 
             {/* PHONE */}
             <div className="mb-4">
-              <label className="text-xs sm:text-sm font-medium">Phone</label>
+              <label className="text-xs font-medium">Phone</label>
               <input
                 value={verifyPhone}
                 onChange={(e) => setVerifyPhone(formatPhone(e.target.value))}
@@ -1084,7 +846,7 @@ export default function SearchRenterModal({
               />
             </div>
 
-            {/* SEND BUTTON */}
+            {/* SEND */}
             <button
               disabled={selfVerifyLoading}
               onClick={async () => {
@@ -1126,19 +888,18 @@ export default function SearchRenterModal({
   }
 
   /* -------------------------------------------------------------------------------------------------
-   *  MAIN RENDER — MODAL WRAPPER + HEADER + FOOTER
+   * MAIN MODAL WRAPPER
    * ------------------------------------------------------------------------------------------------*/
   return (
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[15000] bg-black/60 backdrop-blur-sm flex justify-end items-stretch"
+          className="fixed inset-0 z-[15000] bg-black/60 backdrop-blur-sm flex justify-end"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
         >
-          {/* MAIN PANEL */}
           <motion.div
             ref={panelRef}
             className="bg-white shadow-2xl h-full w-full sm:max-w-lg flex flex-col relative z-[20000]"
@@ -1149,19 +910,17 @@ export default function SearchRenterModal({
             onClick={(e) => e.stopPropagation()}
           >
             {/* HEADER */}
-            <div className="border-b px-4 sm:px-6 py-3 sm:py-4 relative">
+            <div className="border-b px-4 sm:px-6 py-4 relative">
               <div className="flex items-start justify-between gap-2">
-                <div className="space-y-0.5">
-                  <h2 className="text-lg sm:text-2xl font-semibold">Renter Search</h2>
-                  <p className="text-xs sm:text-sm text-gray-600">
-                    AI-powered identity & fraud screening
+                <div>
+                  <h2 className="text-2xl font-semibold">Renter Search</h2>
+                  <p className="text-sm text-gray-600">
+                    AI-powered identity & risk screening
                   </p>
                 </div>
 
                 {/* CONFIDENCE BADGE */}
-                <div
-                  className={`rounded-full border px-2.5 sm:px-3 py-1 text-[11px] font-medium flex items-center`}
-                >
+                <div className="rounded-full border px-3 py-1 text-[11px] font-medium flex items-center">
                   <span className="w-1.5 h-1.5 rounded-full bg-current mr-1" />
                   Confidence
                 </div>
@@ -1177,17 +936,17 @@ export default function SearchRenterModal({
                 </div>
               )}
 
-              {/* CLOSE BUTTON */}
+              {/* CLOSE */}
               <button
                 onClick={onClose}
-                className="absolute right-3 sm:right-4 top-3 sm:top-4 text-gray-500 hover:text-gray-900"
+                className="absolute right-4 top-4 text-gray-500 hover:text-gray-900"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            {/* BODY CONTENT */}
-            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6 space-y-6 sm:space-y-8">
+            {/* BODY */}
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-8">
               {activeStep === 1 && renderStep1()}
               {activeStep === "multi" && renderMultiMatch()}
               {activeStep === "noMatch" && renderNoMatch()}
@@ -1195,9 +954,9 @@ export default function SearchRenterModal({
               {activeStep === 3 && renderStep3()}
             </div>
 
-            {/* STEP 1 FOOTER CTA */}
+            {/* FOOTER: Step 1 CTA */}
             {activeStep === 1 && (
-              <div className="border-t px-4 sm:px-6 py-3 sm:py-4 bg-white">
+              <div className="border-t px-4 sm:px-6 py-4 bg-white">
                 <button
                   onClick={handleSubmit}
                   disabled={isLoading}
@@ -1217,7 +976,7 @@ export default function SearchRenterModal({
                   )}
                 </button>
 
-                <p className="text-center text-[11px] sm:text-xs text-gray-600 mt-2.5">
+                <p className="text-center text-xs text-gray-600 mt-2.5">
                   Already have an account?{" "}
                   <a href="/login" className="underline text-gray-900">
                     Log in

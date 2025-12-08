@@ -1,6 +1,41 @@
 {
   "firestore": {
-    "rules": "firestore.rules"
+    "rules": "firestore.rules",
+    "indexes": [
+      {
+        "collectionGroup": "incidents",
+        "queryScope": "COLLECTION",
+        "fields": [
+          { "fieldPath": "renterId", "mode": "ASCENDING" },
+          { "fieldPath": "createdAt", "mode": "DESCENDING" }
+        ]
+      },
+      {
+        "collectionGroup": "disputes",
+        "queryScope": "COLLECTION",
+        "fields": [
+          { "fieldPath": "renterId", "mode": "ASCENDING" },
+          { "fieldPath": "status", "mode": "ASCENDING" },
+          { "fieldPath": "createdAt", "mode": "DESCENDING" }
+        ]
+      },
+      {
+        "collectionGroup": "reports",
+        "queryScope": "COLLECTION",
+        "fields": [
+          { "fieldPath": "renterId", "mode": "ASCENDING" },
+          { "fieldPath": "createdAt", "mode": "DESCENDING" }
+        ]
+      },
+      {
+        "collectionGroup": "searchLogs",
+        "queryScope": "COLLECTION",
+        "fields": [
+          { "fieldPath": "userId", "mode": "ASCENDING" },
+          { "fieldPath": "createdAt", "mode": "DESCENDING" }
+        ]
+      }
+    ]
   },
   "storage": {
     "rules": "storage.rules"

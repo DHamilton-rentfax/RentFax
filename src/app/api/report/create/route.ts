@@ -1,2 +1,26 @@
-import { NextResponse } from \"next/server\";\nimport { db } from \"@/firebase/server\";\nimport { collection, addDoc, Timestamp } from \"firebase/firestore\";\n\n// Function to get the base URL for API calls\nfunction getBaseUrl(req: Request) {\n  const proto = req.headers.get(\"x-forwarded-proto\") || \"http\";\n  const host = req.headers.get(\"host\");\n  return `${proto}://${host}`;
-}\n\nexport async function POST(req: Request) {\n  try {\n    const body = await req.json();\n    const { name, email, phone, address, license, createdBy, country } = body;\n\n    // Define the base URL for internal API calls\n    const baseUrl = getBaseUrl(req);\n\n    // Call verification APIs concurrently\n    const [emailRes, phoneRes, addressRes] = await Promise.all([\n      fetch(`${baseUrl}/api/verify/email?email=${encodeURIComponent(email)}`),\n      phone ? fetch(`${baseUrl}/api/verify/phone?phone=${encodeURIComponent(phone)}`) : Promise.resolve(null),\n      address ? fetch(`${baseUrl}/api/verify/address?address=${encodeURIComponent(address)}`) : Promise.resolve(null),\n    ]);\n\n    const emailData = await emailRes.json();\n    const phoneData = phoneRes ? await phoneRes.json() : null;\n    const addressData = addressRes ? await addressRes.json() : null;\n\n    // Calculate Trust Score\n    let trustScore = 0;\n    if (emailData?.deliverable) trustScore += 40;\n    if (phoneData?.lineType === 'mobile') trustScore += 30;\n    if (addressData?.valid) trustScore += 30;\n    \n    // Structure verification data\n    const verification = {\n      email: emailData,\n      phone: phoneData,\n      address: addressData,\n    };\n\n    // Add new renter report to Firestore with enriched data\n    const docRef = await addDoc(collection(db, \"renterReports\"), {\n      name,\n      email,\n      phone,\n      address,\n      license,\n      country,\n      createdBy,\n      verified: false,\n      status: \"draft\",\n      createdAt: Timestamp.now(),\n      trustScore, // Add the calculated trust score\n      verification, // Add the detailed verification results\n    });\n\n    return NextResponse.json({ success: true, renterId: docRef.id });\n  } catch (err) {\n    console.error(\"Failed to create renter report:\", err);\n    return NextResponse.json({ error: \"Failed to create report\" }, { status: 500 });\n  }\n}\n
+import { NextRequest, NextResponse } from "next/server";
+import { adminDb } from "@/firebase/server";
+import { buildFullRiskProfile } from "@/lib/risk/buildFullRiskProfile";
+
+export async function POST(req: NextRequest) {
+  const body = await req.json();
+  const { renterId, createdBy, incidentData } = body;
+
+  const renterSnap = await adminDb.collection("renters").doc(renterId).get();
+  if (!renterSnap.exists) return NextResponse.json({ error: "Renter not found" }, { status: 404 });
+
+  const profile = renterSnap.data();
+  const risk = await buildFullRiskProfile(profile);
+
+  const reportRef = adminDb.collection("reports").doc();
+
+  await reportRef.set({
+    renterId,
+    createdBy,
+    incidentData,
+    riskSnapshot: risk,
+    createdAt: Date.now(),
+  });
+
+  return NextResponse.json({ id: reportRef.id, riskSnapshot: risk });
+}

@@ -1,14 +1,29 @@
+// src/app/api/renters/search/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/firebase/server";
-import { v4 as uuid } from "uuid";
 
-/* -------------------------------------------------------------------------------------------------
- * POST — Perform renter search & persist search session
- * ------------------------------------------------------------------------------------------------*/
+/* ------------------ RISK ENGINE IMPORTS ------------------ */
+import { computeRiskScore } from "@/lib/risk/computeRiskScore";
+import { computeConfidenceScore } from "@/lib/risk/computeConfidenceScore";
+import { detectSignals } from "@/lib/risk/detectSignals";
+
+/* ------------------ TYPE ------------------ */
+type SearchPayload = {
+  fullName: string;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  city?: string | null;
+  postalCode?: string | null;
+  country?: string | null;
+  state?: string | null;
+  licenseNumber?: string | null;
+};
+
+/* ------------------ ROUTE HANDLER ------------------ */
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-
+    const body: SearchPayload = await req.json();
     const {
       fullName,
       email,
@@ -19,131 +34,146 @@ export async function POST(req: NextRequest) {
       country,
       state,
       licenseNumber,
-      userId,
-      companyId,
     } = body;
 
-    if (!fullName && !email && !phone) {
+    /* -------------------------------------------------------
+     *  1. INPUT VALIDATION
+     * ------------------------------------------------------ */
+    if (!fullName || fullName.trim().length < 2) {
       return NextResponse.json(
-        { error: "Missing minimum search input" },
+        { error: "Full name is required." },
         { status: 400 }
       );
     }
 
-    /* ---------------------------------------------------------------------------------------------
-     * 1. Perform actual renter search logic
-     *    (Replace this section with your real matching logic)
-     * --------------------------------------------------------------------------------------------*/
-    let match: any = null;
-    let matchType: "none" | "single" | "multi" = "none";
-    let candidates: any[] = [];
-    let matchedReportId: string | null = null;
+    /* -------------------------------------------------------
+     *  2. ATTEMPT TO LOCATE MATCHED RENTER PROFILE
+     * ------------------------------------------------------ */
+    let matchedDoc: FirebaseFirestore.DocumentSnapshot | null = null;
 
-    // Example logic – replace with your real matching implementation
-    const rentersRef = adminDb.collection("renters");
-    const snapshot = await rentersRef
-      .where("fullName", "==", fullName)
+    const col = adminDb.collection("renters");
+    const query = await col
+      .where("fullName_lower", "==", fullName.toLowerCase().trim())
+      .limit(5)
       .get();
 
-    if (!snapshot.empty) {
-      matchType = "single";
-      const renterDoc = snapshot.docs[0];
-      match = renterDoc.data();
-      matchedReportId = match.reportId || null;
+    if (!query.empty) {
+      matchedDoc = query.docs[0];
     }
 
-    // TODO: Extend your matching logic for multi-match or fuzzy search if needed.
+    /* -------------------------------------------------------
+     *  CASE A — NO MATCH
+     * ------------------------------------------------------ */
+    if (!matchedDoc) {
+      return NextResponse.json({
+        matchType: "none",
+        id: null,
+        risk: null,
+      });
+    }
 
-    /* ---------------------------------------------------------------------------------------------
-     * 2. Build the search result payload (frontend UI expects this shape)
-     * --------------------------------------------------------------------------------------------*/
-    const resultPayload = {
-      id: null as string | null,
-      matchType,
-      identityScore: 75, // Placeholder — your AI scoring logic may go here
-      fraudScore: 20,    // Placeholder
+    const renterId = matchedDoc.id;
+    const renterData = matchedDoc.data() || {};
+
+    /* -------------------------------------------------------
+     *  3. GATHER INCIDENT HISTORY, DISPUTES, PAYMENTS
+     * ------------------------------------------------------ */
+    const incidentsSnap = await adminDb
+      .collection("incidents")
+      .where("renterId", "==", renterId)
+      .get();
+
+    const disputesSnap = await adminDb
+      .collection("disputes")
+      .where("renterId", "==", renterId)
+      .get();
+
+    const incidents = incidentsSnap.docs.map((d) => ({
+      id: d.id,
+      ...d.data(),
+    }));
+
+    const disputes = disputesSnap.docs.map((d) => ({
+      id: d.id,
+      ...d.data(),
+    }));
+
+    /* -------------------------------------------------------
+     *  4. DETECT SIGNALS
+     * ------------------------------------------------------ */
+    const signals = detectSignals({
+      renter: renterData,
+      incidents,
+      disputes,
+      payload: body,
+    });
+
+    /* -------------------------------------------------------
+     *  5. COMPUTE RISK SCORE (0–100, UI renders 300–900)
+     * ------------------------------------------------------ */
+    const riskScore = computeRiskScore({
+      renter: renterData,
+      incidents,
+      disputes,
+      signals,
+    });
+
+    /* -------------------------------------------------------
+     *  6. COMPUTE CONFIDENCE SCORE (accuracy of match)
+     * ------------------------------------------------------ */
+    const confidenceScore = computeConfidenceScore({
+      renter: renterData,
+      payload: body,
+      signals,
+    });
+
+    /* -------------------------------------------------------
+     *  7. FIND LINKed FULL REPORT (if exists)
+     * ------------------------------------------------------ */
+    let preMatchedReportId: string | null = null;
+
+    const reportSnap = await adminDb
+      .collection("reports")
+      .where("renterId", "==", renterId)
+      .limit(1)
+      .get();
+
+    if (!reportSnap.empty) {
+      preMatchedReportId = reportSnap.docs[0].id;
+    }
+
+    /* -------------------------------------------------------
+     *  8. RESPONSE — UNIFIED RESULT
+     * ------------------------------------------------------ */
+    return NextResponse.json({
+      id: renterId,
+      matchType: "single",
+
+      /* Identity similarity placeholder — your existing logic can replace this */
+      identityScore: 92,
+
+      /* Unified Risk Object */
+      risk: {
+        riskScore,
+        confidenceScore,
+        signals,
+      },
+
+      publicProfile: {
+        name: renterData.fullName ?? renterData.name,
+        email: renterData.email ?? null,
+        phone: renterData.phone ?? null,
+        address: renterData.address ?? null,
+        licenseNumber: renterData.licenseNumber ?? null,
+      },
+
+      preMatchedReportId,
       unlocked: false,
-      fullReport: null,
-
-      publicProfile: match
-        ? {
-            name: match.fullName || null,
-            email: match.email || null,
-            phone: match.phone || null,
-            address: match.address || null,
-            licenseNumber: match.licenseNumber || null,
-          }
-        : null,
-
-      candidates,
-      preMatchedReportId: matchedReportId,
-    };
-
-    /* ---------------------------------------------------------------------------------------------
-     * 3. Save a search session so the UI can later reload unlock state
-     * --------------------------------------------------------------------------------------------*/
-    const searchSessionId = uuid();
-
-    await adminDb.collection("searchSessions").doc(searchSessionId).set({
-      searchSessionId,
-      input: {
-        fullName,
-        email,
-        phone,
-        address,
-        city,
-        postalCode,
-        country,
-        state,
-        licenseNumber,
-      },
-      result: resultPayload,
-      matchedReportId,
-      userId: userId || null,
-      companyId: companyId || null,
-      createdAt: Date.now(),
     });
-
-    /* ---------------------------------------------------------------------------------------------
-     * 4. Log the search event for auditing & compliance
-     * --------------------------------------------------------------------------------------------*/
-    await adminDb.collection("searchAudit").add({
-      searchSessionId,
-      userId: userId || null,
-      companyId: companyId || null,
-      input: {
-        fullName,
-        email,
-        phone,
-        address,
-        city,
-        postalCode,
-        country,
-        state,
-        licenseNumber,
-      },
-      matchType,
-      matchedReportId,
-      identityScore: resultPayload.identityScore,
-      fraudScore: resultPayload.fraudScore,
-      timestamp: Date.now(),
-    });
-
-    /* Attach session ID to result */
-    const finalResponse = {
-      ...resultPayload,
-      id: searchSessionId,
-    };
-
-    /* ---------------------------------------------------------------------------------------------
-     * 5. Return the structured response to frontend
-     * --------------------------------------------------------------------------------------------*/
-    return NextResponse.json(finalResponse);
-
   } catch (err: any) {
     console.error("Search error:", err);
     return NextResponse.json(
-      { error: err.message || "Search failed" },
+      { error: err.message || "Server error." },
       { status: 500 }
     );
   }

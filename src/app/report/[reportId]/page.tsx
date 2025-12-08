@@ -44,7 +44,7 @@ export default async function ReportPage({
       <div className="space-y-12">
         <RenterSummary renter={renter} />
         <RiskScore incidents={incidents} disputes={disputes} />
-        <BehavioralInsights incidents={incidents} />
+        <BehavioralInsights incidents={incidents} behavioralFlags={renter.behavioralFlags} />
         <FraudSignals renter={renter} />
         <IncidentTimeline incidents={incidents} />
         <Attachments incidents={incidents} />

@@ -1,4 +1,4 @@
-/** @type {import('next').NextConfig} */
+f/** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
 
@@ -13,6 +13,21 @@ const nextConfig = {
     config.module.rules.push({
       test: /\.wasm$/,
       type: "webassembly/async",
+    });
+
+    // Add a rule to handle .ttf files
+    config.module.rules.push({
+      test: /\.ttf$/,
+      use: [
+        {
+          loader: 'file-loader',
+          options: {
+            name: '[name].[ext]',
+            outputPath: 'static/fonts/',
+            publicPath: '/_next/static/fonts/',
+          },
+        },
+      ],
     });
 
     // Fix for optional imports (helps Firebase & Next 15)
