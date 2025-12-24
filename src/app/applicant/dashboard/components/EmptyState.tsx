@@ -1,0 +1,1 @@
+export default function EmptyState({ text }: { text: string }) {\n return (\n  <div className="border border-dashed rounded-lg p-6 text-center text-gray-400">\n   { text }\n  </div>\n )\n}\n

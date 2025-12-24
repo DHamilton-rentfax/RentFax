@@ -1,45 +1,86 @@
-# Node modules
+# =====================================================
+# Dependencies
+# =====================================================
 node_modules/
+.pnp/
+.pnp.js
 
-# Build output
+# =====================================================
+# Next.js
+# =====================================================
 .next/
 out/
 dist/
 build/
 
-# Firebase
-.firebase/
-functions/lib/
-functions/node_modules/
-
-# Logs and debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-*.log
-
-# Environment variables
-.env
-.env.local
-.env.development
-.env.production
-.env.staging
-
-# Test output
+# =====================================================
+# Testing & Reports
+# =====================================================
 coverage/
 playwright-report/
 test-results/
+e2e-report/
 
-# IDE settings
+# =====================================================
+# Logs
+# =====================================================
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+logs/
+*.log
+
+# =====================================================
+# Environment Variables (NEVER COMMIT)
+# =====================================================
+.env
+.env.*
+!.env.example
+!.env.local.example
+
+# =====================================================
+# Firebase / Secrets (CRITICAL)
+# =====================================================
+service-account.json
+**/service-account.json
+firebase-debug.log
+.firebaserc
+firebase.json.bak
+
+# =====================================================
+# Local Tooling & Editors
+# =====================================================
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# Turbo / monorepo caches
-.turbo/
-.cache/
-
-# Misc
+# =====================================================
+# OS / System
+# =====================================================
 .DS_Store
 Thumbs.db
+*.pem
+
+# =====================================================
+# TypeScript / Build Cache
+# =====================================================
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+
+# =====================================================
+# Temporary / Disabled Folders
+# =====================================================
+app__disabled/
+__old__/
+__archive__/
+*_DISABLED/
+*.bak
+
+# =====================================================
+# Misc
+# =====================================================
+.cache/
+.tmp/
+.temp/

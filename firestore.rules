@@ -2,154 +2,83 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --------------------------------------------------------------------
-    // HELPERS
-    // --------------------------------------------------------------------
+    function isAuthed() { return request.auth != null; }
 
-    function isSignedIn() {
-      return request.auth != null;
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
-    function role() {
-      return request.auth.token.role;
+    function userOrgId() { return userDoc().orgId; }
+
+    function userRole() { return userDoc().role; }
+
+    function isOrgStaff() {
+      return userRole() in ["OWNER", "ADMIN", "MANAGER"];
     }
 
-    function isSuperAdmin() {
-      return isSignedIn() && role() == "SUPER_ADMIN";
+    function entitlementIdFor(renterId) {
+      return userOrgId() + "_" + renterId;
     }
 
-    function isCompanyOrLandlord() {
-      return isSignedIn() &&
-        (role() == "COMPANY" || role() == "LANDLORD");
+    function hasActiveEntitlement(renterId) {
+      return exists(/databases/$(database)/documents/entitlements/$(entitlementIdFor(renterId)))
+        && get(/databases/$(database)/documents/entitlements/$(entitlementIdFor(renterId))).data.status == "active";
     }
 
-    function isLegal() {
-      return isSignedIn() && role() == "LEGAL";
+    // --- ENTITLEMENTS ---
+    match /entitlements/{entId} {
+      // Server only writes
+      allow create, update, delete: if false;
+
+      // Org can read its own entitlements (we store orgId as a field)
+      allow read: if isAuthed() && isOrgStaff() && resource.data.orgId == userOrgId();
     }
 
-    function isRenter(uid) {
-      return isSignedIn() && request.auth.uid == uid;
+    // --- REPORTS ---
+    match /reports/{reportId} {
+      // Server only writes
+      allow create, update, delete: if false;
+
+      // Read policy:
+      // 1) you can read your own org's reports
+      // 2) OR you can read reports for this renter if you have an active entitlement
+      allow read: if isAuthed()
+        && isOrgStaff()
+        && (
+          resource.data.orgId == userOrgId()
+          || hasActiveEntitlement(resource.data.renterId)
+        );
     }
 
-    // --------------------------------------------------------------------
-    // COMPANIES
-    // --------------------------------------------------------------------
-    match /companies/{companyId} {
-      allow read: if isSuperAdmin() || isCompanyOrLandlord() && request.auth.uid == companyId;
-      allow write: if isSuperAdmin();
+    // --- ACCESS LOGS ---
+    match /accessLogs/{logId} {
+      allow create, update, delete: if false;
+      allow read: if isAuthed() && isOrgStaff() && resource.data.orgId == userOrgId();
     }
 
-    // --------------------------------------------------------------------
-    // RENTER PROFILES
-    // --------------------------------------------------------------------
+    // --- RENTERS ---
     match /renters/{renterId} {
-      allow read: if
-        isSuperAdmin() ||
-        isRenter(renterId) ||
-        isCompanyOrLandlord();
-
-      // Renters may update their own profile (BUT ONLY LIMITED FIELDS)
-      allow update: if isRenter(renterId)
-        && request.resource.data.diff(resource.data).changedKeys()
-          .hasOnly(["verified", "identityStatus", "selfieUrl", "idFrontUrl", "idBackUrl"]);
-
-      // Companies/Landlords cannot modify renter identity or core info
-      allow update: if isCompanyOrLandlord()
-        && request.resource.data.diff(resource.data).changedKeys()
-          .hasOnly(["internalNotes", "alert", "alertReasons"]);
-
-      allow delete: if false;
-    }
-
-    // --------------------------------------------------------------------
-    // RENTER TIMELINE (INCIDENTS + DISPUTES)
-    // --------------------------------------------------------------------
-    match /renters/{renterId}/timeline/{eventId} {
-      allow read: if
-        isSuperAdmin() ||
-        isRenter(renterId) ||
-        isCompanyOrLandlord();
-
-      // Only the server should write timeline events
+      // You can tighten later (some orgs may see only partial renter fields without entitlement).
+      // For now keep reads staff-only; entitlement gating can be added similarly if needed.
+      allow read: if isAuthed() && isOrgStaff();
       allow write: if false;
     }
 
-    // --------------------------------------------------------------------
-    // INCIDENTS
-    // --------------------------------------------------------------------
-    match /incidents/{incidentId} {
-      allow read: if
-        isSuperAdmin() ||
-        isCompanyOrLandlord() ||
-        isLegal() ||
-        (isSignedIn() && request.auth.uid == resource.data.renterId);
+    // --- ORGS ---
+    match /orgs/{orgId} {
+      allow read: if isAuthed() && isOrgStaff() && orgId == userOrgId();
+      allow write: if false;
 
-      // Company that created the incident may edit it (not delete it)
-      allow update: if isCompanyOrLandlord()
-        && request.auth.uid == resource.data.createdBy
-        && !("renterId" in request.resource.data)
-        && !("companyId" in request.resource.data)
-        && !("createdBy" in request.resource.data);
-
-      // Creation allowed for Companies / Landlords / Legal only
-      allow create: if isCompanyOrLandlord() || isLegal();
-
-      // Only Super Admin can delete
-      allow delete: if isSuperAdmin();
+      match /usageDaily/{dayId} {
+        allow read: if isAuthed() && isOrgStaff() && orgId == userOrgId();
+        allow write: if false;
+      }
     }
 
-    // --------------------------------------------------------------------
-    // DISPUTES
-    // --------------------------------------------------------------------
-    match /disputes/{disputeId} {
-      allow read: if
-        isSuperAdmin() ||
-        isCompanyOrLandlord() ||
-        isLegal() ||
-        (isSignedIn() && request.auth.uid == resource.data.renterId);
-
-      // Renter may create disputes for their own profile
-      allow create: if isSignedIn()
-        && request.resource.data.renterId == request.auth.uid;
-
-      // Companies may update dispute status
-      allow update: if isCompanyOrLandlord()
-        && request.resource.data.companyId == request.auth.uid;
-
-      allow delete: if isSuperAdmin();
+    // --- USERS ---
+    match /users/{userId} {
+      allow read: if isAuthed() && userId == request.auth.uid;
+      allow write: if false;
     }
-
-    // --------------------------------------------------------------------
-    // AUDIT LOGS (READ-ONLY, SUPER ADMIN ONLY)
-    // --------------------------------------------------------------------
-    match /audit_logs/{logId} {
-      allow read: if isSuperAdmin();
-      allow write: if false; // server only
-      allow delete: if false;
-    }
-
-    // --------------------------------------------------------------------
-    // FRAUD FLAGS (READ-ONLY OUTSIDE SERVER)
-    // --------------------------------------------------------------------
-    match /fraudFlags/{flagId} {
-      allow read: if isSuperAdmin();
-      allow write: if false; // server-only
-      allow delete: if false;
-    }
-
-    // --------------------------------------------------------------------
-    // VERIFICATION SESSIONS
-    // --------------------------------------------------------------------
-    match /identity_verification/{sessionId} {
-      allow read: if
-        isSuperAdmin() ||
-        isCompanyOrLandlord() ||
-        (isSignedIn() && request.auth.uid == resource.data.renterId);
-
-      allow create: if isCompanyOrLandlord() || isRenter(request.resource.data.renterId);
-
-      allow update: if isRenter(resource.data.renterId);
-    }
-
   }
 }
