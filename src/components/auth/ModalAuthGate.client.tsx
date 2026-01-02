@@ -7,7 +7,7 @@ import {
   GoogleAuthProvider,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  signInWithPopup,
+  signInWithRedirect,
   updateProfile,
 } from "firebase/auth";
 import { auth } from "@/firebase/client";
@@ -177,7 +177,7 @@ export default function ModalAuthGate({
     setMessage(null);
 
     try {
-      await signInWithPopup(auth, new GoogleAuthProvider());
+      await signInWithRedirect(auth, new GoogleAuthProvider());
       await finalizeAuth();
     } catch (err) {
       console.error("Google auth error", err);

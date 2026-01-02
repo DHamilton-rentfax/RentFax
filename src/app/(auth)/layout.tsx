@@ -1,5 +1,3 @@
-import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from "@/hooks/use-auth";
 
 export default function AuthLayout({
   children,
@@ -7,9 +5,8 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <AuthProvider>
+    <main className="min-h-screen flex items-center justify-center bg-gray-50">
       {children}
-      <Toaster />
-    </AuthProvider>
+    </main>
   );
 }

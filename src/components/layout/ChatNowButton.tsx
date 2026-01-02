@@ -1,11 +1,14 @@
-"use client";
+'use client';
 
-import { MessageSquare } from "lucide-react";
+import { useModal } from '@/contexts/ModalContext';
+import AIChatModal from '@/components/chat/AIChatModal';
+import { MessageSquare } from 'lucide-react';
 
 export default function ChatNowButton() {
+  const modal = useModal();
+
   const openChat = () => {
-    // In a real app, this would open a chat widget (e.g., Intercom, Crisp, etc.)
-    alert("Imagine a chat widget opening now!");
+    modal.open(AIChatModal);
   };
 
   return (

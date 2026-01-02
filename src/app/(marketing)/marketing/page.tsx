@@ -1,8 +1,7 @@
 'use client';
-
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import StartScreeningButton from '@/components/StartScreeningButton';
+import { useModal } from '@/contexts/ModalContext';
 import {
   ShieldCheck,
   Search,
@@ -31,6 +30,8 @@ type TestimonialProps = {
  PAGE
 ---------------------------------------------------------------------- */
 export default function HomePage() {
+  const { open } = useModal();
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900">
 
@@ -64,7 +65,12 @@ export default function HomePage() {
           transition={{ delay: 0.6 }}
           className="mt-8 flex flex-col sm:flex-row justify-center gap-4"
         >
-          <StartScreeningButton />
+          <button
+            onClick={() => open("searchRenter")}
+            className="px-8 py-3 bg-[#1A2540] text-white font-semibold rounded-lg shadow hover:bg-[#2a3660] transition"
+          >
+            Start Screening
+          </button>
           <Link
             href="/how-it-works"
             className="px-8 py-3 border border-[#1A2540] rounded-lg font-semibold hover:bg-gray-50 transition"
@@ -275,9 +281,15 @@ export default function HomePage() {
         </p>
 
         <div className="flex justify-center">
-          <StartScreeningButton />
+          <button
+            onClick={() => open("searchRenter")}
+            className="px-8 py-3 bg-[#1A2540] text-white font-semibold rounded-lg shadow hover:bg-[#2a3660] transition"
+          >
+            Start Screening
+          </button>
         </div>
       </section>
+
     </main>
   );
 }

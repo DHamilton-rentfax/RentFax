@@ -1,11 +1,10 @@
-export interface AppUser {
+export type AppUser = {
   uid: string;
-  email: string;
-  role?: string;
-  displayName?: string;
-  photoURL?: string;
-  companyName?: string | null;
-  createdAt?: string;
-  provider?: string;
-  claims?: Record<string, any>;
-}
+  email?: string | null;
+
+  // 🔑 REQUIRED for billing + audit
+  companyId?: string | null;
+
+  // Optional future-safe fields
+  role?: "user" | "admin" | "super_admin";
+};

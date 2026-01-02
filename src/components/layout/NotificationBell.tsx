@@ -1,39 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { Bell } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
-import { Badge } from '@/components/ui/badge';
-
 export default function NotificationBell() {
-  const { user } = useAuth();
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState([]); // Placeholder for notifications
-
-  if (!user) return null;
-
+  // Placeholder for notification icon
   return (
-    <div className="relative">
-      <button onClick={() => setShowNotifications(!showNotifications)} className="relative">
-        <Bell className="h-6 w-6 text-gray-500" />
-        {notifications.length > 0 && (
-          <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 justify-center rounded-full p-0.5 text-xs">
-            {notifications.length}
-          </Badge>
-        )}
-      </button>
-      {showNotifications && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border p-4">
-          <h4 className="font-bold mb-2">Notifications</h4>
-          {notifications.length === 0 ? (
-            <p className="text-sm text-gray-500">No new notifications.</p>
-          ) : (
-            <div>
-              {/* Placeholder for notification items */}
-            </div>
-          )}
-        </div>
-      )}
+    <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
     </div>
   );
 }

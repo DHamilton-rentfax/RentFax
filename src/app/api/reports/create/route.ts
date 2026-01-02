@@ -1,19 +1,17 @@
-import { trackUsage } from "@/lib/billing/track-usage";
+import { NextResponse } from "next/server";
+import { db } from "@/lib/firestore";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
 export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const { companyId } = body;
+  const body = await req.json();
 
-    if (companyId) {
-      await trackUsage(companyId, "fullReport");
-    }
+  const doc = await addDoc(collection(db, "reports"), {
+    status: "draft",
+    category: body.category,
+    renter: body.renter,
+    incidents: [],
+    createdAt: serverTimestamp()
+  });
 
-    // ... existing report creation logic ...
-
-    return NextResponse.json({ success: true });
-  } catch (e) {
-    console.error(e);
-    return NextResponse.json({ error: "Failed to create report." });
-  }
+  return NextResponse.json({ reportId: doc.id });
 }

@@ -1,13 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
-import { dbAdmin as db } from "@/firebase/client-admin";
+import { NextResponse } from "next/server";
+import { adminDb } from "@/firebase/server";
 
-export async function GET(req: NextRequest) {
-  const limit = parseInt(req.nextUrl.searchParams.get("limit") || "50", 10);
-  const snap = await db
-    .collection("auditGlobal")
-    .orderBy("timestamp", "desc")
-    .limit(limit)
+export async function GET() {
+  // In a real app, you'd protect this route
+  // with role-based access control.
+
+  const logsSnapshot = await adminDb
+    .collection("audit_logs")
+    .orderBy("ts", "desc")
     .get();
-
-  return NextResponse.json(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    
+  const logs = logsSnapshot.docs.map(doc => doc.data());
+  return NextResponse.json(logs);
 }

@@ -1,50 +1,42 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import ActivityTable from './ActivityTable';
-import SuspiciousActivity from './SuspiciousActivity';
-import EmployeeStats from './EmployeeStats';
-import AIAnomalyInsights from './AIAnomalyInsights';
+import { useEffect, useState } from "react";
 
-export default function SuperAdminAuditPage() {
-  const [activity, setActivity] = useState([]);
-  const [suspicious, setSuspicious] = useState([]);
-  const [anomalies, setAnomalies] = useState([]);
+export default function AuditLogPage() {
+  const [logs, setLogs] = useState<any[]>([]);
 
   useEffect(() => {
-    async function load() {
-      const a = await fetch('/api/superadmin/audit/activity').then((r) =>
-        r.json()
-      );
-      const s = await fetch('/api/superadmin/audit/suspicious').then((r) =>
-        r.json()
-      );
-      const n = await fetch('/api/superadmin/audit/anomalies').then((r) =>
-        r.json()
-      );
-
-      setActivity(a.logs || []);
-      setSuspicious(s.suspicious || []);
-      setAnomalies(n.insights || []);
-    }
-
-    load();
+    fetch("/api/admin/audit")
+      .then(r => r.json())
+      .then(setLogs);
   }, []);
 
   return (
-    <div className='space-y-10 pb-32'>
-      <h1 className='text-2xl font-bold'>Audit & Employee Oversight</h1>
-      <p className='text-gray-600'>
-        Monitor system-wide behavior, risk, anomalies & employee actions.
-      </p>
+    <div className="p-8">
+      <h1 className="text-xl font-semibold mb-6">Audit Log</h1>
 
-      <EmployeeStats activity={activity} />
-
-      <SuspiciousActivity logs={suspicious} />
-
-      <AIAnomalyInsights insights={anomalies} />
-
-      <ActivityTable logs={activity} />
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b">
+            <th className="text-left p-2">Type</th>
+            <th className="text-left p-2">Report</th>
+            <th className="text-left p-2">Actor</th>
+            <th className="text-left p-2">Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {logs.map(l => (
+            <tr key={l.ts} className="border-b">
+              <td className="p-2">{l.type}</td>
+              <td className="p-2">{l.reportId}</td>
+              <td className="p-2">{l.actor || "system"}</td>
+              <td className="p-2">
+                {new Date(l.ts).toLocaleString()}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

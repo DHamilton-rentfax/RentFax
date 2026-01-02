@@ -43,10 +43,13 @@ describe("Firestore Security Rules - RentFAX", () => {
   // FRAUD ALERTS / RENTERS
   // ---------------------------
   it("ADMIN can update renters", async () => {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), "renters/r1"), { email: "original@test.com" });
+    });
     const ctx = testEnv.authenticatedContext("admin", { role: "ADMIN" });
     const db = ctx.firestore();
     const ref = doc(db, "renters/r1");
-    await setDoc(ref, { email: "fraud@test.com", alert: true }); // ✅ should succeed
+    await setDoc(ref, { email: "fraud@test.com", alert: true }, { merge: true }); // ✅ should succeed
   });
 
   it("SUPPORT cannot update renters", async () => {

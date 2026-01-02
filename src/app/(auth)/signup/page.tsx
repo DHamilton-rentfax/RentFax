@@ -1,79 +1,33 @@
-// ===========================================
-// RentFAX | Signup Page
-// Location: src/app/(auth)/signup/page.tsx
-// ===========================================
-"use client";
 
-import { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-import { getDoc, doc } from "firebase/firestore";
-import { db } from "@/firebase/client";
+import AuthLayout from "@/components/auth/AuthLayout";
+import SignupForm from "@/components/auth/SignupForm";
 
-// A wrapper component to suspend rendering until search params are available
-function SignupPageContent() {
-  const searchParams = useSearchParams();
-  const intentId = searchParams.get("intentId");
-  const type = searchParams.get("type");
-
-  const [intentData, setIntentData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!intentId) {
-      setLoading(false);
-      return;
-    }
-
-    const fetchIntent = async () => {
-      try {
-        console.log(`Fetching intent: ${intentId}`);
-        const intentRef = doc(db, "reportIntents", intentId);
-        const docSnap = await getDoc(intentRef);
-
-        if (docSnap.exists()) {
-          console.log("Intent data found:", docSnap.data());
-          setIntentData(docSnap.data());
-        } else {
-          console.log("No such intent document!");
-        }
-      } catch (error) {
-        console.error("Error fetching intent:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchIntent();
-  }, [intentId]);
-
-  return (
-    <div>
-      <h1>Create Your Account</h1>
-      {loading ? (
-        <p>Loading...</p>
-      ) : intentData ? (
-        <div>
-          <h2>Your Search:</h2>
-          <p>Name: {intentData.name}</p>
-          <p>Email: {intentData.email}</p>
-          <p>Report Type: {type === "full" ? "Full Report" : "Basic Lookup"}</p>
-          {/* Add signup form here, pre-filled with intentData */}
-        </div>
-      ) : (
-        <div>
-           {/* Add standard signup form here for users without an intentId */}
-           <p>Sign up for a free RentFAX account.</p>
-        </div>
-      )}
-    </div>
-  );
-}
-
+export const metadata = {
+  title: "Create your RentFAX account",
+  description:
+    "Join RentFAX and help build trust, transparency, and accountability in the rental economy.",
+};
 
 export default function SignupPage() {
-    return (
-        <Suspense fallback={<div>Loading...</div>}>
-            <SignupPageContent />
-        </Suspense>
-    )
+  return (
+    <AuthLayout
+      logo={
+        <div className="text-2xl font-bold tracking-tight">
+          Rent<span className="text-emerald-400">FAX</span>
+        </div>
+      }
+      title="Create your account"
+      subtitle="Set up your RentFAX profile in minutes."
+      sideTitle="Trust is the missing layer in renting"
+      sideDescription="The rental industry has no shared system for accountability. RentFAX creates a transparent trust layer that protects businesses and rewards good renters."
+      sidePoints={[
+        "Reduce fraud before it happens",
+        "Create portable renter reputations",
+        "Handle disputes with evidence, not guesswork",
+        "Build long-term trust with your customers",
+      ]}
+    >
+      <SignupForm />
+    </AuthLayout>
+  );
 }

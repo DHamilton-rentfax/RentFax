@@ -1,14 +1,19 @@
-import { ModalProvider } from "@/contexts/ModalContext";
-import ModalRoot from "@/components/ModalRoot";
+import type { Metadata } from 'next';
+import { AppProviders } from '@/components/AppProviders';
+import './globals.css';
 
-export default function RootLayout({ children }) {
+export const metadata: Metadata = {
+  title: 'RentFAX',
+  description: 'Modern screening for modern landlords.',
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <ModalProvider>
+        <AppProviders>
           {children}
-          <ModalRoot />
-        </ModalProvider>
+        </AppProviders>
       </body>
     </html>
   );

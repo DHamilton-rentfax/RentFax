@@ -1,22 +1,38 @@
-import InternalLayout from "@/app/_components/internal/InternalLayout";
-import { RoleGuard } from "@/app/_components/RoleGuard";
-import { LayoutDashboard, Settings, UserCircle, ShoppingCart } from "lucide-react";
-import SupportChat from "@/components/support/SupportChat";
+import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
+import { adminDb, adminAuth } from "@/firebase/server";
 
-const menu = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/orders", label: "Orders", icon: ShoppingCart },
-  { href: "/dashboard/profile", label: "Profile", icon: UserCircle },
-  { href: "/dashboard/settings", label: "Settings", icon: Settings },
-];
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const session = cookies().get("__session")?.value;
+  if (!session) {
+    redirect("/login");
+  }
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <RoleGuard allowed={["customer"]}>
-      <InternalLayout menu={menu} role="customer">
-        {children}
-        <SupportChat context="dashboard_main" />
-      </InternalLayout>
-    </RoleGuard>
-  );
+  let decodedClaims;
+  try {
+    decodedClaims = await adminAuth.verifySessionCookie(session, true /** checkRevoked */);
+  } catch (error) {
+    // Session cookie is invalid, expired, or revoked. Force login.
+    redirect("/login");
+  }
+
+  const userSnap = await adminDb.collection("users").doc(decodedClaims.uid).get();
+  const userData = userSnap.data();
+
+  if (!userData) {
+    // This is an edge case. The user is authenticated with Firebase, but their
+    // user document doesn't exist in Firestore. This could happen if the user
+    // was created but the Firestore document creation failed. Forcing a re-login
+    // might not solve it. A more robust solution might involve creating the
+    // document here or redirecting to an error page.
+    // For now, we'll redirect to login as a safe default.
+    redirect("/login");
+    return;
+  }
+
+  if (!userData.onboardingComplete) {
+    redirect("/onboarding");
+  }
+
+  return <>{children}</>;
 }
