@@ -1,3 +1,9 @@
+import { useReducer } from "react";
+
+/* -------------------------------------------------------------------------- */
+/*                                   STATES                                   */
+/* -------------------------------------------------------------------------- */
+
 export type SearchState =
   | "IDLE"
   | "SEARCH_INPUT"
@@ -8,6 +14,10 @@ export type SearchState =
   | "CHECKOUT_REDIRECT"
   | "REPORT_UNLOCKED"
   | "ERROR";
+
+/* -------------------------------------------------------------------------- */
+/*                                   EVENTS                                   */
+/* -------------------------------------------------------------------------- */
 
 export type SearchEvent =
   | { type: "OPEN" }
@@ -20,6 +30,40 @@ export type SearchEvent =
   | { type: "CHECKOUT_STARTED" }
   | { type: "UNLOCKED" }
   | { type: "BACK" };
+
+/* -------------------------------------------------------------------------- */
+/*                             SEARCH FORM CONTEXT                            */
+/* -------------------------------------------------------------------------- */
+
+export type SearchFormData = {
+  fullName: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
+};
+
+/**
+ * ✅ REQUIRED EXPORT
+ * Used by SearchRenterModal and other consumers
+ */
+export const initialSearchState: SearchFormData = {
+  fullName: "",
+  email: "",
+  phone: "",
+  address: "",
+  city: "",
+  state: "",
+  zip: "",
+  country: "US",
+};
+
+/* -------------------------------------------------------------------------- */
+/*                                  REDUCER                                   */
+/* -------------------------------------------------------------------------- */
 
 export function searchReducer(
   state: SearchState,
@@ -73,4 +117,22 @@ export function searchReducer(
     default:
       return state;
   }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   HOOK                                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Canonical hook for SearchRenterModal
+ * Encapsulates reducer + form data
+ */
+export function useSearchState() {
+  const [uiState, dispatch] = useReducer(searchReducer, "IDLE");
+
+  return {
+    uiState,
+    dispatch,
+    initialSearchState,
+  };
 }

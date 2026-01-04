@@ -1,79 +1,87 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { adminDb } from "@/firebase/server";
 
-/* -------------------------------------------------------------------------------------------------
- * STRIPE INIT
- * ------------------------------------------------------------------------------------------------*/
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+/* -------------------------------------------------------------------------- */
+/*                            ROUTE SEGMENT CONFIG                             */
+/* -------------------------------------------------------------------------- */
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+/* -------------------------------------------------------------------------- */
+/*                               ENV SAFETY                                   */
+/* -------------------------------------------------------------------------- */
+
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error("Missing STRIPE_SECRET_KEY");
+}
+if (!process.env.STRIPE_WEBHOOK_SECRET) {
+  throw new Error("Missing STRIPE_WEBHOOK_SECRET");
+}
+
+/* -------------------------------------------------------------------------- */
+/*                               STRIPE INIT                                  */
+/* -------------------------------------------------------------------------- */
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2023-10-16",
 });
 
-/* -------------------------------------------------------------------------------------------------
- * CONFIG
- * ------------------------------------------------------------------------------------------------*/
-export const config = {
-  api: {
-    bodyParser: false, // Required for Stripe to validate signature
-  },
-};
+/* -------------------------------------------------------------------------- */
+/*                          STRIPE WEBHOOK HANDLER                             */
+/* -------------------------------------------------------------------------- */
 
-/* Convert raw Request body to buffer */
-async function buffer(readable: any): Promise<Buffer> {
-  const chunks = [];
-  for await (const chunk of readable) {
-    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+export async function POST(req: Request) {
+  const signature = req.headers.get("stripe-signature");
+
+  if (!signature) {
+    return NextResponse.json(
+      { error: "Missing Stripe signature" },
+      { status: 400 }
+    );
   }
-  return Buffer.concat(chunks);
-}
 
-/* -------------------------------------------------------------------------------------------------
- * POST — STRIPE WEBHOOK HANDLER
- * ------------------------------------------------------------------------------------------------*/
-export async function POST(req: NextRequest) {
   let event: Stripe.Event;
 
   try {
-    const rawBody = await buffer(req.body);
-    const signature = req.headers.get("stripe-signature") as string;
+    // ✅ REQUIRED: raw body for Stripe verification
+    const rawBody = await req.text();
 
     event = stripe.webhooks.constructEvent(
       rawBody,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch (err: any) {
-    console.error("❌ Webhook signature verification failed.", err.message);
-    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+    console.error("❌ Stripe signature verification failed:", err.message);
+    return NextResponse.json(
+      { error: "Invalid Stripe signature" },
+      { status: 400 }
+    );
   }
 
   try {
-    /* =============================================================================================
-     * 1. SUCCESSFUL PAYMENT INTENT (COVERS CHECKOUT)
-     * =============================================================================================*/
+    /* =========================================================================
+     * CHECKOUT COMPLETED
+     * ========================================================================= */
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
-
       const metadata = session.metadata || {};
       const type = metadata.type;
 
-      /* ----------------------------------------------------------------------------
-       * A) FULL REPORT UNLOCK
-       * ---------------------------------------------------------------------------*/
+      /* ------------------------ FULL REPORT UNLOCK ------------------------- */
       if (type === "full-report") {
         const unlockId = metadata.unlockId;
         const reportId = metadata.reportId;
         const userId = metadata.userId || null;
         const companyId = metadata.companyId || null;
 
-        console.log("🔓 Full report payment confirmed:", { unlockId, reportId });
-
-        if (!reportId || !unlockId) {
-          console.error("❌ Missing metadata for report unlock.");
+        if (!unlockId || !reportId) {
+          console.error("❌ Missing metadata for report unlock");
           return NextResponse.json({ received: true });
         }
 
-        // Write unlock record
         await adminDb.collection("reportUnlocks").doc(unlockId).set({
           unlockId,
           reportId,
@@ -86,12 +94,10 @@ export async function POST(req: NextRequest) {
           type: "full-report",
         });
 
-        // Update report so UI knows it's unlocked
         await adminDb.collection("internalReports").doc(reportId).update({
           unlocked: true,
         });
 
-        // Log unlock event for auditing
         await adminDb.collection("searchAudit").add({
           event: "full_report_unlocked",
           unlockId,
@@ -102,12 +108,10 @@ export async function POST(req: NextRequest) {
           stripeSessionId: session.id,
         });
 
-        console.log("✅ Full report unlocked in Firestore.");
+        console.log("✅ Full report unlocked:", reportId);
       }
 
-      /* ----------------------------------------------------------------------------
-       * B) IDENTITY CHECK PURCHASE (4.99)
-       * ---------------------------------------------------------------------------*/
+      /* ---------------------- IDENTITY CHECK PURCHASE ---------------------- */
       if (type === "identity-check") {
         const searchSessionId = metadata.searchSessionId;
 
@@ -124,24 +128,24 @@ export async function POST(req: NextRequest) {
               { merge: true }
             );
 
-          console.log("✅ Identity verification paid & marked complete.");
+          console.log("✅ Identity check marked complete:", searchSessionId);
         }
       }
     }
 
-    /* =============================================================================================
-     * 2. PAYMENT FAILED (optional handling)
-     * =============================================================================================*/
+    /* =========================================================================
+     * OPTIONAL: PAYMENT FAILURE
+     * ========================================================================= */
     if (event.type === "checkout.session.async_payment_failed") {
-      console.error("❌ Payment failed:", event.data.object.id);
+      console.error("❌ Async payment failed:", event.data.object.id);
     }
 
-    /* =============================================================================================
-     * 3. RETURN A SAFE 200 RESPONSE
-     * =============================================================================================*/
     return NextResponse.json({ received: true });
-  } catch (err: any) {
-    console.error("❌ Webhook error:", err);
-    return NextResponse.json({ error: "Webhook internal error" }, { status: 500 });
+  } catch (err) {
+    console.error("❌ Webhook handler error:", err);
+    return NextResponse.json(
+      { error: "Webhook processing failed" },
+      { status: 500 }
+    );
   }
 }

@@ -21,7 +21,7 @@ import SampleReportMobile from "./overlays/SampleReportMobile";
 import {
   searchReducer,
   initialSearchState,
-} from "./useSearchState";
+} from "../useSearchState";
 
 /* -------------------------------------------------------------------------------------------------
  * TYPES

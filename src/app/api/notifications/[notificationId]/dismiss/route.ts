@@ -1,0 +1,40 @@
+import { NextRequest, NextResponse } from "next/server";
+import { adminDb } from "@/firebase/server";
+import { getUserIdFromHeaders } from "@/lib/auth/roles";
+import { FieldValue } from "firebase-admin/firestore";
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { notificationId: string } }
+) {
+  const uid = await getUserIdFromHeaders(req.headers);
+  if (!uid) {
+    return NextResponse.json({ error: "UNAUTHENTICATED" }, { status: 401 });
+  }
+
+  const ref = adminDb
+    .collection("notifications")
+    .doc(params.notificationId);
+
+  const snap = await ref.get();
+  if (!snap.exists) {
+    return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
+  }
+
+  const notification = snap.data() as any;
+
+  if (notification.userId !== uid) {
+    return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+  }
+
+  // Idempotent: already dismissed
+  if (notification.dismissedAt) {
+    return NextResponse.json({ success: true });
+  }
+
+  await ref.update({
+    dismissedAt: FieldValue.serverTimestamp(),
+  });
+
+  return NextResponse.json({ success: true });
+}
