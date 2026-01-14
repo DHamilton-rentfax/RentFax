@@ -7,6 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "lint": "next lint",
     "test:unit": "jest --runInBand --config jest.unit.config.mjs",
     "test:qa": "firebase emulators:exec --only auth,firestore \"start-server-and-test 'next dev -p 4000' http://127.0.0.1:4000 'NEXT_PUBLIC_FIREBASE_API_KEY=dummy-key jest --runInBand --config jest.qa.config.mjs'\"",
     "test:rules": "firebase emulators:exec --only firestore \"jest --runInBand --config jest.rules.config.mjs\"",
