@@ -15,8 +15,8 @@ export function resolvePersona(role: string): Persona {
 
     case ROLES.ORG_OWNER:
     case ROLES.ORG_STAFF:
-    case "COMPANY_ADMIN": // Added role
-    case "LANDLORD": // Added role
+    case ROLES.COMPANY_ADMIN:
+    case ROLES.LANDLORD:
       return PERSONAS.COMPANY;
 
     case ROLES.RENTER:

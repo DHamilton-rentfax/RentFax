@@ -1,72 +1,79 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export function middleware(req: NextRequest) {
-  // ✅ DEV BYPASS — local / cloud workstations
+  // 🧪 DEV BYPASS — local & cloud workstations
   if (process.env.NODE_ENV === "development") {
     return NextResponse.next();
   }
 
   const { pathname } = req.nextUrl;
+  const host = req.headers.get("host") || "";
+
+  const isAppDomain = host.startsWith("app.");
+  const appBaseUrl =
+    process.env.NEXT_PUBLIC_APP_URL ??
+    `${req.nextUrl.protocol}//${host}`;
 
   /**
-   * ✅ Explicit public routes
-   * Prevents accidental lockouts and future regressions
+   * 🧾 Always-allowed paths
    */
-  const publicPaths = [
+  const PUBLIC_PATH_PREFIXES = [
+    "/_next",
+    "/favicon.ico",
+    "/api",
     "/login",
     "/register",
     "/logout",
-    "/api",
+    "/reset-password",
   ];
 
-  if (publicPaths.some((p) => pathname.startsWith(p))) {
+  if (PUBLIC_PATH_PREFIXES.some((p) => pathname.startsWith(p))) {
     return NextResponse.next();
   }
 
   /**
-   * 🔒 Protected route prefixes
+   * 🔒 Protected app routes
    */
-  const protectedPrefixes = [
-    "/superadmin",
-    "/support",
+  const PROTECTED_PATH_PREFIXES = [
     "/dashboard",
+    "/superadmin",
+    "/staff",
+    "/support",
     "/renter",
   ];
 
-  const isProtected = protectedPrefixes.some((p) =>
+  const isProtectedRoute = PROTECTED_PATH_PREFIXES.some((p) =>
     pathname.startsWith(p)
   );
 
-  if (!isProtected) {
-    return NextResponse.next();
+  /**
+   * 🚫 Prevent app routes on marketing domains
+   */
+  if (!isAppDomain && isProtectedRoute) {
+    return NextResponse.redirect(new URL("/", req.url));
+  }
+
+  /**
+   * 🚫 Prevent marketing homepage on app subdomain
+   */
+  if (isAppDomain && pathname === "/") {
+    return NextResponse.redirect(new URL("/dashboard", appBaseUrl));
   }
 
   /**
    * 🍪 Session cookie check (Edge-safe)
-   * ⚠️ DO NOT verify tokens here
    */
-  const session = req.cookies.get("__session")?.value;
+  if (isProtectedRoute) {
+    const session = req.cookies.get("__session")?.value;
 
-  if (!session) {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-    const loginUrl = appUrl
-      ? new URL("/login", appUrl)
-      : new URL("/login", req.url);
-
-    return NextResponse.redirect(loginUrl);
+    if (!session) {
+      return NextResponse.redirect(new URL("/login", appBaseUrl));
+    }
   }
 
   return NextResponse.next();
 }
 
-/**
- * 🎯 Middleware scope
- */
 export const config = {
-  matcher: [
-    "/superadmin/:path*",
-    "/support/:path*",
-    "/dashboard/:path*",
-    "/renter/:path*",
-  ],
+  matcher: ["/((?!_next/static|_next/image).*)"],
 };

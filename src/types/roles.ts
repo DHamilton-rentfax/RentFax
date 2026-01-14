@@ -17,6 +17,13 @@ export const ROLES = {
   LISTINGS_TEAM: "listings_team",
   ONBOARDING_TEAM: "onboarding_team",
   SUPPORT_STAFF: "support_staff",
+
+  // From resolvePersona
+  COMPANY_ADMIN: "COMPANY_ADMIN",
+  LANDLORD: "LANDLORD",
+
+  // From getServerSession
+  USER: "USER",
 } as const;
 
 export type Role = typeof ROLES[keyof typeof ROLES];
