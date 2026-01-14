@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { db } from '@/firebase/client';
 import { doc, getDoc, collection, query, where, orderBy, getDocs, updateDoc } from 'firebase/firestore';
 import { useAuth } from '@/hooks/use-auth';
@@ -30,7 +30,7 @@ export default function AgencyDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [isBillingLoading, setBillingLoading] = useState(false);
 
-  const fetchPartnerData = async () => {
+  const fetchPartnerData = useCallback(async () => {
     if (!user) return;
     try {
       const partnerRef = doc(db, "collectionAgencies", user.uid);
@@ -43,9 +43,9 @@ export default function AgencyDashboardPage() {
     } catch (error) {
       console.error("Error fetching partner data:", error);
     }
-  };
+  }, [user]);
 
-  const fetchCases = async () => {
+  const fetchCases = useCallback(async () => {
     if (!user) return;
     try {
       const q = query(collection(db, "cases"), where("assignedAgencyId", "==", user.uid), orderBy("createdAt", "desc"));
@@ -54,14 +54,14 @@ export default function AgencyDashboardPage() {
     } catch (error) {
       console.error("Error fetching cases:", error);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     if (user) {
       setLoading(true);
       Promise.all([fetchPartnerData(), fetchCases()]).finally(() => setLoading(false));
     }
-  }, [user]);
+  }, [user, fetchCases, fetchPartnerData]);
 
   const handleBillingAction = async (action: 'checkout' | 'portal', plan?: string) => {
     if (!user) return;

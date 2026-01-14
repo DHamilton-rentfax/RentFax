@@ -15,7 +15,7 @@ export default function PublicCompanyProfile({ params }) {
         setCompany(d.company);
         setMetrics(d.metrics);
       });
-  }, []);
+  }, [params.companyId]);
 
   if (!company) return <p className="p-10">Loading...</p>;
 

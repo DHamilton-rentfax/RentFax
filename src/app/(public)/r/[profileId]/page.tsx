@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { ShieldCheck, Star, CheckCircle } from "lucide-react";
 
@@ -11,15 +12,18 @@ export default function PublicRenterProfile({ params }: any) {
     fetch(`/api/public/renter?pid=${params.profileId}`)
       .then((res) => res.json())
       .then(setProfile);
-  }, []);
+  }, [params.profileId]);
 
   if (!profile) return <p className="p-10">Loading Public Profile...</p>;
 
   return (
     <div className="p-10 max-w-4xl mx-auto space-y-6">
       <div className="flex items-center gap-6">
-        <img
+        <Image
           src={profile.photoUrl}
+          alt="Renter profile photo"
+          width={96}
+          height={96}
           className="w-24 h-24 rounded-full object-cover"
         />
 

@@ -1,8 +1,8 @@
-
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Loader2 } from "lucide-react";
 
 import { useAuth } from "@/hooks/use-auth.tsx";
@@ -78,7 +78,7 @@ export default function Step3Page() {
               accept="image/*"
             />
             {uploading && <p className="text-sm text-gray-400 mt-2">Uploading...</p>}
-            {uploadedUrl && <img src={uploadedUrl} alt="Logo preview" className="mt-4 h-20 w-auto" />}
+            {uploadedUrl && <Image src={uploadedUrl} alt="Logo preview" width={80} height={80} className="mt-4 h-20 w-auto" />}
           </div>
           <div>
             <label className="block text-sm mb-1">Primary Color</label>

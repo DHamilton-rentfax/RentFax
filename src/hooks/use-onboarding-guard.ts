@@ -50,7 +50,7 @@ export function useOnboardingGuard() {
     }
 
     check();
-  }, [authLoading, user, pathname]);
+  }, [authLoading, user, pathname, router]);
 
   return { loading };
 }

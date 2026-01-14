@@ -15,7 +15,7 @@ export default function PublicCompanyProfile({ params }) {
         setCompany(d.company);
         setMetrics(d.metrics);
       });
-  }, []);
+  }, [params.companyId]);
 
   if (!company) return <p className="p-10">Loading...</p>;
 
@@ -71,6 +71,7 @@ export default function PublicCompanyProfile({ params }) {
       <Card className="p-6">
         <h2 className="text-xl font-semibold">About</h2>
         <p className="text-sm mt-2">{company.description || "No description available."}</p>
+
       </Card>
 
       <Card className="p-6">
