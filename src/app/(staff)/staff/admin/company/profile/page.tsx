@@ -1,17 +1,28 @@
+"use client";
+
+import { useState } from "react";
 import CompanyIndustrySelector from "@/components/company/CompanyIndustrySelector";
 
-// ... rest of your component code
+type Company = {
+  industry?: string;
+};
 
-<h3 className="text-lg font-semibold mt-6">Industry</h3>
+export default function CompanyProfilePage() {
+  const [company, setCompany] = useState<Company>({});
 
-<CompanyIndustrySelector
-  value={company.industry}
-  onChange={(v: any) => setCompany({ ...company, industry: v })}
-/>
+  return (
+    <div className="max-w-3xl space-y-4">
+      <h2 className="text-xl font-bold">Company Profile</h2>
 
-<div className="border-dashed p-4 mt-8 bg-muted/40 rounded">
-  <h3 className="text-lg font-semibold mb-2">Safety & Compliance (Coming Soon)</h3>
-  <p className="text-sm text-muted-foreground">
-    Badges will appear automatically once the reputation engine launches.
-  </p>
-</div>
+      {/* ✅ THIS WAS THE BROKEN SECTION */}
+      <h3 className="text-lg font-semibold mt-6">Industry</h3>
+
+      <CompanyIndustrySelector
+        value={company.industry}
+        onChange={(v: string) =>
+          setCompany((prev) => ({ ...prev, industry: v }))
+        }
+      />
+    </div>
+  );
+}
