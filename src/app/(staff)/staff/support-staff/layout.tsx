@@ -1,5 +1,7 @@
-import InternalLayout from "@/app/_components/internal/InternalLayout";
-import { RoleGuard } from "@/app/_components/RoleGuard";
+
+import InternalLayout from "@/components/internal/InternalLayout";
+import { withRoleGuard } from "@/lib/guards/withRoleGuard";
+import { ROLES } from "@/types/roles";
 import {
   MessageSquare,
   LifeBuoy,
@@ -20,13 +22,12 @@ const menu = [
   { href: "/support-staff/analytics", label: "Support Analytics", icon: BarChart3 },
 ];
 
-export default function SupportStaffLayout({
+function SupportStaffLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <RoleGuard allowed={["support_staff", "admin"]}>
       <InternalLayout
         roleKey="support_staff"
         title="Support Staff"
@@ -34,6 +35,7 @@ export default function SupportStaffLayout({
       >
         {children}
       </InternalLayout>
-    </RoleGuard>
   );
 }
+
+export default withRoleGuard(SupportStaffLayout, [ROLES.SUPPORT_STAFF, ROLES.SUPER_ADMIN, ROLES.SUPPORT_ADMIN]);

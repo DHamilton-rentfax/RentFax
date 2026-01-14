@@ -11,6 +11,12 @@ export const ROLES = {
 
   RENTER: "RENTER",
   UNINITIALIZED: "UNINITIALIZED",
+
+  // Added roles
+  FRAUD_TEAM: "fraud_team",
+  LISTINGS_TEAM: "listings_team",
+  ONBOARDING_TEAM: "onboarding_team",
+  SUPPORT_STAFF: "support_staff",
 } as const;
 
 export type Role = typeof ROLES[keyof typeof ROLES];

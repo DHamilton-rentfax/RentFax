@@ -1,5 +1,7 @@
-import InternalLayout from "@/app/_components/internal/InternalLayout";
-import { RoleGuard } from "@/app/_components/RoleGuard";
+
+import InternalLayout from "@/components/internal/InternalLayout";
+import { withRoleGuard } from "@/lib/guards/withRoleGuard";
+import { ROLES } from "@/types/roles";
 import { HelpCircle, BookOpen, MessageSquare, UserCheck } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -10,16 +12,16 @@ const menu = [
   { href: "/support-staff/user-lookup", label: "User Lookup", icon: UserCheck },
 ];
 
-export default function SupportStaffLayout({
+function SupportStaffLayout({
   children,
 }: {
   children: ReactNode;
 }) {
   return (
-    <RoleGuard allowed={["support_staff"]}>
       <InternalLayout menu={menu}>
         {children}
       </InternalLayout>
-    </RoleGuard>
   );
 }
+
+export default withRoleGuard(SupportStaffLayout, [ROLES.SUPPORT_STAFF]);

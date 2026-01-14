@@ -1,5 +1,7 @@
-import InternalLayout from "@/app/_components/internal/InternalLayout";
-import { RoleGuard } from "@/app/_components/RoleGuard";
+
+import InternalLayout from "@/components/internal/InternalLayout";
+import { withRoleGuard } from "@/lib/guards/withRoleGuard";
+import { ROLES } from "@/types/roles";
 import { AlertTriangle, ShieldCheck, Clock, UserX } from "lucide-react";
 
 const menu = [
@@ -9,12 +11,12 @@ const menu = [
   { href: "/fraud-team/blocked-users", label: "Blocked Users", icon: UserX },
 ];
 
-export default function FraudTeamLayout({ children }: { children: React.ReactNode }) {
+function FraudTeamLayout({ children }: { children: React.ReactNode }) {
   return (
-    <RoleGuard allowed={["fraud_team"]}>
-      <InternalLayout menu={menu} role="fraud_team">
-        {children}
-      </InternalLayout>
-    </RoleGuard>
+    <InternalLayout menu={menu} role={ROLES.FRAUD_TEAM}>
+      {children}
+    </InternalLayout>
   );
 }
+
+export default withRoleGuard(FraudTeamLayout, [ROLES.FRAUD_TEAM]);
