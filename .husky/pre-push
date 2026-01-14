@@ -1,3 +1,2 @@
-#!/bin/sh
 npm run lint
-node scripts/check-routes.ts
+npx tsx scripts/check-routes.ts
