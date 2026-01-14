@@ -1,40 +1,29 @@
-import '@/lib/server-only';
-
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-import { adminAuth } from '@/firebase/server';
-import { getUserContext } from '@/app/actions/get-user-context';
-import { getOrgContext } from '@/app/actions/get-org-context';
-import ImpersonationBanner from '@/components/admin/ImpersonationBanner';
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { adminAuth } from "@/firebase/server";
+import { getUserContext } from "@/app/actions/get-user-context";
+import { ROLES } from "@/types/roles";
 
 export default async function SupportLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = cookies().get('__session');
-  if (!session) redirect('/login');
+  const session = cookies().get("__session")?.value;
 
-  const decoded = await adminAuth.verifySessionCookie(session.value, true);
-  const ctx = await getUserContext(decoded.uid);
-
-  if (ctx.role !== 'SUPPORT') {
-    redirect('/unauthorized');
+  if (!session) {
+    const loginUrl = process.env.NEXT_PUBLIC_APP_URL
+      ? `${process.env.NEXT_PUBLIC_APP_URL}/login`
+      : "/login";
+    redirect(loginUrl);
   }
 
-  const { isImpersonating, orgName, impersonationExpiresAt } =
-    await getOrgContext();
+  const decoded = await adminAuth.verifySessionCookie(session, true);
+  const ctx = await getUserContext(decoded.uid);
 
-  return (
-    <>
-      {isImpersonating && (
-        <ImpersonationBanner
-          orgName={orgName!}
-          expiresAt={impersonationExpiresAt}
-          redirectTo="/support"
-        />
-      )}
-      {children}
-    </>
-  );
+  if (ctx.role !== ROLES.SUPPORT_STAFF && ctx.role !== ROLES.SUPER_ADMIN) {
+    redirect("/unauthorized");
+  }
+
+  return <>{children}</>;
 }

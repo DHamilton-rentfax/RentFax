@@ -1,8 +1,11 @@
-"use client";
+'use client';
 
-import Link from "next/link";
+import Link from 'next/link';
 
 export default function ResetPasswordPage() {
+
+  const loginUrl = process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/login` : '/login';
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
       <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl">
@@ -47,7 +50,7 @@ export default function ResetPasswordPage() {
         {/* Back to Login */}
         <p className="mt-6 text-center text-sm text-gray-600">
           <Link
-            href="/login"
+            href={loginUrl}
             className="font-medium text-indigo-600 hover:underline"
           >
             Back to Login

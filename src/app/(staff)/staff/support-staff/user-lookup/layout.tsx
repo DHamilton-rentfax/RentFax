@@ -1,27 +1,22 @@
-
 import InternalLayout from "@/components/internal/InternalLayout";
 import { withRoleGuard } from "@/lib/guards/withRoleGuard";
 import { ROLES } from "@/types/roles";
-import { HelpCircle, BookOpen, MessageSquare, UserCheck } from "lucide-react";
-import type { ReactNode } from "react";
+import { UserCheck } from "lucide-react";
 
 const menu = [
-  { href: "/support-staff", label: "Tickets", icon: HelpCircle },
-  { href: "/support-staff/knowledge-base", label: "Knowledge Base", icon: BookOpen },
-  { href: "/support-staff/live-chat", label: "Live Chat", icon: MessageSquare },
   { href: "/support-staff/user-lookup", label: "User Lookup", icon: UserCheck },
 ];
 
-function SupportStaffLayout({
+function SupportStaffUserLookupLayout({
   children,
 }: {
-  children: ReactNode;
+  children: React.ReactNode;
 }) {
   return (
-      <InternalLayout menu={menu}>
-        {children}
-      </InternalLayout>
+    <InternalLayout menu={menu} roleKey="support_staff">
+      {children}
+    </InternalLayout>
   );
 }
 
-export default withRoleGuard(SupportStaffLayout, [ROLES.SUPPORT_STAFF]);
+export default withRoleGuard(SupportStaffUserLookupLayout, [ROLES.SUPPORT_STAFF]);

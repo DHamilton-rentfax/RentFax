@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight, Bell } from "lucide-react";
 import { useMemo } from "react";
+import { ROLES, Role } from "@/types/roles";
 
 type MenuItem = {
   href: string;
@@ -12,23 +13,27 @@ type MenuItem = {
   icon?: React.ComponentType<{ className?: string }>;
 };
 
-const ROLE_THEMES: Record<string, string> = {
-  super_admin: "linear-gradient(90deg, #6C47FF, #00C6FF)",
-  admin: "#6C47FF",
-  support_staff: "#006CFF",
-  fraud_team: "#D32F2F",
-  dispute_team: "#C77800",
-  identity_team: "#009688",
-  compliance_team: "#2E7D32",
-  onboarding_team: "#0288D1",
-  sales_team: "#9C27B0",
-  engineering: "#455A64",
+const ROLE_THEMES: Record<Role, string> = {
+  [ROLES.SUPER_ADMIN]: "linear-gradient(90deg, #6C47FF, #00C6FF)",
+  [ROLES.ADMIN]: "#6C47FF",
+
+  [ROLES.SUPPORT_STAFF]: "#006CFF",
+  [ROLES.FRAUD_TEAM]: "#D32F2F",
+  [ROLES.DISPUTE_TEAM]: "#C77800",
+  [ROLES.IDENTITY_TEAM]: "#009688",
+  [ROLES.COMPLIANCE_TEAM]: "#2E7D32",
+  [ROLES.ONBOARDING_TEAM]: "#0288D1",
+  [ROLES.SALES_TEAM]: "#9C27B0",
+  [ROLES.ENGINEERING]: "#455A64",
+
+  [ROLES.RENTER]: "#111827",
+  [ROLES.UNINITIALIZED]: "#111827",
 };
 
 interface InternalLayoutProps {
   children: React.ReactNode;
   menu: MenuItem[];
-  roleKey: keyof typeof ROLE_THEMES;
+  roleKey: Role;
   title?: string;
 }
 
@@ -39,14 +44,19 @@ export default function InternalLayout({
   title,
 }: InternalLayoutProps) {
   const { user } = useAuth();
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
 
   const bg = useMemo(() => {
-    if ((user as any)?.roles?.super_admin) return ROLE_THEMES.super_admin;
+    if (user?.role === ROLES.SUPER_ADMIN) {
+      return ROLE_THEMES[ROLES.SUPER_ADMIN];
+    }
     return ROLE_THEMES[roleKey] ?? "#111827";
-  }, [user, roleKey]);
+  }, [user?.role, roleKey]);
 
-  const segments = pathname.split("/").filter(Boolean);
+  const segments = pathname
+    .split("/")
+    .filter(Boolean)
+    .filter((seg) => !seg.startsWith("("));
 
   return (
     <div className="min-h-screen flex bg-gray-50 text-gray-900">
@@ -65,7 +75,9 @@ export default function InternalLayout({
 
         <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
           {menu.map(({ href, label, icon: Icon }) => {
-            const active = pathname === href || pathname.startsWith(href + "/");
+            const active =
+              pathname === href || pathname.startsWith(href + "/");
+
             return (
               <Link
                 key={href}

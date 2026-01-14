@@ -6,7 +6,8 @@ export default async function DashboardPage() {
 
   // Not authenticated → login
   if (!session) {
-    redirect("/login");
+    const loginUrl = process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/login` : '/login';
+    redirect(loginUrl);
   }
 
   // Role-based routing

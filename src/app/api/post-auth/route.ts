@@ -8,16 +8,19 @@ import { PERSONAS } from "@/types/persona";
 
 export async function GET(request: Request) {
   const session = cookies().get("__session")?.value;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  const loginUrl = appUrl ? new URL('/login', appUrl) : new URL('/login', request.url);
+
 
   if (!session) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(loginUrl);
   }
 
   let decoded;
   try {
     decoded = await adminAuth.verifySessionCookie(session, true);
   } catch {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(loginUrl);
   }
 
   const ctx = await getUserContext(decoded.uid);

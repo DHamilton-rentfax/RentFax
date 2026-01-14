@@ -13,7 +13,10 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const session = cookies().get('__session');
-  if (!session) redirect('/login');
+  if (!session) {
+    const loginUrl = process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/login` : '/login';
+    redirect(loginUrl);
+  }
 
   const decoded = await adminAuth.verifySessionCookie(session.value, true);
   const ctx = await getUserContext(decoded.uid);

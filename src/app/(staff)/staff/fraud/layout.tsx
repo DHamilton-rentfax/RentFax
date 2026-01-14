@@ -1,19 +1,23 @@
-
 import InternalLayout from "@/components/internal/InternalLayout";
 import { withRoleGuard } from "@/lib/guards/withRoleGuard";
 import { ROLES } from "@/types/roles";
-import { AlertTriangle, ShieldCheck, Clock, UserX } from "lucide-react";
+import {
+  AlertTriangle,
+  ShieldCheck,
+  Clock,
+  UserX,
+} from "lucide-react";
 
 const menu = [
-  { href: "/fraud-team", label: "Alerts", icon: AlertTriangle },
-  { href: "/fraud-team/rules", label: "Rules", icon: ShieldCheck },
-  { href: "/fraud-team/history", label: "History", icon: Clock },
-  { href: "/fraud-team/blocked-users", label: "Blocked Users", icon: UserX },
+  { href: "/fraud", label: "Alerts", icon: AlertTriangle },
+  { href: "/fraud/rules", label: "Rules", icon: ShieldCheck },
+  { href: "/fraud/history", label: "History", icon: Clock },
+  { href: "/fraud/blocked-users", label: "Blocked Users", icon: UserX },
 ];
 
 function FraudTeamLayout({ children }: { children: React.ReactNode }) {
   return (
-    <InternalLayout menu={menu} role={ROLES.FRAUD_TEAM}>
+    <InternalLayout menu={menu} roleKey="fraud_team">
       {children}
     </InternalLayout>
   );

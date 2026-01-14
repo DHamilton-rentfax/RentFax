@@ -1,34 +1,28 @@
-"use server";
-
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { adminAuth, adminDb } from "@/firebase/server";
 
-import { adminAuth, adminDB } from "@/firebase/server";
+export async function requireEditor() {
+  const session = cookies().get("__session")?.value;
 
-export async function requireEditor(sessionCookie?: string | null) {
-  const cookie = sessionCookie ?? cookies().get("__session")?.value;
-  if (!cookie) redirect("/login");
+  if (!session) {
+    const loginUrl = process.env.NEXT_PUBLIC_APP_URL
+      ? `${process.env.NEXT_PUBLIC_APP_URL}/login`
+      : "/login";
+    redirect(loginUrl);
+  }
 
   try {
-    const decoded = await adminAuth.verifySessionCookie(cookie, true);
-    if (!decoded.uid) redirect("/login");
+    const decoded = await adminAuth.verifySessionCookie(session, true);
+    const userSnap = await adminDb.doc(`users/${decoded.uid}`).get();
+    const user = userSnap.data();
 
-    const userDoc = await adminDB.doc(`users/${decoded.uid}`).get();
-    const user = userDoc.data();
-
-    if (
-      !user ||
-      (user.role !== "EDITOR" &&
-        user.role !== "ADMIN" &&
-        user.role !== "SUPER_ADMIN")
-    ) {
-      console.warn("Blocked non-editor user:", decoded.email);
-      redirect("/dashboard");
+    if (!user || user.role !== "EDITOR") {
+      redirect("/unauthorized");
     }
 
     return { uid: decoded.uid, ...user };
-  } catch (err) {
-    console.error("Invalid or expired session cookie:", err);
+  } catch {
     redirect("/login");
   }
 }

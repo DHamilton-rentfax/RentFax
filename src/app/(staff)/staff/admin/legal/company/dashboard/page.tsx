@@ -6,7 +6,8 @@ export default async function CompanyDashboardPage() {
   const session = await verifySessionServer();
 
   if (!session) {
-    redirect("/auth/login");
+    const loginUrl = process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/login` : '/login';
+    redirect(loginUrl);
   }
 
   if (session.role !== "COMPANY" && session.role !== "SUPER_ADMIN") {
