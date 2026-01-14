@@ -1,94 +1,142 @@
-import Stripe from "stripe";
 import { NextResponse } from "next/server";
+import Stripe from "stripe";
 import { adminDb } from "@/firebase/server";
+import { provisionPdplVerification } from "@/lib/verification/provisionPdplVerification";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2023-10-16",
+/* -------------------------------------------------------------------------- */
+/* STRIPE INIT                                                                 */
+/* -------------------------------------------------------------------------- */
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 });
 
-const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
+if (!webhookSecret) {
+  throw new Error("Missing STRIPE_WEBHOOK_SECRET");
+}
+
+/* -------------------------------------------------------------------------- */
+/* WEBHOOK HANDLER                                                             */
+/* -------------------------------------------------------------------------- */
 export async function POST(req: Request) {
-  const payload = await req.text();
-  const sig = req.headers.get("stripe-signature");
-
-  if (!sig) {
-    return new NextResponse("Missing stripe-signature", { status: 400 });
+  const signature = req.headers.get("stripe-signature");
+  if (!signature) {
+    return NextResponse.json(
+      { error: "Missing Stripe signature" },
+      { status: 400 }
+    );
   }
 
+  const body = await req.text();
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(payload, sig, endpointSecret);
+    event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      webhookSecret
+    );
   } catch (err: any) {
-    console.error("❌ Webhook signature verification failed:", err.message);
-    return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
+    return NextResponse.json(
+      { error: `Webhook verification failed: ${err.message}` },
+      { status: 400 }
+    );
   }
 
-  /* ------------------------------------------------------------------
-   * RENTFAX — TRANSACTIONAL VERIFICATION
-   * ------------------------------------------------------------------ */
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object as Stripe.Checkout.Session;
+  /* ------------------------------------------------------------------------ */
+  /* IDEMPOTENCY CHECK                                                         */
+  /* ------------------------------------------------------------------------ */
+  const eventRef = adminDb.collection("stripe_events").doc(event.id);
+  const existing = await eventRef.get();
 
-    const reportId = session.metadata?.reportId;
-    const purchaserUid = session.metadata?.purchaserUid;
+  if (existing.exists) {
+    // Already processed
+    return NextResponse.json({ received: true });
+  }
 
-    if (!reportId || !purchaserUid) {
-      console.warn("⚠️ Checkout completed but missing metadata", {
-        reportId,
-        purchaserUid,
-      });
-      return NextResponse.json({ received: true });
+  /* Persist event receipt immediately */
+  await eventRef.set({
+    type: event.type,
+    created: event.created,
+    livemode: event.livemode,
+    receivedAt: new Date(),
+  });
+
+  /* ------------------------------------------------------------------------ */
+  /* EVENT HANDLING                                                            */
+  /* ------------------------------------------------------------------------ */
+  if (event.type !== "checkout.session.completed") {
+    return NextResponse.json({ received: true });
+  }
+
+  const session = event.data.object as Stripe.Checkout.Session;
+
+  if (!session.metadata) {
+    await eventRef.update({
+      status: "ignored_missing_metadata",
+    });
+    return NextResponse.json({ received: true });
+  }
+
+  const {
+    intentId,
+    renterId,
+    orgId,
+    type,
+  } = session.metadata;
+
+  if (!intentId || !orgId || !type) {
+    await eventRef.update({
+      status: "ignored_invalid_metadata",
+      metadata: session.metadata,
+    });
+    return NextResponse.json({ received: true });
+  }
+
+  /* ------------------------------------------------------------------------ */
+  /* TRANSACTIONAL PROCESSING                                                  */
+  /* ------------------------------------------------------------------------ */
+  await adminDb.runTransaction(async (tx) => {
+    const intentRef = adminDb
+      .collection("payment_intents")
+      .doc(intentId);
+
+    const intentSnap = await tx.get(intentRef);
+
+    if (!intentSnap.exists) {
+      throw new Error(`Payment intent ${intentId} not found`);
     }
 
-    try {
-      // Unlock report
-      await adminDb.collection("reports").doc(reportId).update({
-        unlocked: true,
-        unlockedAt: Date.now(),
-        paymentIntent: session.payment_intent,
-        verificationMethod: "INSTANT",
-      });
+    const intent = intentSnap.data()!;
 
-      // Audit trail (CRITICAL)
-      await adminDb.collection("audit_logs").add({
-        type: "RENTER_VERIFIED",
-        reportId,
-        purchaserUid,
-        source: "stripe",
-        amount: session.amount_total,
-        currency: session.currency,
-        ts: Date.now(),
-      });
-
-      console.log("✅ RentFAX report unlocked:", reportId);
-    } catch (err) {
-      console.error("🔥 Failed to unlock report:", err);
-      return new NextResponse("Webhook processing error", { status: 500 });
+    if (intent.status === "paid") {
+      return;
     }
-  }
 
-  /* ------------------------------------------------------------------
-   * SAAS / SUBSCRIPTIONS (KEEP EXISTING)
-   * ------------------------------------------------------------------ */
-  switch (event.type) {
-    case "invoice.created":
-      console.log("🧾 Invoice created:", event.data.object.id);
-      break;
+    tx.update(intentRef, {
+      status: "paid",
+      stripeSessionId: session.id,
+      paidAt: new Date(),
+    });
 
-    case "invoice.finalized":
-      console.log("📌 Invoice finalized");
-      break;
+    if (type === "PDPL_VERIFICATION") {
+      if (!renterId) {
+        throw new Error("Missing renterId for PDPL verification");
+      }
 
-    case "invoice.payment_succeeded":
-      console.log("💰 Invoice paid");
-      break;
+      await provisionPdplVerification({
+        renterId,
+        orgId,
+        intentId,
+      });
+    }
 
-    case "customer.subscription.deleted":
-      console.log("❌ Subscription canceled");
-      break;
-  }
+    // PAYG_REPORT requires no backend action beyond marking paid
+  });
+
+  await eventRef.update({
+    status: "processed",
+  });
 
   return NextResponse.json({ received: true });
 }

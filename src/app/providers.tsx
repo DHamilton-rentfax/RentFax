@@ -1,18 +1,14 @@
-"use client";
+'use client';
 
-import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from "@/hooks/use-auth";
-import { ModalProvider } from "@/contexts/ModalContext";
-import ModalManager from "@/components/modals/ModalManager";
+import { ReactNode } from 'react';
+import { ModalProvider } from '@/contexts/ModalContext';
+import ModalRoot from '@/components/ModalRoot';
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export default function AppProviders({ children }: { children: ReactNode }) {
   return (
-    <AuthProvider>
-      <ModalProvider>
-        {children}
-        <ModalManager />
-        <Toaster />
-      </ModalProvider>
-    </AuthProvider>
+    <ModalProvider>
+      {children}
+      <ModalRoot />
+    </ModalProvider>
   );
 }

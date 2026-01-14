@@ -1,28 +1,60 @@
+
 import Link from "next/link";
 import { adminDb } from "@/firebase/server";
 
 export const dynamic = "force-dynamic";
+// Optional: reduce load if desired
+// export const revalidate = 30;
 
-async function getOverview() {
-  const [
-    rentersSnap,
-    reportsSnap,
-    disputesSnap,
-    companiesSnap,
-  ] = await Promise.all([
-    adminDb.collection("renters").limit(1).get(),
-    adminDb.collection("reports").limit(1).get(),
-    adminDb.collection("disputes").limit(1).get(),
-    adminDb.collection("companies").limit(1).get(),
-  ]);
+/* ------------------------------------------------------------------ */
+/* Data                                                               */
+/* ------------------------------------------------------------------ */
 
-  return {
-    renters: rentersSnap.size,
-    reports: reportsSnap.size,
-    disputes: disputesSnap.size,
-    companies: companiesSnap.size,
-  };
+type OverviewStats = {
+  renters: number;
+  reports: number;
+  disputes: number;
+  companies: number;
+};
+
+async function getOverview(): Promise<OverviewStats> {
+  try {
+    const snap = await adminDb.doc("stats/global").get();
+
+    if (!snap.exists) {
+      // Safe fallback — dashboard still renders
+      return {
+        renters: 0,
+        reports: 0,
+        disputes: 0,
+        companies: 0,
+      };
+    }
+
+    const data = snap.data() as Partial<OverviewStats>;
+
+    return {
+      renters: data.renters ?? 0,
+      reports: data.reports ?? 0,
+      disputes: data.disputes ?? 0,
+      companies: data.companies ?? 0,
+    };
+  } catch (err) {
+    console.error("Failed to load super admin stats:", err);
+
+    // Never crash the dashboard
+    return {
+      renters: 0,
+      reports: 0,
+      disputes: 0,
+      companies: 0,
+    };
+  }
 }
+
+/* ------------------------------------------------------------------ */
+/* Dashboard (Server Component)                                        */
+/* ------------------------------------------------------------------ */
 
 export default async function SuperAdminDashboardPage() {
   const overview = await getOverview();
@@ -41,7 +73,7 @@ export default async function SuperAdminDashboardPage() {
         </div>
 
         <Link
-          href="/superadmin-dashboard/system-health"
+          href="/superadmin/system-health"
           className="text-sm font-medium text-blue-600 hover:underline"
         >
           View system health →
@@ -50,26 +82,10 @@ export default async function SuperAdminDashboardPage() {
 
       {/* KPI Grid */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KpiCard
-          label="Renters"
-          value={overview.renters}
-          href="/superadmin-dashboard/renters"
-        />
-        <KpiCard
-          label="Reports"
-          value={overview.reports}
-          href="/superadmin-dashboard/reports"
-        />
-        <KpiCard
-          label="Disputes"
-          value={overview.disputes}
-          href="/superadmin-dashboard/disputes"
-        />
-        <KpiCard
-          label="Companies"
-          value={overview.companies}
-          href="/superadmin-dashboard/companies"
-        />
+        <KpiCard label="Renters" value={overview.renters} href="/superadmin/renters" />
+        <KpiCard label="Reports" value={overview.reports} href="/superadmin/reports" />
+        <KpiCard label="Disputes" value={overview.disputes} href="/superadmin/disputes" />
+        <KpiCard label="Companies" value={overview.companies} href="/superadmin/companies" />
       </section>
 
       {/* Navigation Sections */}
@@ -78,9 +94,9 @@ export default async function SuperAdminDashboardPage() {
           title="Risk & Oversight"
           description="Fraud signals, system risk, compliance."
           links={[
-            { label: "Risk Dashboard", href: "/superadmin-dashboard/risk" },
-            { label: "Audit Logs", href: "/superadmin-dashboard/audit" },
-            { label: "Resolutions", href: "/superadmin-dashboard/resolutions" },
+            { label: "Risk Dashboard", href: "/superadmin/risk" },
+            { label: "Audit Logs", href: "/superadmin/audit" },
+            { label: "Resolutions", href: "/superadmin/resolutions" },
           ]}
         />
 
@@ -88,9 +104,9 @@ export default async function SuperAdminDashboardPage() {
           title="Operations"
           description="Day-to-day platform management."
           links={[
-            { label: "Disputes", href: "/superadmin-dashboard/disputes" },
-            { label: "Incidents", href: "/superadmin-dashboard/incidents" },
-            { label: "Reports", href: "/superadmin-dashboard/reports" },
+            { label: "Disputes", href: "/superadmin/disputes" },
+            { label: "Incidents", href: "/superadmin/incidents" },
+            { label: "Reports", href: "/superadmin/reports" },
           ]}
         />
 
@@ -98,9 +114,9 @@ export default async function SuperAdminDashboardPage() {
           title="Business"
           description="Revenue, partners, growth."
           links={[
-            { label: "Billing", href: "/superadmin-dashboard/billing" },
-            { label: "Partners", href: "/superadmin-dashboard/partners" },
-            { label: "Sales", href: "/superadmin-dashboard/sales" },
+            { label: "Billing", href: "/superadmin/billing" },
+            { label: "Partners", href: "/superadmin/partners" },
+            { label: "Sales", href: "/superadmin/sales" },
           ]}
         />
 
@@ -108,9 +124,9 @@ export default async function SuperAdminDashboardPage() {
           title="Configuration"
           description="System rules and platform settings."
           links={[
-            { label: "Rules", href: "/superadmin-dashboard/rules" },
-            { label: "Settings", href: "/superadmin-dashboard/settings" },
-            { label: "Legal", href: "/superadmin-dashboard/legal" },
+            { label: "Rules", href: "/superadmin/rules" },
+            { label: "Settings", href: "/superadmin/settings" },
+            { label: "Legal", href: "/superadmin/legal" },
           ]}
         />
       </section>

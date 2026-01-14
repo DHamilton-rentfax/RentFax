@@ -1,13 +1,18 @@
 // src/app/api/renters/search/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/firebase/server";
+import { FieldValue } from "firebase-admin/firestore";
 
-/* ------------------ RISK ENGINE IMPORTS ------------------ */
+/* ------------------ PROVISIONING & IDENTITY ------------------ */
+import { getOrgProvisioning } from "@/lib/provisioning/getOrgProvisioning";
+import { getIdentityProvider } from "@/lib/identity/identityService";
+
+/* ------------------ RISK ENGINE ------------------ */
 import { computeRiskScore } from "@/lib/risk/computeRiskScore";
 import { computeConfidenceScore } from "@/lib/risk/computeConfidenceScore";
 import { detectSignals } from "@/lib/risk/detectSignals";
 
-/* ------------------ TYPE ------------------ */
+/* ------------------ TYPES ------------------ */
 type SearchPayload = {
   fullName: string;
   email?: string | null;
@@ -20,51 +25,68 @@ type SearchPayload = {
   licenseNumber?: string | null;
 };
 
-/* ------------------ ROUTE HANDLER ------------------ */
+type RenterRecord = {
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  licenseNumber?: string;
+};
+
+/* ------------------ ROUTE ------------------ */
 export async function POST(req: NextRequest) {
   try {
-    const body: SearchPayload = await req.json();
-    const {
-      fullName,
-      email,
-      phone,
-      address,
-      city,
-      postalCode,
-      country,
-      state,
-      licenseNumber,
-    } = body;
-
     /* -------------------------------------------------------
-     *  1. INPUT VALIDATION
+     * ORG + PROVISIONING
      * ------------------------------------------------------ */
-    if (!fullName || fullName.trim().length < 2) {
+    const orgId = req.headers.get("x-org-id");
+    if (!orgId) {
       return NextResponse.json(
-        { error: "Full name is required." },
-        { status: 400 }
+        { error: "Organization context missing" },
+        { status: 401 }
+      );
+    }
+
+    const prov = await getOrgProvisioning(orgId);
+    if (!prov.isActive) {
+      return NextResponse.json(
+        { error: "Account inactive" },
+        { status: 403 }
       );
     }
 
     /* -------------------------------------------------------
-     *  2. ATTEMPT TO LOCATE MATCHED RENTER PROFILE
+     * INPUT
      * ------------------------------------------------------ */
-    let matchedDoc: FirebaseFirestore.DocumentSnapshot | null = null;
+    const body: SearchPayload = await req.json();
 
-    const col = adminDb.collection("renters");
-    const query = await col
-      .where("fullName_lower", "==", fullName.toLowerCase().trim())
-      .limit(5)
-      .get();
-
-    if (!query.empty) {
-      matchedDoc = query.docs[0];
+    if (!body.fullName || body.fullName.trim().length < 2) {
+      return NextResponse.json(
+        { error: "Full name is required" },
+        { status: 400 }
+      );
     }
 
+    const normalizedIdentityInput = {
+      name: body.fullName,
+      email: body.email ?? undefined,
+      phone: body.phone ?? undefined,
+      address: body.address ?? undefined,
+    };
+
     /* -------------------------------------------------------
-     *  CASE A — NO MATCH
+     * INTERNAL MATCH
      * ------------------------------------------------------ */
-    if (!matchedDoc) {
+    const rentersSnap = await adminDb
+      .collection("renters")
+      .where("fullName_lower", "==", body.fullName.toLowerCase().trim())
+      .limit(1)
+      .get();
+
+    if (rentersSnap.empty) {
+      const identityProvider = getIdentityProvider();
+      await identityProvider.verify(normalizedIdentityInput);
+
       return NextResponse.json({
         matchType: "none",
         id: null,
@@ -72,11 +94,12 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const renterId = matchedDoc.id;
-    const renterData = matchedDoc.data() || {};
+    const renterDoc = rentersSnap.docs[0];
+    const renterId = renterDoc.id;
+    const renter = renterDoc.data() as RenterRecord;
 
     /* -------------------------------------------------------
-     *  3. GATHER INCIDENT HISTORY, DISPUTES, PAYMENTS
+     * INCIDENTS & DISPUTES
      * ------------------------------------------------------ */
     const incidentsSnap = await adminDb
       .collection("incidents")
@@ -88,92 +111,75 @@ export async function POST(req: NextRequest) {
       .where("renterId", "==", renterId)
       .get();
 
-    const incidents = incidentsSnap.docs.map((d) => ({
-      id: d.id,
-      ...d.data(),
-    }));
-
-    const disputes = disputesSnap.docs.map((d) => ({
-      id: d.id,
-      ...d.data(),
-    }));
+    const incidents = incidentsSnap.docs.map(d => d.data());
+    const disputes = disputesSnap.docs.map(d => d.data());
 
     /* -------------------------------------------------------
-     *  4. DETECT SIGNALS
+     * SIGNALS (MATCHES LIB TYPE)
      * ------------------------------------------------------ */
     const signals = detectSignals({
-      renter: renterData,
+      renter,
       incidents,
       disputes,
-      payload: body,
     });
 
     /* -------------------------------------------------------
-     *  5. COMPUTE RISK SCORE (0–100, UI renders 300–900)
+     * SCORES (MATCHES LIB TYPE)
      * ------------------------------------------------------ */
     const riskScore = computeRiskScore({
-      renter: renterData,
+      renter,
       incidents,
       disputes,
       signals,
     });
 
-    /* -------------------------------------------------------
-     *  6. COMPUTE CONFIDENCE SCORE (accuracy of match)
-     * ------------------------------------------------------ */
     const confidenceScore = computeConfidenceScore({
-      renter: renterData,
-      payload: body,
+      renter,
       signals,
     });
 
     /* -------------------------------------------------------
-     *  7. FIND LINKed FULL REPORT (if exists)
+     * IDENTITY SIGNAL (LOG ONLY)
      * ------------------------------------------------------ */
-    let preMatchedReportId: string | null = null;
+    const identityProvider = getIdentityProvider();
+    const identityResult = await identityProvider.verify(
+      normalizedIdentityInput
+    );
 
-    const reportSnap = await adminDb
-      .collection("reports")
-      .where("renterId", "==", renterId)
-      .limit(1)
-      .get();
-
-    if (!reportSnap.empty) {
-      preMatchedReportId = reportSnap.docs[0].id;
-    }
+    await adminDb.collection("identity_signals").add({
+      orgId,
+      renterId,
+      provider: identityResult.provider,
+      confidence: identityResult.confidence,
+      verified: identityResult.verified,
+      createdAt: FieldValue.serverTimestamp(),
+    });
 
     /* -------------------------------------------------------
-     *  8. RESPONSE — UNIFIED RESULT
+     * RESPONSE
      * ------------------------------------------------------ */
     return NextResponse.json({
       id: renterId,
       matchType: "single",
-
-      /* Identity similarity placeholder — your existing logic can replace this */
-      identityScore: 92,
-
-      /* Unified Risk Object */
+      identityScore: identityResult.confidence,
       risk: {
         riskScore,
         confidenceScore,
         signals,
       },
-
       publicProfile: {
-        name: renterData.fullName ?? renterData.name,
-        email: renterData.email ?? null,
-        phone: renterData.phone ?? null,
-        address: renterData.address ?? null,
-        licenseNumber: renterData.licenseNumber ?? null,
+        name: renter.fullName ?? null,
+        email: renter.email ?? null,
+        phone: renter.phone ?? null,
+        address: renter.address ?? null,
+        licenseNumber: renter.licenseNumber ?? null,
       },
-
-      preMatchedReportId,
       unlocked: false,
     });
   } catch (err: any) {
     console.error("Search error:", err);
     return NextResponse.json(
-      { error: err.message || "Server error." },
+      { error: err.message || "Server error" },
       { status: 500 }
     );
   }

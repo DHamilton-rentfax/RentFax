@@ -1,18 +1,23 @@
-import type { Metadata } from 'next';
-import { AppProviders } from '@/components/AppProviders';
 import './globals.css';
+import AppProviders from './providers';
+import GlobalModals from '@/components/global/GlobalModals';
 
-export const metadata: Metadata = {
+export const metadata = {
   title: 'RentFAX',
-  description: 'Modern screening for modern landlords.',
+  description: 'Rental trust & verification platform',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <body>
         <AppProviders>
           {children}
+          <GlobalModals />
         </AppProviders>
       </body>
     </html>

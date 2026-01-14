@@ -1,31 +1,40 @@
-"use client";
+import '@/lib/server-only'
 
-import { useState } from "react";
-import SuperAdminSidebar from "@/components/superadmin/SuperAdminSidebar";
-import SuperAdminHeader from "@/components/superadmin/SuperAdminHeader";
-import SuperAdminContainer from "@/components/superadmin/SuperAdminContainer";
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
+import { adminAuth } from '@/firebase/server'
+import { getUserContext } from '@/app/actions/get-user-context'
+import { getOrgContext } from '@/app/actions/get-org-context'
+import ImpersonationBanner from '@/components/admin/ImpersonationBanner'
 
-export default function SuperAdminLayout({
+export default async function SuperAdminLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const session = cookies().get('__session')
+  if (!session) redirect('/login')
+
+  const decoded = await adminAuth.verifySessionCookie(session.value, true)
+  const ctx = await getUserContext(decoded.uid)
+
+  if (ctx.role !== 'SUPER_ADMIN') {
+    redirect('/unauthorized')
+  }
+
+  const { isImpersonating, orgName, impersonationExpiresAt } =
+    await getOrgContext()
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
-      {/* SIDEBAR */}
-      <SuperAdminSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-      {/* RIGHT SIDE */}
-      <div className="flex flex-1 flex-col">
-
-        {/* HEADER */}
-        <SuperAdminHeader onMenuClick={() => setSidebarOpen(true)} />
-
-        {/* CONTENT */}
-        <SuperAdminContainer>{children}</SuperAdminContainer>
-      </div>
-    </div>
-  );
+    <>
+      {isImpersonating && (
+        <ImpersonationBanner
+          orgName={orgName!}
+          expiresAt={impersonationExpiresAt}
+          redirectTo="/superadmin"
+        />
+      )}
+      {children}
+    </>
+  )
 }

@@ -1,3 +1,4 @@
+import 'server-only';
 import { paymentScore } from "./payments";
 import { incidentImpact } from "./incidents";
 import { identityIntegrityScore } from "./identity";

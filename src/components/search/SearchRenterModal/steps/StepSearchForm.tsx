@@ -14,68 +14,83 @@ import {
 } from "lucide-react";
 import clsx from "clsx";
 import { useEffect, useRef, useState } from "react";
+import { formatPhone } from "@/lib/formatPhone";
 
 /* -------------------------------------------------------------------------------------------------
- * CONFIGURATION
+ * CONFIG
  * ------------------------------------------------------------------------------------------------*/
 const BRAND_GOLD = "#D9A334";
 const BRAND_NAVY = "#1A2540";
-
-// When confidence drops below this, advanced fields auto-expand
 const AUTO_EXPAND_CONFIDENCE_THRESHOLD = 65;
 
 /* -------------------------------------------------------------------------------------------------
- * DATA
+ * TYPES
  * ------------------------------------------------------------------------------------------------*/
-const COUNTRIES = [
-  { code: "US", name: "United States" },
-  { code: "CA", name: "Canada" },
-  { code: "GB", name: "United Kingdom" },
-  { code: "AU", name: "Australia" },
-  { code: "MX", name: "Mexico" },
-  { code: "OTHER", name: "Other / International" },
-] as const;
+type Props = {
+  fullName: string;
+  setFullName: (v: string) => void;
 
-const US_STATES = [
-  "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA",
-  "KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
-  "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT",
-  "VA","WA","WV","WI","WY",
-];
+  email?: string;
+  setEmail?: (v: string) => void;
 
-const CA_PROVINCES = [
-  "AB","BC","MB","NB","NL","NS","NT","NU","ON","PE","QC","SK","YT",
-];
+  phone?: string;
+  setPhone?: (v: string) => void;
+
+  address: string;
+  setAddress: (v: string) => void;
+
+  city: string;
+  setCity: (v: string) => void;
+
+  postalCode: string;
+  setPostalCode: (v: string) => void;
+
+  licenseNumber: string;
+  setLicenseNumber: (v: string) => void;
+
+  confidence?: number;
+  requireLicense?: boolean;
+
+  error?: string | null;
+};
 
 /* -------------------------------------------------------------------------------------------------
  * COMPONENT
  * ------------------------------------------------------------------------------------------------*/
-export default function StepSearchForm(props: any) {
-  const {
-    fullName, setFullName,
-    email, setEmail,
-    phone, setPhone, formatPhone,
-    useAutofill, setUseAutofill,
-    addrQuery, setAddrQuery,
-    address, setAddress,
-    suggestions, setSuggestions, suggestionsLoading,
-    city, setCity,
-    postalCode, setPostalCode,
-    countryCode, setCountryCode,
-    stateCode, setStateCode,
-    licenseNumber, setLicenseNumber,
-    error,
+export default function StepSearchForm({
+  fullName,
+  setFullName,
 
-    // REQUIRED SIGNALS
-    confidence,
-    requireLicense,
-  } = props;
+  email = "",
+  setEmail = () => {},
 
-  /* ---------------------------------- LOCAL STATE ---------------------------------- */
+  phone = "",
+  setPhone = () => {},
+
+  address,
+  setAddress,
+
+  city,
+  setCity,
+
+  postalCode,
+  setPostalCode,
+
+  licenseNumber,
+  setLicenseNumber,
+
+  confidence,
+  requireLicense = false,
+  error,
+}: Props) {
+  /* ---------------------------------- LOCAL AUTOFILL STATE ---------------------------------- */
+  const [useAutofill, setUseAutofill] = useState(false);
+  const [addrQuery, setAddrQuery] = useState("");
+
+  /* ---------------------------------- ADVANCED UI ---------------------------------- */
   const [showAdvanced, setShowAdvanced] = useState(false);
   const autoExpandedRef = useRef(false);
 
-  /* ---------------------------------- AUTO EXPAND LOGIC ---------------------------------- */
   useEffect(() => {
     if (
       !autoExpandedRef.current &&
@@ -87,31 +102,22 @@ export default function StepSearchForm(props: any) {
     }
   }, [confidence]);
 
-  /* ---------------------------------- INPUT STYLE ---------------------------------- */
   const input =
     "w-full rounded-xl bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 " +
     "shadow-[0_1px_0_rgba(0,0,0,0.06)] ring-1 ring-gray-200 focus:outline-none " +
     "focus:ring-2 focus:ring-[rgba(217,163,52,0.35)] transition";
 
-  /* -------------------------------------------------------------------------------------------------
-   * RENDER
-   * ------------------------------------------------------------------------------------------------*/
   return (
     <div className="space-y-7">
-
       {/* TRUST STRIP */}
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[12px] text-gray-500">
         <span className="inline-flex items-center gap-2">
-          <Lock className="h-4 w-4" />
-          Encrypted
+          <Lock className="h-4 w-4" /> Encrypted
         </span>
         <span className="inline-flex items-center gap-2">
-          <ShieldCheck className="h-4 w-4" />
-          Access logged
+          <ShieldCheck className="h-4 w-4" /> Access logged
         </span>
-        <span className="hidden sm:inline">
-          Consent-first verification
-        </span>
+        <span className="hidden sm:inline">Consent-first verification</span>
       </div>
 
       {/* FULL NAME */}
@@ -154,52 +160,37 @@ export default function StepSearchForm(props: any) {
               <div className="text-xs font-semibold" style={{ color: BRAND_NAVY }}>
                 Primary address
               </div>
-              <div className="text-[11px] text-gray-500">
-                +20% match strength
-              </div>
+              <div className="text-[11px] text-gray-500">+20% match strength</div>
             </div>
           </div>
 
           <button
             type="button"
-            onClick={() => {
-              setUseAutofill(!useAutofill);
-              setSuggestions([]);
-            }}
+            onClick={() => setUseAutofill((v) => !v)}
             className={clsx(
               "inline-flex items-center gap-2 rounded-full px-3 py-1 text-[12px] font-medium transition ring-1",
               useAutofill
-                ? "bg-[rgba(217,163,52,0.12)] ring-[rgba(217,163,52,0.35)] text-gray-800"
-                : "bg-white ring-gray-200 text-gray-600 hover:text-gray-800"
+                ? "bg-[rgba(217,163,52,0.12)] ring-[rgba(217,163,52,0.35)]"
+                : "bg-white ring-gray-200"
             )}
           >
-            <Wand2
-              className="h-4 w-4"
-              style={{ color: useAutofill ? BRAND_GOLD : undefined }}
-            />
+            <Wand2 className="h-4 w-4" style={{ color: useAutofill ? BRAND_GOLD : undefined }} />
             Autofill
-            <span
-              className={clsx(
-                "h-2 w-2 rounded-full",
-                useAutofill ? "bg-green-500" : "bg-gray-300"
-              )}
-            />
+            <span className={clsx("h-2 w-2 rounded-full", useAutofill ? "bg-green-500" : "bg-gray-300")} />
           </button>
         </div>
 
         <input
           value={useAutofill ? addrQuery : address}
           onChange={(e) =>
-            useAutofill
-              ? setAddrQuery(e.target.value)
-              : setAddress(e.target.value)
+            useAutofill ? setAddrQuery(e.target.value) : setAddress(e.target.value)
           }
           placeholder="123 Main St"
           className={input}
         />
       </div>
 
-      {/* LICENSE — ALWAYS VISIBLE */}
+      {/* LICENSE */}
       <Field
         label="Driver license / government ID"
         hint={requireLicense ? "Required" : "+20%"}
@@ -208,16 +199,9 @@ export default function StepSearchForm(props: any) {
       >
         <input
           value={licenseNumber}
-          onChange={(e) =>
-            setLicenseNumber(e.target.value.toUpperCase())
-          }
+          onChange={(e) => setLicenseNumber(e.target.value.toUpperCase())}
           placeholder="License or ID number"
-          className={clsx(
-            input,
-            "uppercase",
-            requireLicense &&
-              "ring-2 ring-amber-400 focus:ring-amber-500"
-          )}
+          className={clsx(input, "uppercase")}
         />
 
         {requireLicense && !licenseNumber && (
@@ -228,7 +212,7 @@ export default function StepSearchForm(props: any) {
         )}
       </Field>
 
-      {/* ADVANCED TOGGLE */}
+      {/* ADVANCED */}
       <button
         type="button"
         onClick={() => setShowAdvanced((v) => !v)}
@@ -238,19 +222,14 @@ export default function StepSearchForm(props: any) {
         {showAdvanced ? "Hide additional details" : "Add more details (optional)"}
       </button>
 
-      {/* ADVANCED FIELDS */}
       {showAdvanced && (
         <div className="space-y-6 pt-2">
           <div className="grid sm:grid-cols-2 gap-5">
-            <Field label="City" accent={!!city}>
-              <input
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className={input}
-              />
+            <Field label="City">
+              <input value={city} onChange={(e) => setCity(e.target.value)} className={input} />
             </Field>
 
-            <Field label="Postal code" accent={!!postalCode}>
+            <Field label="Postal code">
               <input
                 value={postalCode}
                 onChange={(e) => setPostalCode(e.target.value)}
@@ -258,50 +237,9 @@ export default function StepSearchForm(props: any) {
               />
             </Field>
           </div>
-
-          <div className="grid sm:grid-cols-2 gap-5">
-            <Field label="Country">
-              <select
-                value={countryCode}
-                onChange={(e) => setCountryCode(e.target.value)}
-                className={input}
-              >
-                {COUNTRIES.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-
-            <Field label="State / region">
-              {countryCode === "US" || countryCode === "CA" ? (
-                <select
-                  value={stateCode}
-                  onChange={(e) => setStateCode(e.target.value)}
-                  className={input}
-                >
-                  <option value="">Select</option>
-                  {(countryCode === "US"
-                    ? US_STATES
-                    : CA_PROVINCES
-                  ).map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  value={stateCode}
-                  onChange={(e) => setStateCode(e.target.value)}
-                  className={input}
-                />
-              )}
-            </Field>
-          </div>
         </div>
       )}
 
-      {/* ERROR */}
       {error && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
@@ -332,21 +270,12 @@ function Field({
       <div className="flex items-end justify-between">
         <div className="flex items-center gap-2">
           {Icon && <Icon className="h-4 w-4 text-gray-500" />}
-          <span
-            className="text-xs font-semibold"
-            style={{ color: BRAND_NAVY }}
-          >
+          <span className="text-xs font-semibold" style={{ color: BRAND_NAVY }}>
             {label}
           </span>
         </div>
-
         {hint && (
-          <span
-            className={clsx(
-              "text-[11px] font-medium",
-              accent ? "text-gray-800" : "text-gray-500"
-            )}
-          >
+          <span className={clsx("text-[11px] font-medium", accent ? "text-gray-800" : "text-gray-500")}>
             {hint}
           </span>
         )}

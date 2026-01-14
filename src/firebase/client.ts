@@ -1,8 +1,9 @@
+'use client';
 // src/firebase/client.ts
 // ✅ Client-only Firebase instance (no firebase-admin imports here)
 
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getFunctions } from "firebase/functions";
@@ -47,4 +48,8 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const functions = getFunctions(app);
+
+// Set persistence to 'local' to keep the user signed in
+setPersistence(auth, browserLocalPersistence);
+
 export default app;

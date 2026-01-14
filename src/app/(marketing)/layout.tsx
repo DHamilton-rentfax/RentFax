@@ -1,5 +1,5 @@
-import MarketingHeader from "@/components/layout/MarketingHeader";
-import Footer from "@/components/layout/footer";
+import WebsiteShell from "@/components/layout/WebsiteShell";
+import { PricingCartProvider } from "@/context/PricingCartContext";
 
 export default function MarketingLayout({
   children,
@@ -7,10 +7,8 @@ export default function MarketingLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
-      <MarketingHeader />
-      <main className="pt-24">{children}</main>
-      <Footer />
-    </>
+    <PricingCartProvider>
+      <WebsiteShell>{children}</WebsiteShell>
+    </PricingCartProvider>
   );
 }

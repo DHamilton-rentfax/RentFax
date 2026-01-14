@@ -1,3 +1,4 @@
+import '@/lib/server-only';
 import { buildTimeline } from "@/lib/timeline/buildTimeline";
 import { adminDb } from "@/firebase/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";

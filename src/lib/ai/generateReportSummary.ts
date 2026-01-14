@@ -1,3 +1,4 @@
+import '@/lib/server-only';
 import { adminDb } from "@/firebase/server";
 
 export async function generateReportSummary(reportNameId: string) {

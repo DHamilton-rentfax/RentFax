@@ -1,3 +1,4 @@
+import '@/lib/server-only';
 import { OpenAI } from "openai";
 import { adminDb } from "@/firebase/server";
 

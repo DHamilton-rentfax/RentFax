@@ -2,158 +2,276 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{db}/documents {
 
-    /* ===============================
-       Helper functions
-    =============================== */
+    /* ======================================================
+       AUTH HELPERS
+    ====================================================== */
 
     function isSignedIn() {
       return request.auth != null;
     }
 
-    function isRole(role) {
-      return request.auth != null
-        && request.auth.token.role == role;
+    /* ======================================================
+       ROLE RESOLUTION (CLAIMS → FIRESTORE FALLBACK)
+    ====================================================== */
+
+    function resolvedRole() {
+      return request.auth.token.role != null
+        ? request.auth.token.role
+        : (
+            exists(/databases/$(db)/documents/users/$(request.auth.uid))
+              ? get(/databases/$(db)/documents/users/$(request.auth.uid)).data.role
+              : null
+          );
     }
 
-    function isAnyRole(roles) {
-      return request.auth != null
-        && request.auth.token.role in roles;
+    function resolvedCompanyId() {
+      return request.auth.token.companyId != null
+        ? request.auth.token.companyId
+        : (
+            exists(/databases/$(db)/documents/users/$(request.auth.uid))
+              ? get(/databases/$(db)/documents/users/$(request.auth.uid)).data.companyId
+              : null
+          );
     }
-    
+
+    /* ======================================================
+       ROLE CHECKS (NO NULLS)
+    ====================================================== */
+
+    function hasRole(role) {
+      return isSignedIn() && resolvedRole() == role;
+    }
+
+    function isSuperAdmin() {
+      return hasRole("SUPER_ADMIN");
+    }
+
     function isAdmin() {
-      return request.auth != null &&
-        (
-          request.auth.token.role == "ADMIN" ||
-          request.auth.token.role == "SUPER_ADMIN"
-        );
+      return hasRole("ADMIN") || hasRole("SUPER_ADMIN");
     }
-    
+
+    function isSupport() {
+      return hasRole("SUPPORT");
+    }
+
+    function isEditor() {
+      return hasRole("EDITOR") || hasRole("SUPER_ADMIN");
+    }
+
+    function isViewer() {
+      return hasRole("VIEWER");
+    }
+
+    function isRenter() {
+      return hasRole("RENTER");
+    }
+
+    /* ======================================================
+       MEMBERSHIP CHECK
+    ====================================================== */
+
     function isActiveMember() {
-      return request.auth != null &&
-        get(/databases/$(db)/documents/users/$(request.auth.uid))
-          .data.membership.status == "active";
+      return isSignedIn()
+        && exists(/databases/$(db)/documents/users/$(request.auth.uid))
+        && get(/databases/$(db)/documents/users/$(request.auth.uid))
+            .data.membership.status == "active";
     }
 
-    /* ===============================
-       Collection Rules
-    =============================== */
+    /* ======================================================
+       USERS
+    ====================================================== */
 
-    // LEDGER (Unaffected)
+    match /users/{userId} {
+      allow read: if
+        (isSignedIn() && request.auth.uid == userId)
+        || isAdmin();
+
+      allow create: if
+        isSignedIn() && request.auth.uid == userId;
+
+      allow update: if
+        (isSignedIn() && request.auth.uid == userId)
+        || isAdmin();
+
+      allow delete: if isSuperAdmin();
+    }
+
+    /* ======================================================
+       LEDGER (READ ONLY)
+    ====================================================== */
+
     match /ledger/{ledgerId} {
       allow read: if isAdmin();
-      allow create, update, delete: if false;
+      allow write: if false;
     }
 
-    // REPORTS (Unaffected)
+    /* ======================================================
+       REPORTS
+    ====================================================== */
+
     match /reports/{reportId} {
-      allow read: if isSignedIn() && isActiveMember() &&
-        (
+      allow read: if
+        isSignedIn()
+        && isActiveMember()
+        && (
           request.auth.uid == resource.data.renterId ||
           (
-            request.auth.token.companyId != null &&
-            request.auth.token.companyId == resource.data.companyId
+            resolvedCompanyId() != null &&
+            resolvedCompanyId() == resource.data.companyId
           ) ||
           isAdmin()
         );
-      allow create: if isSignedIn() && isAdmin();
+
+      allow create: if isAdmin();
       allow update, delete: if false;
     }
 
-    // DISPUTES (FIXED)
+    /* ======================================================
+       DISPUTES
+    ====================================================== */
+
     match /disputes/{disputeId} {
-      allow create: if isRole("SUPER_ADMIN");
-      allow read: if isAnyRole(["SUPER_ADMIN", "ADMIN", "VIEWER"]);
+      allow create: if isSuperAdmin();
+      allow read: if isSuperAdmin() || isAdmin() || isViewer();
       allow update, delete: if false;
     }
 
-    // EVIDENCE (Unaffected)
+    /* ======================================================
+       EVIDENCE
+    ====================================================== */
+
     match /evidence/{evidenceId} {
-      allow read: if isSignedIn() &&
-        (
+      allow read: if
+        isSignedIn()
+        && (
           request.auth.uid == resource.data.renterId ||
-          request.auth.token.companyId == resource.data.companyId ||
+          resolvedCompanyId() == resource.data.companyId ||
           isAdmin()
         );
-      allow create: if isSignedIn() &&
-        (
+
+      allow create: if
+        isSignedIn()
+        && (
           request.auth.uid == request.resource.data.renterId ||
           (
-            request.auth.token.companyId != null &&
-            request.auth.token.companyId == request.resource.data.companyId
+            resolvedCompanyId() != null &&
+            resolvedCompanyId() == request.resource.data.companyId
           )
         );
+
       allow update, delete: if false;
     }
 
-    // SELF VERIFICATIONS (Unaffected)
+    /* ======================================================
+       SELF VERIFICATIONS (TOKEN SAFE)
+    ====================================================== */
+
     match /self_verifications/{token} {
-      allow read: if true;
+      allow read: if false;
       allow create: if isSignedIn();
       allow update, delete: if false;
     }
 
-    // AUDIT LOGS (FIXED)
+    /* ======================================================
+       AUDIT LOGS (IMMUTABLE)
+    ====================================================== */
+
     match /auditLogs/{logId} {
-      allow read: if isRole("SUPER_ADMIN");
+      allow read: if isSuperAdmin();
       allow write: if false;
     }
 
-    // AI SUMMARIES (Unaffected)
+    /* ======================================================
+       AI SUMMARIES
+    ====================================================== */
+
     match /ai_summaries/{id} {
-      allow read: if isSignedIn() &&
-        (
+      allow read: if
+        isSignedIn()
+        && (
           request.auth.uid == resource.data.renterId ||
-          request.auth.token.companyId == resource.data.companyId ||
+          resolvedCompanyId() == resource.data.companyId ||
           isAdmin()
         );
-      allow create, update, delete: if false;
+
+      allow write: if false;
     }
-    
-    // RENTERS (FIXED)
+
+    /* ======================================================
+       RENTERS
+    ====================================================== */
+
     match /renters/{renterId} {
-      allow read: if isAnyRole(["SUPER_ADMIN", "ADMIN", "SUPPORT"]);
-      allow update: if isAnyRole(["SUPER_ADMIN", "ADMIN"]);
+      allow read: if isSuperAdmin() || isAdmin() || isSupport();
+      allow update: if isSuperAdmin() || isAdmin();
       allow create, delete: if false;
     }
 
-    // MEMBER ID REQUESTS (Unaffected)
+    /* ======================================================
+       MEMBER ID REQUESTS
+    ====================================================== */
+
     match /memberIdRequests/{requestId} {
-      allow read: if request.auth != null;
-      allow write: if false; 
-    }
+      allow create: if
+        isSignedIn()
+        && request.resource.data.userId == request.auth.uid;
 
-    // BLOGS (FIXED)
-    match /blogs/{blogId} {
-      allow read: if true;
-      allow create, update: if isAnyRole(["EDITOR", "SUPER_ADMIN"]);
-      allow delete: if isRole("SUPER_ADMIN");
-    }
+      allow read: if
+        (isSignedIn() && resource.data.userId == request.auth.uid)
+        || isAdmin();
 
-    // INVITES (FIXED)
-    match /invites/{inviteId} {
-      allow create: if isAnyRole(["ADMIN", "SUPER_ADMIN"]);
-      allow read: if isAnyRole(["ADMIN", "SUPER_ADMIN"]);
       allow update, delete: if false;
     }
 
-    // ALERTS (FIXED)
+    /* ======================================================
+       BLOGS
+    ====================================================== */
+
+    match /blogs/{blogId} {
+      allow read: if true;
+      allow create, update: if isEditor();
+      allow delete: if isSuperAdmin();
+    }
+
+    /* ======================================================
+       INVITES
+    ====================================================== */
+
+    match /invites/{inviteId} {
+      allow create, read: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    /* ======================================================
+       ALERTS
+    ====================================================== */
+
     match /alerts/{alertId} {
-      allow read: if isAnyRole(["ADMIN", "SUPPORT"]);
-      allow update: if isRole("ADMIN");
+      allow read: if isAdmin() || isSupport();
+      allow update: if isAdmin();
       allow create, delete: if false;
     }
 
-    // CHATS (FIXED)
+    /* ======================================================
+       CHATS (SCOPED)
+    ====================================================== */
+
     match /chats/{chatId} {
-      allow create: if isAnyRole(["RENTER", "SUPPORT"]);
-      allow update: if isAnyRole(["SUPPORT"]);
-      allow read: if request.auth != null;
+      allow create: if isRenter() || isSupport();
+      allow update: if isSupport();
+      allow read: if
+        isSignedIn()
+        && (
+          request.auth.uid in resource.data.participantIds ||
+          isAdmin()
+        );
       allow delete: if false;
     }
 
-    /* ===============================
-       DEFAULT DENY (MANDATORY)
-    =============================== */
+    /* ======================================================
+       DEFAULT DENY
+    ====================================================== */
+
     match /{document=**} {
       allow read, write: if false;
     }

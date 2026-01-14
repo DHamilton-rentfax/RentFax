@@ -2,6 +2,28 @@
 
 This project has STRICT constraints. Any code or config changes MUST respect the following rules.
 
+SUPER ADMIN
+- Full platform visibility
+- Cross-org data
+- Billing, risk, audit, enforcement
+
+SUPPORT STAFF
+- Case-based access
+- Disputes, incidents, identity review
+- No billing, no property ownership
+
+CLIENT COMPANY
+- Renter management
+- Incident creation
+- Dispute responses
+- Searches & reports
+
+RENTER
+- View reports
+- Submit disputes
+- Upload evidence
+
+
 ## Runtime
 - Next.js 16+
 - App Router ONLY

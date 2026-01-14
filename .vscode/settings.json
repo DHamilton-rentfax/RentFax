@@ -1,3 +1,23 @@
 {
-    "git.ignoreLimitWarning": true
+    "git.ignoreLimitWarning": true,
+    "cSpell.words": [
+        "adminsdk",
+        "appspot",
+        "Atmg",
+        "firebaseapp",
+        "firestore",
+        "IDPOTENT",
+        "livemode",
+        "MAPBOX",
+        "PAYG",
+        "pdpl",
+        "Rcog",
+        "rentfax",
+        "RPCW",
+        "superadmin",
+        "trulioo",
+        "Uhxdi",
+        "Vgyd",
+        "Vkby"
+    ]
 }

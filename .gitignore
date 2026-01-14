@@ -1,86 +1,44 @@
-# =====================================================
-# Dependencies
-# =====================================================
+# dependencies
 node_modules/
-.pnp/
-.pnp.js
 
-# =====================================================
 # Next.js
-# =====================================================
 .next/
 out/
-dist/
-build/
 
-# =====================================================
-# Testing & Reports
-# =====================================================
-coverage/
-playwright-report/
-test-results/
-e2e-report/
-
-# =====================================================
-# Logs
-# =====================================================
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-logs/
-*.log
-
-# =====================================================
-# Environment Variables (NEVER COMMIT)
-# =====================================================
+# environment
 .env
 .env.*
 !.env.example
-!.env.local.example
 
-# =====================================================
-# Firebase / Secrets (CRITICAL)
-# =====================================================
-service-account.json
-**/service-account.json
+# Firebase / logs
 firebase-debug.log
-.firebaserc
-firebase.json.bak
+firestore-debug.log
+*.log
 
-# =====================================================
-# Local Tooling & Editors
-# =====================================================
+# OS
+.DS_Store
+
+# IDE
 .vscode/
 .idea/
-*.swp
-*.swo
 
-# =====================================================
-# OS / System
-# =====================================================
-.DS_Store
-Thumbs.db
-*.pem
-
-# =====================================================
-# TypeScript / Build Cache
-# =====================================================
-tsconfig.tsbuildinfo
-*.tsbuildinfo
-
-# =====================================================
-# Temporary / Disabled Folders
-# =====================================================
-app__disabled/
-__old__/
-__archive__/
-*_DISABLED/
-*.bak
-
-# =====================================================
-# Misc
-# =====================================================
+# Cache
 .cache/
-.tmp/
-.temp/
+
+# --- ARCHIVE / LEGACY ---
+Archived_files/
+app__disabled/
+_route_archive/
+
+# --- SECRETS ---
+secrets/
+*.pem
+*.key
+serviceAccountKey.json
+
+# --- TEST OUTPUT ---
+playwright-report/
+coverage/
+
+# --- DIST / BUILD ---
+dist/

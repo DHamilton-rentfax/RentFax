@@ -1,3 +1,4 @@
+import 'server-only';
 import { adminDB } from "@/firebase/server";
 import Stripe from "stripe";
 

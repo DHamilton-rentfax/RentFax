@@ -1,33 +1,34 @@
-
+import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
-import { auth } from "@/firebase/server";
+import { adminAuth } from "@/firebase/server";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const { idToken } = await req.json();
 
-    const decoded = await auth.verifyIdToken(idToken);
+    if (!idToken) {
+      return NextResponse.json({ error: "Missing idToken" }, { status: 400 });
+    }
 
-    const roleRaw = (decoded.role || "RENTER") as string;
+    await adminAuth.verifyIdToken(idToken);
 
-    // Normalize
-    const role = roleRaw.toLowerCase();
+    const expiresInMs = 1000 * 60 * 60 * 24 * 5;
 
-    // Create secure session cookie
-    const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
-    const sessionCookie = await auth.createSessionCookie(idToken, { expiresIn });
-
-    cookies().set("session", sessionCookie, {
-      httpOnly: true,
-      secure: true,
-      path: "/",
-      maxAge: expiresIn,
+    const sessionCookie = await adminAuth.createSessionCookie(idToken, {
+      expiresIn: expiresInMs,
     });
 
-    return NextResponse.json({ role });
+    cookies().set("__session", sessionCookie, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: expiresInMs / 1000,
+    });
+
+    return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("Session login error:", err);
-    return new NextResponse("Unauthorized", { status: 401 });
+    console.error("SESSION LOGIN FAILED", err);
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 }

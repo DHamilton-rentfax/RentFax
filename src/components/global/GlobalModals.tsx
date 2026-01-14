@@ -1,21 +1,23 @@
-"use client";
+'use client';
 
-import { useModal } from "@/contexts/ModalContext";
-import SearchRenterModal from "@/components/search/SearchRenterModal";
+import { useModal } from '@/contexts/ModalContext';
+import SearchRenterModal from '@/components/search/SearchRenterModal/SearchRenterModal';
 
 export default function GlobalModals() {
-  const { activeModal, closeModal } = useModal();
+  const { modal, close } = useModal();
 
-  // For now we don't pass a logged-in user; you can wire useAuth() later.
+  // Auth can be wired later — modal must NOT depend on auth
   const user = null;
 
+  if (!modal) return null;
+
+  if (modal !== 'searchRenter') return null;
+
   return (
-    <>
-      <SearchRenterModal
-        open={activeModal === "searchRenter"}
-        onClose={closeModal}
-        user={user}
-      />
-    </>
+    <SearchRenterModal
+      open
+      onClose={close}
+      user={user}
+    />
   );
 }

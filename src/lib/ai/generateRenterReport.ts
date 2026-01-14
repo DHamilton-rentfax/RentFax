@@ -1,3 +1,4 @@
+import '@/lib/server-only';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import OpenAI from "openai";
 
