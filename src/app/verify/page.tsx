@@ -1,4 +1,4 @@
-i"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -14,7 +14,7 @@ type IdentityRequest = {
 
 export default function VerifyPage() {
   const searchParams = useSearchParams();
-  const token = searchParams.get("id");
+  const token = searchParams?.get("id") ?? null;
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -25,19 +25,24 @@ export default function VerifyPage() {
 
   useEffect(() => {
     if (!token) {
-      setError("Invalid verification link.");
+      setError("Invalid or missing verification link.");
       setLoading(false);
       return;
     }
 
     const load = async () => {
       try {
-        const res = await fetch(`/api/identity/request?id=${encodeURIComponent(token)}`);
+        const res = await fetch(
+          `/api/identity/request?id=${encodeURIComponent(token)}`
+        );
         const json = await res.json();
-        if (!res.ok) throw new Error(json.error || "Failed to load request");
+
+        if (!res.ok) {
+          throw new Error(json.error || "Failed to load request");
+        }
 
         setRequest(json.request);
-        setConfirmedName(json.request.renterName ?? "");
+        setConfirmedName(json.request?.renterName ?? "");
       } catch (err: any) {
         setError(err.message || "Error loading verification.");
       } finally {
@@ -54,6 +59,7 @@ export default function VerifyPage() {
 
     try {
       setSubmitting(true);
+
       const res = await fetch("/api/identity/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -65,15 +71,12 @@ export default function VerifyPage() {
       });
 
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Failed to complete verification");
+      if (!res.ok) {
+        throw new Error(json.error || "Failed to complete verification");
+      }
 
       setRequest((prev) =>
-        prev
-          ? {
-              ...prev,
-              status: "COMPLETED",
-            }
-          : prev
+        prev ? { ...prev, status: "COMPLETED" } : prev
       );
     } catch (err: any) {
       setError(err.message || "Error completing verification.");
@@ -82,17 +85,20 @@ export default function VerifyPage() {
     }
   };
 
+  /* ---------------------------------- UI ---------------------------------- */
+
   if (loading) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-6 w-6 animate-spin text-slate-700" />
-          <p className="text-sm text-slate-600">Loading your verification…</p>
+          <p className="text-sm text-slate-600">
+            Loading your verification…
+          </p>
         </div>
       </main>
     );
   }
-
 
   if (error || !request) {
     return (
@@ -100,7 +106,9 @@ export default function VerifyPage() {
         <div className="bg-white shadow-lg rounded-xl p-6 max-w-md w-full text-center">
           <X className="h-8 w-8 mx-auto text-red-500 mb-2" />
           <h1 className="text-lg font-semibold mb-2">Link Problem</h1>
-          <p className="text-sm text-slate-600">{error || "This verification link is invalid or expired."}</p>
+          <p className="text-sm text-slate-600">
+            {error || "This verification link is invalid or expired."}
+          </p>
         </div>
       </main>
     );
@@ -125,23 +133,30 @@ export default function VerifyPage() {
 
         <div className="mb-4 text-xs sm:text-sm text-slate-600">
           <p className="mb-1">
-            Linked name: <span className="font-semibold">{request.renterName}</span>
+            Linked name:{" "}
+            <span className="font-semibold">{request.renterName}</span>
           </p>
           {request.renterEmail && (
             <p>
-              Email on file: <span className="font-mono text-[11px]">{request.renterEmail}</span>
+              Email on file:{" "}
+              <span className="font-mono text-[11px]">
+                {request.renterEmail}
+              </span>
             </p>
           )}
           {request.renterPhone && (
             <p>
-              Phone on file: <span className="font-mono text-[11px]">{request.renterPhone}</span>
+              Phone on file:{" "}
+              <span className="font-mono text-[11px]">
+                {request.renterPhone}
+              </span>
             </p>
           )}
         </div>
 
         {isCompleted ? (
           <div className="mt-4 rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-800">
-            Thank you. Your verification has already been completed. No further action is required.
+            Thank you. Your verification has already been completed.
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4 mt-4">
@@ -152,8 +167,8 @@ export default function VerifyPage() {
               <input
                 value={confirmedName}
                 onChange={(e) => setConfirmedName(e.target.value)}
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10"
                 required
+                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10"
               />
             </div>
 
@@ -166,7 +181,6 @@ export default function VerifyPage() {
                 onChange={(e) => setExtraNotes(e.target.value)}
                 rows={3}
                 className="mt-1 w-full border rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-slate-900/10"
-                placeholder="Example: I had a previous dispute with a rental company, here is what happened..."
               />
             </div>
 
@@ -179,8 +193,8 @@ export default function VerifyPage() {
               {submitting ? "Submitting…" : "Confirm & Submit"}
             </button>
 
-            <p className="text-[10px] text-slate-500 text-center mt-1">
-              By submitting, you agree that the information you provided is accurate to the best of your knowledge.
+            <p className="text-[10px] text-slate-500 text-center">
+              By submitting, you confirm the information is accurate.
             </p>
           </form>
         )}
