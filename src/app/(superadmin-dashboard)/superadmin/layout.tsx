@@ -1,32 +1,39 @@
-import '@/lib/server-only'
-
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
-import { adminAuth } from '@/firebase/server'
-import { getUserContext } from '@/app/actions/get-user-context'
-import { getOrgContext } from '@/app/actions/get-org-context'
-import ImpersonationBanner from '@/components/admin/ImpersonationBanner'
+import '@/lib/server-only';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { adminAuth } from '@/firebase/server';
+import { getUserContext } from '@/app/actions/get-user-context';
+import { getOrgContext } from '@/app/actions/get-org-context';
+import { ROLES, Role } from '@/types/roles';
+import ImpersonationBanner from '@/components/admin/ImpersonationBanner';
 
 export default async function SuperAdminLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  const session = cookies().get('__session')
-  if (!session) {
-    const loginUrl = process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/login` : '/login';
-    redirect(loginUrl);
+  const sessionCookie = cookies().get('__session')?.value;
+  if (!sessionCookie) redirect('/login');
+
+  let ctx: Awaited<ReturnType<typeof getUserContext>>;
+  try {
+    const decoded = await adminAuth.verifySessionCookie(sessionCookie, true);
+    ctx = await getUserContext(decoded.uid);
+  } catch {
+    redirect('/login');
   }
 
-  const decoded = await adminAuth.verifySessionCookie(session.value, true)
-  const ctx = await getUserContext(decoded.uid)
+  // This layout is the most restrictive and only permits SUPER_ADMIN.
+  const allowedRoles: Role[] = [ROLES.SUPER_ADMIN];
 
-  if (ctx.role !== 'SUPER_ADMIN') {
-    redirect('/unauthorized')
+  // Authorize: If the user's role is not SUPER_ADMIN, deny access.
+  if (!allowedRoles.includes(ctx.role)) {
+    redirect('/unauthorized');
   }
 
+  // Impersonation UI logic is a presentation concern and can remain.
   const { isImpersonating, orgName, impersonationExpiresAt } =
-    await getOrgContext()
+    await getOrgContext();
 
   return (
     <>
@@ -39,5 +46,5 @@ export default async function SuperAdminLayout({
       )}
       {children}
     </>
-  )
+  );
 }

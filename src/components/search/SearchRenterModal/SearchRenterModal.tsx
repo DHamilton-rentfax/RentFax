@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
 /* -------------------------------------------------------------------------------------------------
  * IMPORTS
  * ------------------------------------------------------------------------------------------------*/
 import ModalAuthGate from "@/components/auth/ModalAuthGate.client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import type { AppUser } from "@/types/user";
 
 import StepSearchForm from "./steps/StepSearchForm";
-import StepMultiMatch from "./steps/StepMultiMatch";
 import StepVerificationGate from "./steps/StepVerificationGate";
 
-import { useSearchState } from "@/components/search/useSearchState";
+import { useSearchState, SearchOutcome } from "@/components/search/useSearchState";
+import type { SearchResult } from "@/components/search/types";
 
 /* -------------------------------------------------------------------------------------------------
  * TYPES
@@ -28,41 +28,26 @@ export type SearchPayload = {
   licenseNumber?: string | null;
 };
 
-export type SearchResult = {
-  matchType?: "none" | "single" | "multi";
-  unlocked?: boolean;
-  preMatchedReportId?: string | null;
-  candidates?: Array<{
-    id: string;
-    similarity: number;
-    renter: {
-      fullName: string;
-      email?: string | null;
-      phone?: string | null;
-      address?: string | null;
-      licenseNumber?: string | null;
-    };
-  }>;
-};
+interface Props {
+  open: boolean;
+  onClose: () => void;
+  onSearch?: (payload: SearchPayload) => Promise<SearchResult>;
+  user?: AppUser | null;
+}
 
 /* -------------------------------------------------------------------------------------------------
- * MAIN COMPONENT
+ * COMPONENT
  * ------------------------------------------------------------------------------------------------*/
 export default function SearchRenterModal({
   open,
   onClose,
   onSearch,
   user,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onSearch?: (payload: SearchPayload) => Promise<SearchResult>;
-  user?: AppUser | null;
-}) {
+}: Props) {
   const panelRef = useRef<HTMLDivElement | null>(null);
   const { uiState, dispatch, initialSearchState } = useSearchState();
 
-  /* ---------------------------------- FORM STATE ---------------------------------- */
+  /* ---------------- FORM ---------------- */
   const [fullName, setFullName] = useState(initialSearchState.fullName);
   const [email, setEmail] = useState(initialSearchState.email);
   const [phone, setPhone] = useState(initialSearchState.phone);
@@ -71,39 +56,56 @@ export default function SearchRenterModal({
   const [postalCode, setPostalCode] = useState("");
   const [licenseNumber, setLicenseNumber] = useState("");
 
-  /* ---------------------------------- UX STATE ---------------------------------- */
+  /* ---------------- UX ---------------- */
   const [result, setResult] = useState<SearchResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [progress, setProgress] = useState(0);
   const [instantLoading, setInstantLoading] = useState(false);
   const [selfVerifyLoading, setSelfVerifyLoading] = useState(false);
-
-  /* ---------------------------------- AUTH ---------------------------------- */
   const [showAuthGate, setShowAuthGate] = useState(false);
 
-  /* ---------------------------------- LIFECYCLE ---------------------------------- */
+  /* ---------------- LIFECYCLE ---------------- */
   useEffect(() => {
     if (open) {
       dispatch({ type: "OPEN" });
     } else {
       setResult(null);
       setError(null);
-      setProgress(0);
+      setFullName("");
+      setEmail("");
+      setPhone("");
+      setAddress("");
+      setCity("");
+      setPostalCode("");
+      setLicenseNumber("");
       dispatch({ type: "CLOSE" });
     }
   }, [open, dispatch]);
 
-  /* ---------------------------------- SEARCH ---------------------------------- */
+  /* ---------------- INTERNAL SEARCH ---------------- */
+  const internalSearch = useCallback(
+    async (payload: SearchPayload): Promise<SearchResult> => {
+      const res = await fetch("/api/renters/search", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(user?.companyId ? { "x-org-id": user.companyId } : {}),
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error || "Search failed");
+
+      return json as SearchResult;
+    },
+    [user?.companyId]
+  );
+
+  /* ---------------- SEARCH ---------------- */
   async function handleSubmit() {
     dispatch({ type: "SUBMIT_SEARCH" });
     setError(null);
     setResult(null);
-
-    let p = 0;
-    const timer = setInterval(() => {
-      p = Math.min(p + 8, 92);
-      setProgress(p);
-    }, 150);
 
     try {
       const payload: SearchPayload = {
@@ -116,118 +118,25 @@ export default function SearchRenterModal({
         licenseNumber: licenseNumber || null,
       };
 
-      const data = await onSearch?.(payload);
-      setResult(data || null);
+      const fn = onSearch ?? internalSearch;
+      const data = await fn(payload);
 
-      dispatch({
-        type: "SEARCH_SUCCESS",
-        matchType: data?.matchType || "none",
-      });
+      setResult(data);
+
+      let outcome: SearchOutcome;
+      if (!data) outcome = "NOT_FOUND";
+      else if (!data.verified && !data.hasReport)
+        outcome = "FOUND_UNVERIFIED_NO_REPORT";
+      else if (data.verified && data.hasReport)
+        outcome = "FOUND_WITH_REPORT";
+      else outcome = "FOUND_VERIFIED_NO_REPORT";
+
+      dispatch({ type: "SEARCH_SUCCESS", outcome });
     } catch (err: any) {
-      setError(err?.message || "Search failed");
+      setError(err.message || "Search failed");
       dispatch({ type: "SEARCH_ERROR" });
-    } finally {
-      clearInterval(timer);
-      setTimeout(() => setProgress(0), 300);
     }
   }
-
-  /* ---------------------------------- PDPL ($4.99) ---------------------------------- */
-  async function handleInstantVerify() {
-    if (!user) {
-      setShowAuthGate(true);
-      return;
-    }
-
-    setInstantLoading(true);
-    try {
-      const res = await fetch("/api/payments/intent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "PDPL",
-          renterInput: { fullName, email, phone, address, licenseNumber },
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Verification failed");
-
-      // Stripe redirect OR internal bypass handled server-side
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-      }
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setInstantLoading(false);
-    }
-  }
-
-  /* ---------------------------------- PAYG REPORT ($20) ---------------------------------- */
-  async function handlePaygUnlock() {
-    if (!result?.preMatchedReportId) return;
-
-    if (!user) {
-      setShowAuthGate(true);
-      return;
-    }
-
-    setInstantLoading(true);
-    try {
-      const res = await fetch("/api/payments/intent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "PAYG_REPORT",
-          reportId: result.preMatchedReportId,
-          renterInput: { fullName, email, phone },
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Unlock failed");
-
-      if (data.bypassed) {
-        setResult(r => r ? { ...r, unlocked: true } : r);
-        return;
-      }
-
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-      }
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setInstantLoading(false);
-    }
-  }
-
-  /* ---------------------------------- SELF VERIFY ---------------------------------- */
-  async function handleSelfVerify() {
-    if (!result?.preMatchedReportId) return;
-
-    setSelfVerifyLoading(true);
-    try {
-      await fetch("/api/self-verify/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          reportId: result.preMatchedReportId,
-          renter: { fullName, email, phone },
-        }),
-      });
-      onClose();
-    } finally {
-      setSelfVerifyLoading(false);
-    }
-  }
-
-  const handleBack = () => dispatch({ type: "BACK" });
-
-  const isSearchDisabled =
-    fullName.trim().length < 3 ||
-    (!email?.trim() && !phone?.trim());
 
   /* -------------------------------------------------------------------------------------------------
    * RENDER
@@ -236,10 +145,7 @@ export default function SearchRenterModal({
     <AnimatePresence>
       {open && (
         <>
-          <motion.div
-            className="fixed inset-0 z-[15000] bg-black/60 backdrop-blur-sm flex justify-end"
-            onMouseDown={(e) => e.target === e.currentTarget && onClose()}
-          >
+          <motion.div className="fixed inset-0 z-[15000] bg-black/60 flex justify-end">
             <motion.div
               ref={panelRef}
               className="bg-white h-full w-full sm:max-w-lg shadow-2xl flex flex-col"
@@ -247,12 +153,15 @@ export default function SearchRenterModal({
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
             >
-              <div className="flex items-center justify-between px-4 py-3 border-b">
+              <header className="flex items-center justify-between px-4 py-3 border-b">
                 <h2 className="font-semibold">Search Renter</h2>
-                <button onClick={onClose}><X /></button>
-              </div>
+                <button onClick={onClose}>
+                  <X />
+                </button>
+              </header>
 
-              <div className="flex-1 overflow-y-auto p-4 space-y-6">
+              <main className="flex-1 overflow-y-auto p-4 space-y-6">
+
                 {uiState === "SEARCH_INPUT" && (
                   <StepSearchForm
                     fullName={fullName}
@@ -272,33 +181,77 @@ export default function SearchRenterModal({
                   />
                 )}
 
-                {(uiState === "MATCH_CONTEXT" ||
-                  uiState === "VERIFICATION_DECISION") &&
-                  result && (
-                    <StepVerificationGate
-                      result={result}
-                      renterInput={{ fullName, email, phone, address, licenseNumber }}
-                      isLegacyEligible={Boolean(user?.companyId)}
-                      onInstantVerify={handleInstantVerify}
-                      onUnlockPayg={handlePaygUnlock}
-                      onSelfVerify={handleSelfVerify}
-                      onBack={handleBack}
-                      loadingInstant={instantLoading}
-                      loadingSelfVerify={selfVerifyLoading}
-                    />
-                  )}
-              </div>
+                {uiState === "SEARCHING" && (
+                  <div className="flex flex-col items-center py-16">
+                    <Loader2 className="h-6 w-6 animate-spin mb-3" />
+                    <p className="text-sm text-gray-600">
+                      Searching RentFAX records…
+                    </p>
+                  </div>
+                )}
+
+                {(uiState === "VERIFICATION_DECISION" ||
+                  uiState === "UNLOCK_REPORT" ||
+                  uiState === "VERIFIED_NO_REPORT") && (
+                  <StepVerificationGate
+                    result={result}
+                    renterInput={{
+                      fullName,
+                      email,
+                      phone,
+                      address,
+                      licenseNumber,
+                    }}
+                    isLegacyEligible={Boolean(user?.companyId)}
+                    onInstantVerify={async () => setShowAuthGate(true)}
+                    onSelfVerify={async () => {}}
+                    onLegacyVerify={async () => {}}
+                    onViewSample={() => {}}
+                    onBack={() => dispatch({ type: "BACK" })}
+                    loadingInstant={instantLoading}
+                    loadingSelfVerify={selfVerifyLoading}
+                  />
+                )}
+
+                {uiState === "ERROR" && (
+                  <div className="text-center py-12">
+                    <h3 className="text-lg font-semibold text-red-600">
+                      We couldn’t complete the search
+                    </h3>
+                    <p className="mt-2 text-sm text-gray-600">{error}</p>
+                    <button
+                      className="mt-4 px-4 py-2 bg-[#1A2540] text-white rounded"
+                      onClick={() => dispatch({ type: "BACK" })}
+                    >
+                      Go Back
+                    </button>
+                  </div>
+                )}
+
+                {/* FINAL DEFENSIVE FALLBACK */}
+                {![
+                  "SEARCH_INPUT",
+                  "SEARCHING",
+                  "VERIFICATION_DECISION",
+                  "UNLOCK_REPORT",
+                  "VERIFIED_NO_REPORT",
+                  "ERROR",
+                ].includes(uiState) && (
+                  <div className="text-center text-sm text-gray-500 py-12">
+                    Preparing next step…
+                  </div>
+                )}
+              </main>
 
               {uiState === "SEARCH_INPUT" && (
-                <div className="border-t p-4">
+                <footer className="border-t p-4">
                   <button
                     onClick={handleSubmit}
-                    disabled={isSearchDisabled}
-                    className="w-full bg-[#1A2540] text-white py-3 rounded-xl disabled:bg-gray-300"
+                    className="w-full py-3 bg-[#1A2540] text-white rounded-xl"
                   >
                     Commence Search
                   </button>
-                </div>
+                </footer>
               )}
             </motion.div>
           </motion.div>
@@ -309,9 +262,7 @@ export default function SearchRenterModal({
               title="Continue"
               subtitle="Create an account to keep an audit trail."
               onClose={() => setShowAuthGate(false)}
-              onAuthed={() => {
-                setShowAuthGate(false);
-              }}
+              onAuthed={() => setShowAuthGate(false)}
             />
           )}
         </>

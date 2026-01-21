@@ -35,7 +35,7 @@ service cloud.firestore {
     }
 
     /* ======================================================
-       ROLE CHECKS (NO NULLS)
+       ROLE CHECKS
     ====================================================== */
 
     function hasRole(role) {
@@ -67,7 +67,7 @@ service cloud.firestore {
     }
 
     /* ======================================================
-       MEMBERSHIP CHECK
+       MEMBERSHIP
     ====================================================== */
 
     function isActiveMember() {
@@ -106,10 +106,12 @@ service cloud.firestore {
     }
 
     /* ======================================================
-       REPORTS
+       REPORTS (UPDATED — ACK FLOW ENABLED)
     ====================================================== */
 
     match /reports/{reportId} {
+
+      // READ
       allow read: if
         isSignedIn()
         && isActiveMember()
@@ -122,8 +124,36 @@ service cloud.firestore {
           isAdmin()
         );
 
+      // RENTER ACK UPDATES ONLY
+      allow update: if
+        isSignedIn()
+        && isRenter()
+        && request.auth.uid == resource.data.renterId
+        && request.resource.data.diff(resource.data).changedKeys()
+            .hasOnly([
+              "renterAck",
+              "status",
+              "updatedAt"
+            ]);
+
       allow create: if isAdmin();
-      allow update, delete: if false;
+      allow delete: if false;
+    }
+
+    /* ======================================================
+       ACK CONFIRMATION TOKENS (SERVER ONLY)
+    ====================================================== */
+
+    match /ack_confirmation_tokens/{tokenId} {
+      allow read, write: if false;
+    }
+
+    /* ======================================================
+       FRAUD CASES (SERVER ONLY)
+    ====================================================== */
+
+    match /fraud_cases/{caseId} {
+      allow read, write: if false;
     }
 
     /* ======================================================
@@ -163,7 +193,7 @@ service cloud.firestore {
     }
 
     /* ======================================================
-       SELF VERIFICATIONS (TOKEN SAFE)
+       SELF VERIFICATIONS
     ====================================================== */
 
     match /self_verifications/{token} {
@@ -173,12 +203,16 @@ service cloud.firestore {
     }
 
     /* ======================================================
-       AUDIT LOGS (IMMUTABLE)
+       AUDIT LOGS (LOCKED)
     ====================================================== */
 
     match /auditLogs/{logId} {
       allow read: if isSuperAdmin();
       allow write: if false;
+    }
+
+    match /audit_logs/{logId} {
+      allow read, write: if false;
     }
 
     /* ======================================================
@@ -253,7 +287,7 @@ service cloud.firestore {
     }
 
     /* ======================================================
-       CHATS (SCOPED)
+       CHATS
     ====================================================== */
 
     match /chats/{chatId} {

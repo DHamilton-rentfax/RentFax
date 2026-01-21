@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   ShieldCheck,
@@ -8,29 +8,30 @@ import {
   Eye,
 } from "lucide-react";
 
-import type { SearchResult } from "../SearchRenterModal";
+import type { SearchResult } from "@/components/search/types";
 
 type Props = {
-  result: SearchResult;
+  result: SearchResult | null;
+
   renterInput: {
     fullName: string;
-    email: string;
-    phone: string;
-    address: string;
-    licenseNumber: string;
+    email?: string | null;
+    phone?: string | null;
+    address?: string | null;
+    licenseNumber?: string | null;
   };
 
   isLegacyEligible: boolean;
 
   onInstantVerify: () => Promise<void>;
-  onSelfVerify: () => void;
+  onSelfVerify: () => Promise<void>;
   onLegacyVerify: () => Promise<void>;
-
-  onBack: () => void;
   onViewSample: () => void;
 
+  onBack: () => void;
+
   loadingInstant?: boolean;
-  loadingSelfVerify?: boolean; // Added for visual feedback
+  loadingSelfVerify?: boolean;
 };
 
 export default function StepVerificationGate({
@@ -40,107 +41,50 @@ export default function StepVerificationGate({
   onInstantVerify,
   onSelfVerify,
   onLegacyVerify,
-  onBack,
   onViewSample,
+  onBack,
   loadingInstant,
   loadingSelfVerify,
 }: Props) {
-  const profile = result.publicProfile ?? {};
-  const hasReport = Boolean(result.preMatchedReportId);
-
-  const display = {
-    name: profile.name || renterInput.fullName,
-    email: profile.email || renterInput.email,
-    phone: profile.phone || renterInput.phone,
-    address: profile.address || renterInput.address,
-    license: profile.licenseNumber || renterInput.licenseNumber,
-  };
+  const profile = result?.publicProfile ?? {};
 
   return (
     <div className="space-y-6">
-      <button
-        onClick={onBack}
-        className="text-xs text-gray-600 hover:text-gray-900"
-        type="button"
-      >
+      <button onClick={onBack} className="text-xs text-gray-600">
         ← Back to search
       </button>
 
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900">
-          {hasReport
-            ? "Renter record found"
-            : "No RentFAX history yet"}
-        </h3>
-        <p className="text-sm text-gray-600">
-          {hasReport
-            ? "Identity verification is recommended before proceeding."
-            : "You can create a verified renter record now."}
-        </p>
-      </div>
+      <h3 className="text-lg font-semibold">
+        {result?.hasReport ? "Renter record found" : "Verification required"}
+      </h3>
 
-      <div className="border-t border-dashed pt-4 text-sm space-y-1">
-        <p className="font-medium text-gray-800">Renter details</p>
-        <p>Name: {display.name || "—"}</p>
-        <p>Email: {display.email || "—"}</p>
-        <p>Phone: {display.phone || "—"}</p>
-        <p>Address: {display.address || "—"}</p>
-        {display.license && <p>License: {display.license}</p>}
-      </div>
-
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 text-sm font-medium">
-          <ShieldCheck className="h-4 w-4" />
-          Why verify?
-        </div>
-        <p className="text-xs text-gray-600">
-          Verification protects against fraud, creates an audit trail, and ensures accurate reporting.
-        </p>
+      <div className="text-sm space-y-1">
+        <p>Name: {profile.name || renterInput.fullName}</p>
+        <p>Email: {profile.email || renterInput.email}</p>
+        <p>Phone: {profile.phone || renterInput.phone}</p>
+        <p>Address: {profile.address || renterInput.address}</p>
       </div>
 
       <div className="space-y-3">
-        <button
-          onClick={onInstantVerify}
-          disabled={loadingInstant || loadingSelfVerify}
-          className="w-full rounded-full border border-gray-900 px-3 py-2 text-xs font-semibold hover:bg-gray-900 hover:text-white disabled:opacity-50"
-        >
-          {loadingInstant ? (
-            <Loader2 className="inline h-3 w-3 mr-2 animate-spin" />
-          ) : (
-            <ShieldCheck className="inline h-3 w-3 mr-2" />
-          )}
+        <button onClick={onInstantVerify} disabled={loadingInstant}>
+          {loadingInstant ? <Loader2 className="animate-spin inline mr-2" /> : <ShieldCheck className="inline mr-2" />}
           Instant verification ($4.99)
         </button>
 
-        <button
-          onClick={onSelfVerify}
-          disabled={loadingInstant || loadingSelfVerify}
-          className="w-full rounded-full border border-gray-300 px-3 py-2 text-xs font-semibold hover:bg-gray-100 disabled:opacity-50"
-        >
-          {loadingSelfVerify ? (
-            <Loader2 className="inline h-3 w-3 mr-2 animate-spin" />
-          ) : (
-            <Send className="inline h-3 w-3 mr-2" />
-          )}
+        <button onClick={onSelfVerify} disabled={loadingSelfVerify}>
+          {loadingSelfVerify ? <Loader2 className="animate-spin inline mr-2" /> : <Send className="inline mr-2" />}
           Send self-verification link
         </button>
 
         {isLegacyEligible && (
-          <button
-            onClick={onLegacyVerify}
-            disabled={loadingInstant || loadingSelfVerify}
-            className="w-full rounded-full border border-purple-300 px-3 py-2 text-xs font-semibold hover:bg-purple-50 disabled:opacity-50"
-          >
-            <FileSignature className="inline h-3 w-3 mr-2" />
+          <button onClick={onLegacyVerify}>
+            <FileSignature className="inline mr-2" />
             Legacy partner unlock
           </button>
         )}
 
-        <button
-          onClick={onViewSample}
-          className="w-full rounded-full border border-gray-300 px-3 py-2 text-xs font-semibold hover:bg-gray-100"
-        >
-          <Eye className="inline h-3 w-3 mr-2" />
+        <button onClick={onViewSample}>
+          <Eye className="inline mr-2" />
           View sample report
         </button>
       </div>

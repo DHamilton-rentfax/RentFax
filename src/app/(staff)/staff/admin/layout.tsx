@@ -1,32 +1,41 @@
-import '@/lib/server-only'
+import '@/lib/server-only';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { adminAuth } from '@/firebase/server';
+import { getUserContext } from '@/app/actions/get-user-context';
+import { getOrgContext } from '@/app/actions/get-org-context';
+import { ROLES, Role } from '@/types/roles';
+import ImpersonationBanner from '@/components/admin/ImpersonationBanner';
 
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
-import { adminAuth } from '@/firebase/server'
-import { getUserContext } from '@/app/actions/get-user-context'
-import { getOrgContext } from '@/app/actions/get-org-context'
-import ImpersonationBanner from '@/components/admin/ImpersonationBanner'
-
-export default async function AdminLayout({
+export default async function StaffAdminLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  const session = cookies().get('__session')
-  if (!session) {
-    const loginUrl = process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/login` : '/login';
-    redirect(loginUrl);
+  const sessionCookie = cookies().get('__session')?.value;
+  if (!sessionCookie) redirect('/login');
+
+  let ctx: Awaited<ReturnType<typeof getUserContext>>;
+  try {
+    const decoded = await adminAuth.verifySessionCookie(sessionCookie, true);
+    ctx = await getUserContext(decoded.uid);
+  } catch {
+    redirect('/login');
   }
 
-  const decoded = await adminAuth.verifySessionCookie(session.value, true)
-  const ctx = await getUserContext(decoded.uid)
+  const allowedRoles: Role[] = [
+    ROLES.SUPER_ADMIN,
+    ROLES.FRAUD_TEAM,
+    ROLES.LISTINGS_TEAM,
+    ROLES.ONBOARDING_TEAM,
+  ];
 
-  if (!['ADMIN', 'SUPER_ADMIN'].includes(ctx.role)) {
-    redirect('/unauthorized')
+  if (!allowedRoles.includes(ctx.role)) {
+    redirect('/unauthorized');
   }
 
   const { isImpersonating, orgName, impersonationExpiresAt } =
-    await getOrgContext()
+    await getOrgContext();
 
   return (
     <>
@@ -34,10 +43,10 @@ export default async function AdminLayout({
         <ImpersonationBanner
           orgName={orgName!}
           expiresAt={impersonationExpiresAt}
-          redirectTo="/admin"
+          redirectTo="/staff/admin"
         />
       )}
       {children}
     </>
-  )
+  );
 }

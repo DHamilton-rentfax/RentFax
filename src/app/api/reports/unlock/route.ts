@@ -1,16 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/firebase/server";
 import { FieldValue } from "firebase-admin/firestore";
-import { getOrgProvisioning } from "@/lib/provisioning/getOrgProvisioning";
+import { assertReportUnlockAllowed } from "@/lib/reports/assertReportUnlockAllowed";
+import { processBilling } from "@/lib/billing/processBilling";
 
-/* -------------------------------------------------------------------------- */
-/* POST — UNLOCK REPORT (BETA RULES)                                           */
-/* -------------------------------------------------------------------------- */
 export async function POST(req: NextRequest) {
   try {
-    /* -------------------------------------------------------
-     *  ORG CONTEXT (SERVER TRUST ONLY)
-     * ------------------------------------------------------ */
     const orgId = req.headers.get("x-org-id");
     if (!orgId) {
       return NextResponse.json(
@@ -19,99 +14,66 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { reportId } = await req.json();
-    if (!reportId) {
+    const { renterId } = await req.json();
+    if (!renterId) {
       return NextResponse.json(
-        { error: "reportId is required" },
+        { error: "renterId is required" },
         { status: 400 }
       );
     }
 
     /* -------------------------------------------------------
-     *  PROVISIONING ENFORCEMENT
+     *  HARD TRUST ENFORCEMENT (NON-BYPASSABLE)
      * ------------------------------------------------------ */
-    const prov = await getOrgProvisioning(orgId);
-
-    if (!prov.isActive) {
-      return NextResponse.json(
-        { error: "Account is not active" },
-        { status: 403 }
-      );
-    }
+    await assertReportUnlockAllowed(renterId, orgId);
 
     /* -------------------------------------------------------
-     *  LOAD REPORT + OWNERSHIP CHECK
+     *  BILLING (CREDIT OR PAYG — REAL)
      * ------------------------------------------------------ */
-    const reportRef = adminDb.collection("reports").doc(reportId);
-    const reportSnap = await reportRef.get();
-
-    if (!reportSnap.exists) {
-      return NextResponse.json(
-        { error: "Report not found" },
-        { status: 404 }
-      );
-    }
-
-    const report = reportSnap.data()!;
-    if (report.orgId !== orgId) {
-      return NextResponse.json(
-        { error: "Unauthorized access to report" },
-        { status: 403 }
-      );
-    }
-
-    /* -------------------------------------------------------
-     *  STRONG IDENTITY ENFORCEMENT (BETA)
-     * ------------------------------------------------------ */
-    const identitySnap = await adminDb
-      .collection("identity_signals")
-      .where("orgId", "==", orgId)
-      .orderBy("createdAt", "desc")
-      .limit(1)
-      .get();
-
-    if (identitySnap.empty) {
-      return NextResponse.json(
-        { error: "Identity verification required" },
-        { status: 403 }
-      );
-    }
-
-    const identity = identitySnap.docs[0].data();
-
-    // PDPL = BASIC ONLY → BLOCK
-    if (identity.provider === "PDPL") {
-      return NextResponse.json(
-        { error: "Strong identity verification required" },
-        { status: 403 }
-      );
-    }
-
-    /* -------------------------------------------------------
-     *  IDPOTENT UNLOCK CHECK
-     * ------------------------------------------------------ */
-    if (report.status === "unlocked") {
-      return NextResponse.json({ unlocked: true });
-    }
-
-    /* -------------------------------------------------------
-     *  UNLOCK REPORT (NO STRIPE, NO PAYG IN BETA)
-     * ------------------------------------------------------ */
-    await reportRef.update({
-      status: "unlocked",
-      unlockedAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
+    await processBilling({
+      companyId: orgId,
+      renterId,
+      amountCents: 2000,
+      reason: "REPORT_UNLOCK",
     });
 
-    return NextResponse.json({
-      unlocked: true,
-      reportId,
-    });
+    /* -------------------------------------------------------
+     *  UNLOCK / CREATE REPORT (IDEMPOTENT)
+     * ------------------------------------------------------ */
+    const reportRef = adminDb
+      .collection("reports")
+      .doc(`${renterId}_${orgId}`);
+
+    const snap = await reportRef.get();
+
+    if (!snap.exists) {
+      await reportRef.set({
+        renterId,
+        orgId,
+        status: "unlocked",
+        createdAt: FieldValue.serverTimestamp(),
+        unlockedAt: FieldValue.serverTimestamp(),
+      });
+    } else if (snap.data()?.status !== "unlocked") {
+      await reportRef.update({
+        status: "unlocked",
+        unlockedAt: FieldValue.serverTimestamp(),
+      });
+    }
+
+    return NextResponse.json({ unlocked: true });
   } catch (err: any) {
-    console.error("Report unlock error:", err);
+    await adminDb.collection("unlock_attempts").add({
+      orgId: req.headers.get("x-org-id"),
+      renterId: (await req.json())?.renterId ?? null,
+      status: "blocked",
+      reason: err.message,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+
     return NextResponse.json(
-      { error: err.message || "Server error during report unlock" },
-      { status: 500 }
+      { error: err.message },
+      { status: 403 }
     );
   }
 }

@@ -1,22 +1,10 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "@/lib/auth/getServerSession";
 
-export default async function DashboardPage() {
-  const session = await getServerSession();
-
-  // Not authenticated → login
-  if (!session) {
-    const loginUrl = process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/login` : '/login';
-    redirect(loginUrl);
-  }
-
-  // Role-based routing
-  switch (session.role) {
-    case "SUPER_ADMIN":
-      redirect("/superadmin");
-    case "ADMIN":
-      redirect("/admin-dashboard");
-    default:
-      redirect("/dashboard/home"); // or wherever normal users go
-  }
+/**
+ * This page is now a simple entry point.
+ * - Session checks are handled by middleware
+ * - Role-based routing is centralized in /post-auth
+ */
+export default function DashboardPage() {
+  redirect("/post-auth");
 }

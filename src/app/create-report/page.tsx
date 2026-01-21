@@ -1,71 +1,48 @@
-
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { useState } from "react";
+import EvidenceUploader from "@/components/incident/EvidenceUploader";
+import { uploadEvidenceFiles } from "@/lib/storage/uploadEvidenceFiles";
 import { Button } from "@/components/ui/button";
-import RenterUploadEvidence from "@/components/renter/RenterUploadEvidence";
 
 export default function CreateReportPage() {
-  const params = useSearchParams();
-  const renterId = params.get("renterId");
-  const searchId = params.get("searchId");
+  const [files, setFiles] = useState<File[]>([]);
+  const [submitting, setSubmitting] = useState(false);
 
-  const [evidence, setEvidence] = useState<any[]>([]);
-  const [saving, setSaving] = useState(false);
-  const [done, setDone] = useState(false);
+  async function saveReport() {
+    setSubmitting(true);
 
-  const addEvidence = (payload: any) => {
-    setEvidence([...evidence, payload]);
-  };
+    try {
+      // 1️⃣ Upload files
+      const uploaded = await uploadEvidenceFiles(files);
 
-  const saveReport = async () => {
-    setSaving(true);
+      // 2️⃣ Send report payload
+      await fetch("/api/report/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          evidence: uploaded, // URLs / storage paths
+        }),
+      });
 
-    const res = await fetch("/api/report/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        renterId,
-        searchId,
-        evidence,
-      }),
-    });
-
-    setSaving(false);
-
-    const data = await res.json();
-
-    if (data.reportId) {
-      setDone(true);
-      window.location.href = `/report/${data.reportId}`;
+      alert("Report created");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to create report");
+    } finally {
+      setSubmitting(false);
     }
-  };
-
-  if (done) return null;
+  }
 
   return (
-    <div className="max-w-2xl mx-auto mt-20 p-10 bg-white rounded-xl shadow">
-      <h1 className="text-3xl font-bold">Create Renter Report</h1>
-      <p className="text-gray-600 mt-2">
-        Add any supporting documents, notes, or information to finalize the
-        renter report.
-      </p>
+    <div className="max-w-3xl space-y-6 mx-auto mt-20 p-10 bg-white rounded-xl shadow">
+      <h1 className="text-xl font-bold">Create Report</h1>
 
-      <div className="mt-8 space-y-6">
-        <RenterUploadEvidence
-          onSubmit={(payload) => addEvidence(payload)}
-          close={() => {}}
-        />
+      <EvidenceUploader onFilesChange={setFiles} />
 
-        <Button
-          className="w-full bg-[#1A2540] hover:bg-[#243355] mt-6"
-          disabled={saving}
-          onClick={saveReport}
-        >
-          {saving ? "Saving..." : "Save & View Report"}
-        </Button>
-      </div>
+      <Button disabled={submitting} onClick={saveReport}>
+        {submitting ? "Submitting..." : "Submit Report"}
+      </Button>
     </div>
   );
 }

@@ -1,74 +1,81 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const APP_DOMAIN = "app.rentfax.io";
+const MARKETING_DOMAIN = "www.rentfax.io";
+const MARKETING_DOMAINS = ["rentfax.io", MARKETING_DOMAIN];
+
+const PUBLIC_PATH_PREFIXES = [
+  "/_next",
+  "/favicon.ico",
+  "/api",
+  "/login",
+  "/register",
+  "/logout",
+  "/reset-password",
+  "/post-auth",
+];
+
+const PROTECTED_PATH_PREFIXES = [
+  "/dashboard",
+  "/superadmin",
+  "/admin",
+  "/staff",
+  "/support",
+  "/renter",
+];
+
 export function middleware(req: NextRequest) {
-  // 🧪 DEV BYPASS — local & cloud workstations
-  if (process.env.NODE_ENV === "development") {
-    return NextResponse.next();
-  }
-
+  const host = req.headers.get("host") ?? "";
   const { pathname } = req.nextUrl;
-  const host = req.headers.get("host") || "";
-
-  const isAppDomain = host.startsWith("app.");
-  const appBaseUrl =
-    process.env.NEXT_PUBLIC_APP_URL ??
-    `${req.nextUrl.protocol}//${host}`;
 
   /**
-   * 🧾 Always-allowed paths
+   * 🧪 DEV / LOCAL / CLOUD WORKSTATION BYPASS
    */
-  const PUBLIC_PATH_PREFIXES = [
-    "/_next",
-    "/favicon.ico",
-    "/api",
-    "/login",
-    "/register",
-    "/logout",
-    "/reset-password",
-  ];
-
-  if (PUBLIC_PATH_PREFIXES.some((p) => pathname.startsWith(p))) {
+  if (
+    host.includes("localhost") ||
+    host.includes("127.0.0.1") ||
+    host.includes("cloudworkstations.dev")
+  ) {
     return NextResponse.next();
   }
 
-  /**
-   * 🔒 Protected app routes
-   */
-  const PROTECTED_PATH_PREFIXES = [
-    "/dashboard",
-    "/superadmin",
-    "/staff",
-    "/support",
-    "/renter",
-  ];
+  const isAppDomain = host === APP_DOMAIN;
+  const isMarketingDomain = MARKETING_DOMAINS.includes(host);
+  const session = req.cookies.get("__session")?.value;
+
+  const isPublicPath =
+    pathname === "/" ||
+    PUBLIC_PATH_PREFIXES.some((p) => pathname.startsWith(p));
 
   const isProtectedRoute = PROTECTED_PATH_PREFIXES.some((p) =>
     pathname.startsWith(p)
   );
 
   /**
-   * 🚫 Prevent app routes on marketing domains
+   * 🚫 Block app routes on marketing domains
    */
-  if (!isAppDomain && isProtectedRoute) {
-    return NextResponse.redirect(new URL("/", req.url));
+  if (isProtectedRoute && isMarketingDomain) {
+    return NextResponse.redirect(
+      new URL("/", `https://${MARKETING_DOMAIN}`)
+    );
   }
 
   /**
-   * 🚫 Prevent marketing homepage on app subdomain
+   * 🚫 Block marketing homepage on app domain
    */
   if (isAppDomain && pathname === "/") {
-    return NextResponse.redirect(new URL("/dashboard", appBaseUrl));
+    return NextResponse.redirect(
+      new URL("/post-auth", `https://${APP_DOMAIN}`)
+    );
   }
 
   /**
-   * 🍪 Session cookie check (Edge-safe)
+   * 🍪 Session enforcement for protected app routes
    */
-  if (isProtectedRoute) {
-    const session = req.cookies.get("__session")?.value;
-
-    if (!session) {
-      return NextResponse.redirect(new URL("/login", appBaseUrl));
-    }
+  if (isAppDomain && isProtectedRoute && !session) {
+    return NextResponse.redirect(
+      new URL(`/login?redirect=${pathname}`, `https://${APP_DOMAIN}`)
+    );
   }
 
   return NextResponse.next();

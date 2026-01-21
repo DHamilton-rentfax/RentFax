@@ -27,6 +27,9 @@ const AUTO_EXPAND_CONFIDENCE_THRESHOLD = 65;
  * TYPES
  * ------------------------------------------------------------------------------------------------*/
 type Props = {
+  memberId: string;
+  setMemberId: (v: string) => void;
+
   fullName: string;
   setFullName: (v: string) => void;
 
@@ -58,6 +61,8 @@ type Props = {
  * COMPONENT
  * ------------------------------------------------------------------------------------------------*/
 export default function StepSearchForm({
+  memberId,
+  setMemberId,
   fullName,
   setFullName,
 
@@ -119,6 +124,17 @@ export default function StepSearchForm({
         </span>
         <span className="hidden sm:inline">Consent-first verification</span>
       </div>
+      
+      <input
+        value={memberId}
+        onChange={(e) => setMemberId(e.target.value.toUpperCase())}
+        placeholder="Member ID (optional)"
+        className="w-full rounded-lg border px-3 py-2 text-sm"
+      />
+
+      <p className="text-xs text-gray-500 mt-1">
+        Fastest lookup if the renter has a RentFAX Member ID
+      </p>
 
       {/* FULL NAME */}
       <Field label="Full legal name" hint="+25%" icon={User} accent={!!fullName}>

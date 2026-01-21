@@ -1,28 +1,34 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { adminAuth } from "@/firebase/server";
-import { getUserContext } from "@/app/actions/get-user-context";
-import { ROLES } from "@/types/roles";
+import '@/lib/server-only';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { adminAuth } from '@/firebase/server';
+import { getUserContext } from '@/app/actions/get-user-context';
+import { ROLES, Role } from '@/types/roles';
 
 export default async function SupportLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = cookies().get("__session")?.value;
+  const sessionCookie = cookies().get('__session')?.value;
+  if (!sessionCookie) redirect('/login');
 
-  if (!session) {
-    const loginUrl = process.env.NEXT_PUBLIC_APP_URL
-      ? `${process.env.NEXT_PUBLIC_APP_URL}/login`
-      : "/login";
-    redirect(loginUrl);
+  let ctx: Awaited<ReturnType<typeof getUserContext>>;
+  try {
+    const decoded = await adminAuth.verifySessionCookie(sessionCookie, true);
+    ctx = await getUserContext(decoded.uid);
+  } catch {
+    redirect('/login');
   }
 
-  const decoded = await adminAuth.verifySessionCookie(session, true);
-  const ctx = await getUserContext(decoded.uid);
+  const allowedRoles: Role[] = [
+    ROLES.SUPER_ADMIN,
+    ROLES.SUPPORT_ADMIN,
+    ROLES.SUPPORT_AGENT,
+  ];
 
-  if (ctx.role !== ROLES.SUPPORT_STAFF && ctx.role !== ROLES.SUPER_ADMIN) {
-    redirect("/unauthorized");
+  if (!allowedRoles.includes(ctx.role)) {
+    redirect('/unauthorized');
   }
 
   return <>{children}</>;
