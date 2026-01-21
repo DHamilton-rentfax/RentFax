@@ -1,51 +1,48 @@
-import { MetadataRoute } from 'next';
+// src/app/sitemap.ts
+import type { MetadataRoute } from "next";
 
-import { adminDB } from "@/firebase/server-admin";
+const BASE_URL = "https://www.rentfax.io";
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = "https://rentfax.io";
-
-  // Static pages
-  const routes: MetadataRoute.Sitemap = [
+export default function sitemap(): MetadataRoute.Sitemap {
+  const routes = [
     "",
     "/about",
-    "/how-it-works",
     "/pricing",
+    "/how-it-works",
+    "/blog",
     "/contact",
     "/careers",
-    "/blog",
-    "/reports/end-of-rental",
-    "/legal/partners",
-    "/legal/collections",
-    "/legal/api",
-    "/legal/data-deletion",
-    "/legal/dmca",
-    "/legal/cookies",
-    "/security",
-    "/security/disclosure",
-    "/ai-transparency",
-    "/accessibility",
     "/partners",
     "/integrations",
-  ].map((route) => ({
-    url: `${baseUrl}${route}`,
+    "/investors",
+    "/landlords",
+    "/renters",
+    "/risk-score",
+    "/methodology",
+    "/trust",
+    "/security",
+    "/privacy",
+    "/terms",
+    "/compliance",
+    "/ai-transparency",
+    "/accessibility",
+    "/developers",
+    "/docs",
+    "/enterprise",
+    "/press",
+    "/faq",
+    "/support",
+    "/system-status",
+    "/status",
+    "/technology",
+    "/why-rentfax",
+    "/success-stories",
+  ];
+
+  return routes.map((route) => ({
+    url: `${BASE_URL}${route}`,
     lastModified: new Date(),
+    changeFrequency: "weekly",
+    priority: route === "" ? 1.0 : 0.7,
   }));
-
-  // Dynamic blog posts
-  let blogRoutes: MetadataRoute.Sitemap = [];
-  try {
-    const snap = await adminDB
-      .collection("blogs")
-      .where("published", "==", true)
-      .get();
-    blogRoutes = snap.docs.map((doc) => ({
-      url: `${baseUrl}/blog/${doc.data().slug || doc.id}`,
-      lastModified: doc.data().createdAt?.toDate() || new Date(),
-    }));
-  } catch (e) {
-    console.warn("Error building blog sitemap:", e);
-  }
-
-  return [...routes, ...blogRoutes];
 }

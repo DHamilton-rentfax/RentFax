@@ -116,9 +116,19 @@ export default function Footer() {
 
         {/* BOTTOM BAR */}
         <div className="mt-12 pt-8 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-gray-600">
-            © {new Date().getFullYear()} RentFAX, Inc. All rights reserved.
-          </p>
+            <div className="flex items-center gap-4">
+                <p className="text-sm text-gray-600">
+                    © {new Date().getFullYear()} RentFAX, Inc. All rights reserved.
+                </p>
+                <a
+                    href="/sitemap.xml"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-gray-500 hover:underline"
+                >
+                    Sitemap
+                </a>
+            </div>
 
           {/* AI chat / support CTA */}
           <ChatNowButton />
