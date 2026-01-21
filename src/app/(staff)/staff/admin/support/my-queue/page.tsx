@@ -54,7 +54,7 @@ export default function MySupportQueue() {
             </div>
 
             <div className="text-sm text-gray-700 mb-2 truncate">
-              {t.lastMessage || "No message"}
+              {t.lastMessage || "No messages yet"}
             </div>
 
             <div className="text-xs text-gray-500">
