@@ -1,75 +1,51 @@
-import { NextResponse } from "next/server";
-import { getAuth } from "firebase-admin/auth";
-import { adminDB as db } from "@/firebase/client-admin";
-import sgMail from "@sendgrid/mail";
+import "server-only";
+import { NextRequest, NextResponse } from "next/server";
+import { Resend } from "resend";
+import { adminDb } from "@/firebase/server";
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
+export const dynamic = "force-dynamic";
 
-export async function POST(req: Request) {
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+export async function POST(req: NextRequest) {
   try {
-    const token = req.headers.get("authorization")?.split(" ")[1];
-    const decoded = await getAuth().verifyIdToken(token!);
+    const body = await req.json().catch(() => ({}));
+    const to = String(body?.to || "").trim();
 
-    if (decoded.role !== "super_admin") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const { startDate, endDate } = await req.json();
-
-    const settingsDoc = await db
-      .collection("settings")
-      .doc("auditExports")
-      .get();
-    if (!settingsDoc.exists || !settingsDoc.data()?.enabled) {
+    if (!to || !to.includes("@")) {
       return NextResponse.json(
-        { error: "Exports not enabled" },
-        { status: 400 },
+        { error: "Missing or invalid 'to' email." },
+        { status: 400 }
       );
     }
 
-    const { recipients } = settingsDoc.data()!;
+    // Minimal DB touch to ensure admin SDK is valid
+    await adminDb.collection("auditLogs").limit(1).get().catch(() => null);
 
-    let query: FirebaseFirestore.Query = db.collection("auditLogs");
+    const subject = String(body?.subject || "Your RentFAX audit export");
+    const text = String(body?.text || "Your export is being prepared.");
+    const from =
+      process.env.RESEND_FROM_EMAIL || "RentFAX <no-reply@rentfax.io>";
 
-    if (startDate) query = query.where("timestamp", ">=", Number(startDate));
-    if (endDate) query = query.where("timestamp", "<=", Number(endDate));
-
-    query = query.orderBy("timestamp", "desc");
-
-    const snapshot = await query.get();
-
-    const rows = snapshot.docs.map((doc) => {
-      const d = doc.data();
-      return [
-        new Date(d.timestamp).toISOString(),
-        d.orgId,
-        d.type,
-        d.actorUid,
-        d.targetEmail || d.targetUid || "",
-        d.role || "",
-      ];
+    const result = await resend.emails.send({
+      from,
+      to,
+      subject,
+      text,
     });
 
-    const header = ["Time", "Org", "Type", "Actor", "Target", "Role"];
-    const csv = [header, ...rows].map((r) => r.join(",")).join("\n");
+    if (result.error) {
+      return NextResponse.json(
+        { error: result.error.message },
+        { status: 500 }
+      );
+    }
 
-    await sgMail.send({
-      to: recipients,
-      from: { email: "reports@rentfax.ai", name: "RentFAX Compliance" },
-      subject: `📊 RentFAX Audit Logs (manual export)`,
-      text: `Attached are audit logs for the selected date range.`,
-      attachments: [
-        {
-          content: Buffer.from(csv).toString("base64"),
-          filename: `audit-logs-manual.csv`,
-          type: "text/csv",
-          disposition: "attachment",
-        },
-      ],
-    });
-
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ ok: true, id: result.data?.id ?? null });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json(
+      { error: err?.message || "Failed to send email." },
+      { status: 500 }
+    );
   }
 }

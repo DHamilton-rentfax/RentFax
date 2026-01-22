@@ -1,10 +1,17 @@
 import "server-only";
 import { NextResponse } from "next/server";
-import { adminDB as adminDb } from "@/firebase/admin";
+import { adminDb } from "@/firebase/server";
 
 export async function POST(req: Request) {
   try {
     const { inviteId, userId, email } = await req.json();
+
+    if (!inviteId || !userId || !email) {
+      return NextResponse.json(
+        { success: false, error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
 
     const inviteRef = adminDb.collection("invites").doc(inviteId);
     const inviteSnap = await inviteRef.get();
@@ -12,15 +19,16 @@ export async function POST(req: Request) {
     if (!inviteSnap.exists) {
       return NextResponse.json(
         { success: false, error: "Invite not found" },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
     const invite = inviteSnap.data();
-    if (invite.status !== "pending") {
+
+    if (!invite || invite.status !== "pending") {
       return NextResponse.json(
         { success: false, error: "Invite not valid" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -37,7 +45,7 @@ export async function POST(req: Request) {
         invitedBy: invite.invitedBy,
       });
 
-    // Update invite
+    // Mark invite as accepted
     await inviteRef.update({
       status: "accepted",
       acceptedAt: new Date().toISOString(),
@@ -48,7 +56,7 @@ export async function POST(req: Request) {
     console.error("Error accepting invite", err);
     return NextResponse.json(
       { success: false, error: "Failed to accept invite" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
