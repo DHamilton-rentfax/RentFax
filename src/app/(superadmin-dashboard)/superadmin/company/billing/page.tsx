@@ -1,4 +1,4 @@
-'''use client';
+"use client";
 
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth";
