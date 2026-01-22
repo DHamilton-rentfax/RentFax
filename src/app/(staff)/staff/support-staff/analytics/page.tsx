@@ -1,10 +1,12 @@
-import PlaceholderPage from "@/app/_components/internal/PlaceholderPage";
+"use client";
 
 export default function AnalyticsPage() {
   return (
-    <PlaceholderPage
-      title="Support Analytics"
-      description="Placeholder for the support analytics dashboard."
-    />
+    <div className="p-6 max-w-4xl mx-auto">
+      <h1 className="text-2xl font-semibold mb-2">Support Analytics</h1>
+      <p className="text-sm text-gray-500">
+        Analytics dashboard coming soon.
+      </p>
+    </div>
   );
 }

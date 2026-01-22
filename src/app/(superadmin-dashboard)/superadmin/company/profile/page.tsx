@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import CompanyIndustrySelector from "@/components/company/CompanyIndustrySelector";
 
 // ... rest of your component code
