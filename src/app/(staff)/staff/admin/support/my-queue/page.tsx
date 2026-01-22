@@ -24,7 +24,7 @@ export default function MySupportQueue() {
   useEffect(() => {
     fetch("/api/support/my-queue")
       .then((res) => res.json())
-      .then((data) => setThreads(data.threads || []));
+      .then((data) => setThreads(data.threads ?? []));
   }, []);
 
   return (
@@ -40,21 +40,19 @@ export default function MySupportQueue() {
           >
             <div className="flex justify-between items-center mb-1">
               <span className="font-semibold">
-                {(t.category || "GENERAL").toUpperCase()} • Priority:{" "}
-                {(t.priority || "NORMAL").toUpperCase()}
+                {(t.category ?? "GENERAL").toUpperCase()} • Priority:{" "}
+                {(t.priority ?? "NORMAL").toUpperCase()}
               </span>
 
               <span
-                className={`px-2 py-1 text-xs rounded-full ${
-                  STATUS_STYLES[t.status]
-                }`}
+                className={`px-2 py-1 text-xs rounded-full ${STATUS_STYLES[t.status]}`}
               >
                 {t.status}
               </span>
             </div>
 
             <div className="text-sm text-gray-700 mb-2 truncate">
-              {t.lastMessage || "No messages yet"}
+              {t.lastMessage ?? "No messages yet"}
             </div>
 
             <div className="text-xs text-gray-500">
