@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { getAuth } from "firebase-admin/auth";
 import { getStorage } from "firebase-admin/storage";
 
@@ -18,7 +18,7 @@ export async function GET(req: Request) {
     const decoded = await getAuth().verifyIdToken(token);
     const orgId = decoded.orgId;
 
-    const doc = await adminDB.collection("reports").doc(id).get();
+    const doc = await adminDb.collection("reports").doc(id).get();
     if (!doc.exists)
       return NextResponse.json({ error: "Report not found" }, { status: 404 });
 

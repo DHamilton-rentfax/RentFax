@@ -1,4 +1,4 @@
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import {
   enforceSearchPermission,
   enforceFullReportPermission,
@@ -13,12 +13,12 @@ export interface BillingStatus {
 }
 
 async function getCredits(userId: string): Promise<number> {
-  const snap = await adminDB.collection("credits").doc(userId).get();
+  const snap = await adminDb.collection("credits").doc(userId).get();
   return snap.exists ? snap.data()?.count ?? 0 : 0;
 }
 
 async function getUserPlan(userId: string): Promise<string> {
-  const userSnap = await adminDB.collection("users").doc(userId).get();
+  const userSnap = await adminDb.collection("users").doc(userId).get();
   if (!userSnap.exists) return "FREE";
   const user = userSnap.data()!;
   return user.subscription?.planId || "FREE";

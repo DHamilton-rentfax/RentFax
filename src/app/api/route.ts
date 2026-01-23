@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { FieldValue } from "firebase-admin/firestore";
 
 export async function GET(request: Request) {
@@ -9,7 +9,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const { message, level = "info", source = "app", meta = {} } = await request.json();
-    await adminDB.collection("systemLogs").add({
+    await adminDb.collection("systemLogs").add({
       message,
       level,
       source,

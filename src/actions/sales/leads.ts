@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDB as db } from "@/firebase/server";
+import { adminDb as db } from "@/firebase/server";
 import { collection, doc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 
 export async function createLead(data: any) {

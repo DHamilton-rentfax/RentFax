@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export interface Incident {
   id: string;
@@ -14,7 +14,7 @@ export interface Incident {
 
 export const getIncidentById = async (id: string): Promise<Incident | null> => {
   try {
-    const incidentDoc = await adminDB.collection("incidents").doc(id).get();
+    const incidentDoc = await adminDb.collection("incidents").doc(id).get();
 
     if (!incidentDoc.exists) {
       return null;

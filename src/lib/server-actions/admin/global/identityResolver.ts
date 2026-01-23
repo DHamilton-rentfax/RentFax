@@ -1,11 +1,11 @@
 "use server";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { generateEmbeddings } from "./generateEmbeddings";
 import { cosineSimilarity } from "./utils/cosineSimilarity";
 
 export async function resolveIdentity(renterId: string) {
-  const renterRef = adminDB.collection("renters").doc(renterId);
+  const renterRef = adminDb.collection("renters").doc(renterId);
   const renter = (await renterRef.get()).data();
 
   if (!renter) return null;
@@ -19,7 +19,7 @@ export async function resolveIdentity(renterId: string) {
   const targetEmbedding = await generateEmbeddings(targetText);
 
   // Query all renters for similarity match
-  const rentersSnap = await adminDB.collection("renters").get();
+  const rentersSnap = await adminDb.collection("renters").get();
 
   const scored = rentersSnap.docs.map((doc) => {
     const d = doc.data();

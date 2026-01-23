@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
-import { dbAdmin as db } from "@@/firebase/server";
-
+import { adminDb as db } from "@/firebase/server";
 export async function GET(req: Request) {
   try {
     const token = req.headers.get("authorization")?.split(" ")[1];

@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { INDUSTRIES } from "@/constants/industries";
 
 export async function updateCompanyIndustries(companyId: string, industries: string[]) {
@@ -14,7 +14,7 @@ export async function updateCompanyIndustries(companyId: string, industries: str
     throw new Error(`Invalid industries: ${invalid.join(", ")}`);
   }
 
-  await adminDB.collection("companies").doc(companyId).update({
+  await adminDb.collection("companies").doc(companyId).update({
     industryTypes: industries,
     updatedAt: new Date(),
   });

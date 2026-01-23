@@ -1,4 +1,4 @@
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 /**
  * Placeholder for fraud detection logic.

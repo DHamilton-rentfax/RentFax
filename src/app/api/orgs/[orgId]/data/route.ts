@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { orgId: string } },
 ) {
   const { orgId } = params;
-  const rentersSnap = await adminDB.collection(`orgs/${orgId}/renters`).get();
-  const disputesSnap = await adminDB.collection(`orgs/${orgId}/disputes`).get();
+  const rentersSnap = await adminDb.collection(`orgs/${orgId}/renters`).get();
+  const disputesSnap = await adminDb.collection(`orgs/${orgId}/disputes`).get();
 
   return NextResponse.json({
     renters: rentersSnap.docs.map((d) => ({ id: d.id, ...d.data() })),
@@ -21,12 +21,12 @@ export async function DELETE(
 ) {
   const { orgId } = params;
   // delete renters
-  const rentersSnap = await adminDB.collection(`orgs/${orgId}/renters`).get();
+  const rentersSnap = await adminDb.collection(`orgs/${orgId}/renters`).get();
   for (const doc of rentersSnap.docs) {
     await doc.ref.delete();
   }
   // delete disputes
-  const disputesSnap = await adminDB.collection(`orgs/${orgId}/disputes`).get();
+  const disputesSnap = await adminDb.collection(`orgs/${orgId}/disputes`).get();
   for (const doc of disputesSnap.docs) {
     await doc.ref.delete();
   }

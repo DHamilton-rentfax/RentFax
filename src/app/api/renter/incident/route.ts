@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function GET(req: Request) {
   const incidentId = new URL(req.url).searchParams.get("id");
@@ -8,7 +8,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Missing incidentId" }, { status: 400 });
   }
   
-  const snap = await adminDB.collection("incidents").doc(incidentId).get();
+  const snap = await adminDb.collection("incidents").doc(incidentId).get();
 
   if (!snap.exists)
     return NextResponse.json({ error: "Not found" }, { status: 404 });

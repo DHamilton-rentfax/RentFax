@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { adminDB } from "@@/firebase/server";
-import { authAdmin } from "@/lib/authAdmin";
+import { adminDb } from "@/firebase/server";
+import { adminAuth } from "@/lib/adminAuth";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2024-04-10",
 });
 
 export async function POST(req: Request) {
-  const user = await authAdmin(req);
+  const user = await adminAuth(req);
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
 
     // Pre-emptively create a record in Firestore
     if (session.id) {
-      const reportRef = adminDB.collection("deepReports").doc(session.id);
+      const reportRef = adminDb.collection("deepReports").doc(session.id);
       await reportRef.set({
         status: "pending_payment",
         userId: user.uid,

@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 import { getFraudSignals } from "./fraud-signals";
 
@@ -79,11 +79,11 @@ const mockUsers = [
 ];
 
 export async function seedInitialUsers() {
-  const batch = adminDB.batch();
+  const batch = adminDb.batch();
 
   mockUsers.forEach((user) => {
     const { uid, ...userData } = user;
-    const docRef = adminDB.collection("users").doc(uid);
+    const docRef = adminDb.collection("users").doc(uid);
     batch.set(docRef, userData);
   });
 
@@ -100,7 +100,7 @@ export async function seedInitialUsers() {
 
 export async function runFraudAnalysisOnSeededUsers() {
   try {
-    const usersSnapshot = await adminDB.collection("users").get();
+    const usersSnapshot = await adminDb.collection("users").get();
     const userIds = usersSnapshot.docs.map((doc) => doc.id);
     let processedCount = 0;
 

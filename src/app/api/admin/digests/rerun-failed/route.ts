@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import sendgrid from "@sendgrid/mail";
 
 sendgrid.setApiKey(process.env.SENDGRID_API_KEY!);
 
 export async function POST(req: NextRequest) {
   const { runId } = await req.json();
-  const runRef = adminDB.collection("digestRuns").doc(runId);
+  const runRef = adminDb.collection("digestRuns").doc(runId);
   const runDoc = await runRef.get();
 
   if (!runDoc.exists) {
@@ -17,10 +17,10 @@ export async function POST(req: NextRequest) {
   const failedLogs = runData.logs.filter((log: any) => log.status === "failed");
 
   for (const log of failedLogs) {
-    const userDoc = await adminDB.doc(`users/${log.uid}`).get();
+    const userDoc = await adminDb.doc(`users/${log.uid}`).get();
     if (!userDoc.exists) continue;
 
-    const notifSnap = await adminDB
+    const notifSnap = await adminDb
       .collection(`users/${log.uid}/notifications`)
       .where("read", "==", false)
       .get();

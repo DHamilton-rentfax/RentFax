@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import sgMail from "@sendgrid/mail";
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   const { orgId, renterId, email } = await req.json();
 
   // Validate renter
-  const doc = await adminDB.doc(`orgs/${orgId}/renters/${renterId}`).get();
+  const doc = await adminDb.doc(`orgs/${orgId}/renters/${renterId}`).get();
   if (!doc.exists || doc.get("email") !== email) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }

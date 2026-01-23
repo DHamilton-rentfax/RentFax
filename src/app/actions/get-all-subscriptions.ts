@@ -1,9 +1,9 @@
 "use server";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function getAllSubscriptions() {
-  const usersSnap = await adminDB.collection("users").get();
+  const usersSnap = await adminDb.collection("users").get();
 
   return usersSnap.docs.map((doc) => {
     const data = doc.data();

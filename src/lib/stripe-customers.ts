@@ -1,7 +1,7 @@
-import { dbAdmin } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function getStripeCustomerId(uid: string): Promise<string> {
-  const snap = await dbAdmin.doc(`users/${uid}`).get();
+  const snap = await adminDb.doc(`users/${uid}`).get();
   if (!snap.exists) {
     throw new Error("User not found");
   }

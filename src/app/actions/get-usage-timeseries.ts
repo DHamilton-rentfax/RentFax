@@ -1,9 +1,9 @@
 "use server";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function getUsageTimeseries(userId: string) {
-  const usage = (await adminDB.collection("usage").doc(userId).get()).data() || {};
+  const usage = (await adminDb.collection("usage").doc(userId).get()).data() || {};
 
   const daily = usage.daily || {};
 

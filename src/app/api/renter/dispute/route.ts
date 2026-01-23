@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDB, adminStorage } from "@/firebase/server";
+import { adminDb, adminStorage } from "@/firebase/server";
 import { auth } from "@/firebase/server";
 
 export async function POST(req: Request) {
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     uploads.push({ url, name: file.name });
   }
 
-  const disputeRef = await adminDB.collection("disputes").add({
+  const disputeRef = await adminDb.collection("disputes").add({
     renterId,
     incidentId,
     claim,

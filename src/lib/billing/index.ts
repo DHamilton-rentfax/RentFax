@@ -1,5 +1,5 @@
 import 'server-only';
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -8,13 +8,13 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 /** Load dynamic pricing (super admin can modify anytime) */
 export async function getPricing() {
-  const snap = await adminDB.collection("billing_config").doc("pricing").get();
+  const snap = await adminDb.collection("billing_config").doc("pricing").get();
   return snap.exists ? snap.data() : {};
 }
 
 /** Load a user's active billing plan */
 export async function getUserPlan(userId: string) {
-  const snap = await adminDB.collection("billing_plans").doc(userId).get();
+  const snap = await adminDb.collection("billing_plans").doc(userId).get();
   return snap.exists
     ? snap.data()
     : {
@@ -26,12 +26,12 @@ export async function getUserPlan(userId: string) {
 
 /** Save billing usage or monthly counters */
 export async function updatePlan(userId: string, data: any) {
-  return adminDB.collection("billing_plans").doc(userId).set(data, { merge: true });
+  return adminDb.collection("billing_plans").doc(userId).set(data, { merge: true });
 }
 
 /** Record a billing transaction (audit log) */
 export async function logTransaction(userId: string, entry: any) {
-  return adminDB
+  return adminDb
     .collection("billing_history")
     .doc(userId)
     .collection("transactions")

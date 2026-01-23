@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import fetch from "node-fetch";
 
 export async function POST(req: Request) {
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
                        result?.email?.is_valid && 
                        result?.phone?.is_valid;
 
-    await adminDB.collection(userType).doc(userId).set({
+    await adminDb.collection(userType).doc(userId).set({
       verified: isVerified,
       verificationStatus: isVerified ? "verified" : (result?.warnings?.length > 0 ? "partial" : "failed"),
       verificationDetails: {

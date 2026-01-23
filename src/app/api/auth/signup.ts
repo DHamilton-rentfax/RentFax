@@ -1,4 +1,4 @@
-import { dbAdmin, authAdmin } from "@@/firebase/server";
+import { adminDb, adminAuth } from "@/firebase/server";
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -10,10 +10,10 @@ export async function POST(req: Request) {
   const { email, password, demo } = body;
 
   // 1. Create user in Firebase Auth
-  const userRecord = await authAdmin.createUser({ email, password });
+  const userRecord = await adminAuth.createUser({ email, password });
 
   // 2. Create Firestore user record
-  await dbAdmin
+  await adminDb
     .collection("users")
     .doc(userRecord.uid)
     .set({
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
       },
     });
 
-    await dbAdmin
+    await adminDb
       .collection("users")
       .doc(userRecord.uid)
       .update({

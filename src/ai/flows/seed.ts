@@ -7,7 +7,7 @@ import { z } from "genkit";
 import { FlowAuth } from "genkit/flow";
 
 import { ai } from "@/ai/genkit";
-import { admin, adminDB as db, adminAuth } from "@/firebase/server";
+import { admin, adminDb as db, adminAuth } from "@/firebase/server";
 
 type Role =
   | "owner"

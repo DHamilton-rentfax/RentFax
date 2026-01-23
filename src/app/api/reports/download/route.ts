@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { dbAdmin as adminDB } from "@@/firebase/server";
+import { adminDb as adminDb } from "@/firebase/server";
 import { getAuth } from "firebase-admin/auth";
 import { getStorage } from "firebase-admin/storage";
 
@@ -20,7 +20,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const doc = await adminDB.collection("reports").doc(id).get();
+    const doc = await adminDb.collection("reports").doc(id).get();
     if (!doc.exists)
       return NextResponse.json({ error: "Report not found" }, { status: 404 });
 

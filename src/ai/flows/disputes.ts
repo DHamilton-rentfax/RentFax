@@ -7,7 +7,7 @@ import { z } from "genkit";
 import { ai } from "@/ai/genkit";
 import { sendNotification } from "@/lib/notifications";
 // import {FlowAuth} from 'genkit/flow';
-import { admin, adminDB as db, adminAuth } from "@/firebase/server";
+import { admin, adminDb as db, adminAuth } from "@/firebase/server";
 
 import { logAudit } from "./audit";
 
@@ -250,7 +250,7 @@ const updateDisputeStatusFlow = ai.defineFlow(
     outputSchema: z.object({ ok: z.boolean() }),
     // authPolicy: async (auth, input) => {
     //   if (!auth) throw new Error('Authentication is required.');
-    //   const {role} = ((await authAdmin.getUser(auth.uid)).customClaims as any) || {};
+    //   const {role} = ((await adminAuth.getUser(auth.uid)).customClaims as any) || {};
     //   if (!['owner', 'manager', 'agent', 'collections'].includes(role)) {
     //     throw new Error('Only company roles may update status');
     //   }

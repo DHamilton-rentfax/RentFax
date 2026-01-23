@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { getStorage } from "firebase-admin/storage";
 
 export async function POST(req: NextRequest) {
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   });
 
   // Save placeholder record
-  await adminDB.collection(`orgs/${orgId}/disputes/${id}/evidence`).add({
+  await adminDb.collection(`orgs/${orgId}/disputes/${id}/evidence`).add({
     fileName,
     uploadedBy: renterId,
     uploadedAt: Date.now(),

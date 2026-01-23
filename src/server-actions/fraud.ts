@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDB } from "@/firebase/server-admin";
+import { adminDb } from "@/firebase/server-admin";
 import { Timestamp } from "firebase-admin/firestore";
 import JaroWinkler from "jaro-winkler-typescript";
 
@@ -29,7 +29,7 @@ function normalizeEmail(email: string) {
 export async function getFraudSummary(renterId: string) {
   await assertAdmin();
 
-  const ref = adminDB
+  const ref = adminDb
     .collection("renters")
     .doc(renterId)
     .collection("fraud_signals")
@@ -49,7 +49,7 @@ export async function getFraudSummary(renterId: string) {
 async function detectDuplicateProfiles(renter: any) {
   const email = normalizeEmail(renter.email);
 
-  const snapshot = await adminDB
+  const snapshot = await adminDb
     .collection("renters")
     .where("email", "==", email)
     .get();
@@ -73,7 +73,7 @@ async function detectDuplicateProfiles(renter: any) {
 // (Detects emails like john.doe vs john_doe vs john-doe)
 // ------------------------------
 async function detectEmailSimilarity(renter: any) {
-  const rentersSnap = await adminDB.collection("renters").get();
+  const rentersSnap = await adminDb.collection("renters").get();
 
   const signals = [];
   const currentEmail = normalizeEmail(renter.email);
@@ -101,7 +101,7 @@ async function detectEmailSimilarity(renter: any) {
 // 🔥 PHONE REUSE DETECTION
 // ------------------------------
 async function detectPhoneReuse(renter: any) {
-  const snapshot = await adminDB
+  const snapshot = await adminDb
     .collection("renters")
     .where("phone", "==", renter.phone)
     .get();
@@ -127,7 +127,7 @@ async function detectPhoneReuse(renter: any) {
 async function detectVelocity(renter: any) {
   const last24h = Timestamp.fromMillis(Date.now() - 24 * 60 * 60 * 1000);
 
-  const snapshot = await adminDB
+  const snapshot = await adminDb
     .collection("renters")
     .where("createdAt", ">=", last24h)
     .get();
@@ -148,7 +148,7 @@ async function detectVelocity(renter: any) {
 // 🔥 CROSS-INDUSTRY PATTERN DETECTION
 // ------------------------------
 async function detectCrossIndustryPatterns(renter: any) {
-  const incidents = await adminDB
+  const incidents = await adminDb
     .collection("incidents")
     .where("renterId", "==", renter.id)
     .get();
@@ -204,7 +204,7 @@ function calculateRiskScore(signals: any[]) {
 export async function updateFraudSummary(renterId: string) {
   await assertAdmin();
 
-  const renterDoc = await adminDB.collection("renters").doc(renterId).get();
+  const renterDoc = await adminDb.collection("renters").doc(renterId).get();
   if (!renterDoc.exists) throw new Error("Renter not found");
 
   const renter = { id: renterDoc.id, ...renterDoc.data() };
@@ -238,7 +238,7 @@ export async function updateFraudSummary(renterId: string) {
     updatedAt: Timestamp.now(),
   };
 
-  await adminDB
+  await adminDb
     .collection("renters")
     .doc(renterId)
     .collection("fraud_signals")

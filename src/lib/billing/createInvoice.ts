@@ -1,4 +1,4 @@
-import { adminDB, adminStorage } from "@/firebase/server";
+import { adminDb, adminStorage } from "@/firebase/server";
 import { generateInvoicePDF } from "./generateInvoicePDF";
 
 export async function createInvoice({ userId, lineItems, date = Date.now() }: any) {
@@ -8,7 +8,7 @@ export async function createInvoice({ userId, lineItems, date = Date.now() }: an
   }
 
   // 1. Write invoice entry to Firestore
-  const ref = await adminDB.collection("invoices").add({
+  const ref = await adminDb.collection("invoices").add({
     userId,
     lineItems,
     total,

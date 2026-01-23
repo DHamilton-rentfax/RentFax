@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { OpenAI } from "openai";
 import { authUser } from "@/lib/authUser";
 import { v4 as uuidv4 } from "uuid";
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
 
     if (isInternalRequest) {
       userId = body.userId;
-      const userRecord = await adminDB.collection("users").doc(userId).get();
+      const userRecord = await adminDb.collection("users").doc(userId).get();
       if (!userRecord.exists) {
         return NextResponse.json({ error: "User not found" }, { status: 404 });
       }
@@ -75,7 +75,7 @@ export async function POST(req: Request) {
       userId = user.uid;
       userEmail = user.email;
 
-      const userRef = adminDB.collection("users").doc(userId);
+      const userRef = adminDb.collection("users").doc(userId);
       const userDoc = await userRef.get();
       const userData = userDoc.data();
 
@@ -140,7 +140,7 @@ export async function POST(req: Request) {
 
     // Step 4: Store in Firestore
     const reportId = uuidv4();
-    const reportRef = await adminDB.collection("deepReports").add({
+    const reportRef = await adminDb.collection("deepReports").add({
       id: reportId,
       userId: userId,
       userEmail: userEmail,

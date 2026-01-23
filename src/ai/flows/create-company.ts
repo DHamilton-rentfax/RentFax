@@ -6,7 +6,7 @@ import { z } from "genkit";
 
 import { ai } from "@/ai/genkit";
 // import {FlowAuth} from 'genkit/flow';
-import { admin, adminDB as db, adminAuth } from "@/firebase/server";
+import { admin, adminDb as db, adminAuth } from "@/firebase/server";
 
 const CreateCompanyInputSchema = z.object({
   name: z.string().describe("The name of the new company."),
@@ -40,7 +40,7 @@ const createCompanyFlow = ai.defineFlow(
     // if (!auth) throw new Error('Auth context is missing.');
 
     // // Caller becomes owner of this company if not already part of one
-    // const caller = await authAdmin.getUser(auth.uid);
+    // const caller = await adminAuth.getUser(auth.uid);
     // const claims = caller.customClaims || {};
     // // Allow SUPER_ADMIN to create companies without restriction
     // if (claims.role !== 'SUPER_ADMIN' && claims.companyId) {
@@ -64,8 +64,8 @@ const createCompanyFlow = ai.defineFlow(
 
     // // Assign owner claims to caller unless they are a SUPER_ADMIN
     // if (claims.role !== 'SUPER_ADMIN') {
-    //   await authAdmin.setCustomUserClaims(auth.uid, {role: 'admin', companyId});
-    //   await authAdmin.revokeRefreshTokens(auth.uid);
+    //   await adminAuth.setCustomUserClaims(auth.uid, {role: 'admin', companyId});
+    //   await adminAuth.revokeRefreshTokens(auth.uid);
     // }
 
     return { companyId };

@@ -1,7 +1,7 @@
 // ✅ FILE: /src/app/api/partners/agencies/register/route.ts
 import { NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function POST(req: Request) {
   try {
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
       coverageAreas: coverageAreas || "",
     };
 
-    await adminDB.collection("collectionAgencies").doc(uid).set(partnerData);
+    await adminDb.collection("collectionAgencies").doc(uid).set(partnerData);
 
     return NextResponse.json({ success: true, uid });
   } catch (err: any) {

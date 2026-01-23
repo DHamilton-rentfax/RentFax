@@ -2,7 +2,7 @@ import { adminDb } from "@/firebase/server";
 import { NextResponse } from "next/server";
 import { Parser } from "json2csv";
 
-import { adminDB } from "@/lib/firebase/server";
+import { adminDb } from "@/lib/firebase/server";
 import { getUserFromSessionCookie } from "@/lib/auth/getUserFromSessionCookie";
 
 export async function POST(req: Request) {
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     }
 
     const { role, companyId } = session;
-    const db = adminDB;
+    const db = adminDb;
 
     // Define which Firestore collection to export
     const exportMap: Record<string, string> = {

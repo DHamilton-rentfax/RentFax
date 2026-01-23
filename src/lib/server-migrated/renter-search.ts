@@ -1,6 +1,6 @@
 import {jaroWinkler} from 'jaro-winkler-typescript';
 
-import { adminDB as db } from '@/firebase/server';
+import { adminDb as db } from '@/firebase/server';
 
 /**
  * Normalizes a phone number by removing non-numeric characters.

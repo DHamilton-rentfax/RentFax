@@ -1,18 +1,18 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function POST() {
-  const defaultsDoc = await adminDB.doc("config/docDefaults").get();
+  const defaultsDoc = await adminDb.doc("config/docDefaults").get();
   if (!defaultsDoc.exists) {
     return NextResponse.json({ error: "No defaults set" }, { status: 400 });
   }
 
   const DEFAULT_CATEGORIES: string[] = defaultsDoc.get("categories");
-  const orgs = await adminDB.collection("orgs").get();
+  const orgs = await adminDb.collection("orgs").get();
 
   for (const org of orgs.docs) {
     const orgId = org.id;
-    const col = adminDB.collection(`orgs/${orgId}/docCategories`);
+    const col = adminDb.collection(`orgs/${orgId}/docCategories`);
     const existingSnap = await col.get();
     const existingNames = existingSnap.docs.map((d) => d.get("name"));
     const missing = DEFAULT_CATEGORIES.filter(
@@ -20,7 +20,7 @@ export async function POST() {
     );
 
     if (missing.length > 0) {
-      const batch = adminDB.batch();
+      const batch = adminDb.batch();
       missing.forEach((name) => {
         const ref = col.doc();
         batch.set(ref, { name, createdAt: Date.now() });
@@ -37,10 +37,10 @@ export async function POST() {
       };
 
       // Org-level audit
-      await adminDB.collection(`orgs/${orgId}/audit`).add(logEntry);
+      await adminDb.collection(`orgs/${orgId}/audit`).add(logEntry);
 
       // Global audit
-      await adminDB.collection("auditGlobal").add(logEntry);
+      await adminDb.collection("auditGlobal").add(logEntry);
     }
   }
 

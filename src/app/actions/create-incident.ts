@@ -1,6 +1,6 @@
 'use server';
 
-import { dbAdmin } from '@/firebase/server';
+import { adminDb } from '@/firebase/server';
 import { logAuditEvent } from './log-audit';
 import { assessIncidentRisk } from './assess-risk'; // Import the risk assessment function
 
@@ -46,7 +46,7 @@ export async function createIncident(
       riskReasons: [],
     };
 
-    const ref = await dbAdmin.collection('incidents').add(initialIncidentData);
+    const ref = await adminDb.collection('incidents').add(initialIncidentData);
 
     await logAuditEvent({
       action: 'INCIDENT_CREATED',

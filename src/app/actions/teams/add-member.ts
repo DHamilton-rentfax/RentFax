@@ -1,9 +1,9 @@
 "use server";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function addTeamMember(teamId: string, userId: string, role = "MEMBER") {
-  const teamRef = adminDB.collection("teams").doc(teamId);
+  const teamRef = adminDb.collection("teams").doc(teamId);
   const team = (await teamRef.get()).data();
 
   if (!team) throw new Error("Team not found");
@@ -12,7 +12,7 @@ export async function addTeamMember(teamId: string, userId: string, role = "MEMB
     throw new Error("Seat limit reached");
   }
 
-  await adminDB
+  await adminDb
     .collection("teams")
     .doc(teamId)
     .collection("members")

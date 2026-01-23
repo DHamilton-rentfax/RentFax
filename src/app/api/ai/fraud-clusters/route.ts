@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { sendFraudClusterAlert } from "@/lib/email";
 
 /**
@@ -16,7 +16,7 @@ async function findConnectedRenters(
   const address = renterData.address;
 
   if (phone) {
-    const phoneSnap = await adminDB
+    const phoneSnap = await adminDb
       .collection("renters")
       .where("phone", "==", phone)
       .get();
@@ -26,7 +26,7 @@ async function findConnectedRenters(
   }
 
   if (address) {
-    const addressSnap = await adminDB
+    const addressSnap = await adminDb
       .collection("renters")
       .where("address", "==", address)
       .get();
@@ -53,7 +53,7 @@ async function analyzeClusterForFraud(
   // Fetch data for all renters in the cluster
   const renterDocs = await Promise.all(
     [targetRenterId, ...connectedRenterIds].map((id) =>
-      adminDB.collection("renters").doc(id).get(),
+      adminDb.collection("renters").doc(id).get(),
     ),
   );
 
@@ -93,7 +93,7 @@ export async function POST(req: Request) {
     }
 
     // 1. Get the primary renter's data
-    const renterDoc = await adminDB.collection("renters").doc(renterId).get();
+    const renterDoc = await adminDb.collection("renters").doc(renterId).get();
     if (!renterDoc.exists) {
       return NextResponse.json({ error: "Renter not found" }, { status: 404 });
     }
@@ -121,7 +121,7 @@ export async function POST(req: Request) {
         createdAt: new Date().toISOString(),
       };
 
-      await adminDB.collection("fraud_clusters").add(clusterData);
+      await adminDb.collection("fraud_clusters").add(clusterData);
 
       await sendFraudClusterAlert(clusterData);
     }

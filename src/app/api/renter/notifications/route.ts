@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
 
 export async function GET(req: Request) {
@@ -15,7 +15,7 @@ export async function GET(req: Request) {
 
   try {
     const notificationsQuery = query(
-      collection(adminDB, "notifications"),
+      collection(adminDb, "notifications"),
       where("renterId", "==", uid),
       orderBy("createdAt", "desc")
     );

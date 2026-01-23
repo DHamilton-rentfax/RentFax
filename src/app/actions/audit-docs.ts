@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function logDocAction(
   orgId: string,
@@ -8,7 +8,7 @@ export async function logDocAction(
   action: string,
   docId: string,
 ) {
-  await adminDB.collection(`orgs/${orgId}/audit`).add({
+  await adminDb.collection(`orgs/${orgId}/audit`).add({
     actorUid,
     action: `DOC_${action}`,
     target: docId,

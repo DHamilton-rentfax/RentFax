@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { getStorage } from "firebase-admin/storage";
 
 export async function DELETE(
@@ -9,7 +9,7 @@ export async function DELETE(
   const orgId = "demo-org"; // TODO-get-from-auth
   const { renterId, docId } = params;
 
-  const docRef = adminDB.doc(`orgs/${orgId}/renters/${renterId}/docs/${docId}`);
+  const docRef = adminDb.doc(`orgs/${orgId}/renters/${renterId}/docs/${docId}`);
   const docSnap = await docRef.get();
 
   if (!docSnap.exists) {
@@ -27,7 +27,7 @@ export async function DELETE(
   await docRef.delete();
 
   // Log action in audit trail
-  await adminDB.collection(`orgs/${orgId}/audit`).add({
+  await adminDb.collection(`orgs/${orgId}/audit`).add({
     actorUid: "system", // TODO: replace with session user ID
     action: "DOC_DELETE",
     target: `${renterId}/${docId}`,

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { authAdmin, dbAdmin } from "@@/firebase/server";
+import { adminAuth, adminDb } from "@/firebase/server";
 
 export async function GET(req: Request) {
   try {
@@ -8,13 +8,13 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const token = authHeader.split(" ")[1];
-    const decoded = await authAdmin.verifyIdToken(token);
+    const decoded = await adminAuth.verifyIdToken(token);
 
     if (decoded.role !== "super_admin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const snapshot = await dbAdmin.collection("companies").get();
+    const snapshot = await adminDb.collection("companies").get();
     const orgs = snapshot.docs.map((doc) => {
       const data = doc.data();
       return {

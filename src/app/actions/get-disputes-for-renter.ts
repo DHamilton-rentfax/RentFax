@@ -1,11 +1,11 @@
 "use server";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { Dispute } from "@/types/dispute";
 
 export async function getDisputesForRenter(renterId: string) {
   try {
-    const disputesSnapshot = await adminDB
+    const disputesSnapshot = await adminDb
       .collection("disputes")
       .where("renterId", "==", renterId)
       .get();

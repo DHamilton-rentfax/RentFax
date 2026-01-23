@@ -6,16 +6,16 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import { dbAdmin } from "@@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function GET() {
   const disputesSnap = await getCountFromServer(
-    collection(dbAdmin, "disputes"),
+    collection(adminDb, "disputes"),
   );
-  const usersSnap = await getCountFromServer(collection(dbAdmin, "users"));
-  const logsSnap = await getCountFromServer(collection(dbAdmin, "systemLogs"));
+  const usersSnap = await getCountFromServer(collection(adminDb, "users"));
+  const logsSnap = await getCountFromServer(collection(adminDb, "systemLogs"));
   const fraudSnap = await getDocs(
-    query(collection(dbAdmin, "alerts"), where("type", "==", "FRAUD_ALERT")),
+    query(collection(adminDb, "alerts"), where("type", "==", "FRAUD_ALERT")),
   );
 
   return NextResponse.json({

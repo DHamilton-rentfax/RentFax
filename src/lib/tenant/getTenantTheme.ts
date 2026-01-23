@@ -1,9 +1,9 @@
-sddimport { adminDB } from "@/firebase/server";
+sddimport { adminDb } from "@/firebase/server";
 
 export async function getTenantTheme(companyId: string) {
   if (!companyId) throw new Error("Missing companyId");
 
-  const snap = await adminDB.collection("tenant_settings").doc(companyId).get();
+  const snap = await adminDb.collection("tenant_settings").doc(companyId).get();
   if (!snap.exists) {
     return {
       // fallback RentFAX brand

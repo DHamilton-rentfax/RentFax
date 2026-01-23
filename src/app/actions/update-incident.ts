@@ -1,6 +1,6 @@
 'use server';
 
-import { dbAdmin } from '@/firebase/server';
+import { adminDb } from '@/firebase/server';
 import { logAuditEvent } from './log-audit';
 
 // Assuming you have a function to log timeline events
@@ -31,7 +31,7 @@ export async function updateIncident(
   updatedBy: string,
 ) {
   try {
-    const incidentRef = dbAdmin.collection('incidents').doc(incidentId);
+    const incidentRef = adminDb.collection('incidents').doc(incidentId);
     const incidentDoc = await incidentRef.get();
 
     if (!incidentDoc.exists) {

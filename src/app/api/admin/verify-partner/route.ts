@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function POST(req: Request) {
   try {
     const { uid, role, verificationStatus, verificationNotes, publicEvidence } = await req.json();
     const collection = role === "legal" ? "legalPartners" : "collectionAgencies";
 
-    await adminDB.collection(collection).doc(uid).update({
+    await adminDb.collection(collection).doc(uid).update({
       verified: verificationStatus === "verified",
       verificationStatus,
       verificationNotes,

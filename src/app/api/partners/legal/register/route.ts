@@ -1,7 +1,7 @@
 // ✅ FILE: /src/app/api/partners/legal/register/route.ts
 import { NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function POST(req: Request) {
   try {
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
       jurisdiction: jurisdiction || "",
     };
 
-    await adminDB.collection("legalPartners").doc(uid).set(partnerData);
+    await adminDb.collection("legalPartners").doc(uid).set(partnerData);
 
     return NextResponse.json({ success: true, uid });
   } catch (err: any) {

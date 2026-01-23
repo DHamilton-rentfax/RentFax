@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10",
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "agencyId and caseId are required" }, { status: 400 });
     }
 
-    const agencyRef = adminDB.collection("collectionAgencies").doc(agencyId);
+    const agencyRef = adminDb.collection("collectionAgencies").doc(agencyId);
     const agencySnap = await agencyRef.get();
     const agencyData = agencySnap.data();
 
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     );
 
     // Optional: Log this charge in Firestore for internal tracking
-    await adminDB.collection("caseCharges").add({
+    await adminDb.collection("caseCharges").add({
         agencyId,
         caseId,
         chargeAmount: 4.99, // Store the amount for reporting

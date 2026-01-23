@@ -1,4 +1,4 @@
-import { adminDB as dbAdmin } from "@@/firebase/server";
+import { adminDb as adminDb } from "@/firebase/server";
 import { FieldValue } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const disputeRef = dbAdmin.collection("disputes").doc();
+    const disputeRef = adminDb.collection("disputes").doc();
     await disputeRef.set({
       renterId,
       incidentId,
@@ -32,13 +32,13 @@ export async function POST(req: Request) {
     });
 
     // Link dispute to renter + incident
-    await dbAdmin
+    await adminDb
       .collection("renters")
       .doc(renterId)
       .update({
         linkedDisputes: FieldValue.arrayUnion(disputeRef.id),
       });
-    await dbAdmin.collection("incidents").doc(incidentId).update({
+    await adminDb.collection("incidents").doc(incidentId).update({
       relatedDispute: disputeRef.id,
       status: "DISPUTED",
     });

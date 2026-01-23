@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function GET(req: Request) {
   try {
@@ -11,7 +11,7 @@ export async function GET(req: Request) {
     const decoded = await getAuth().verifyIdToken(token!);
 
     // Find the organization the user belongs to.
-    const memberSnapshot = await adminDB
+    const memberSnapshot = await adminDb
       .collectionGroup("members")
       .where("email", "==", decoded.email)
       .limit(1)
@@ -27,7 +27,7 @@ export async function GET(req: Request) {
     const memberDoc = memberSnapshot.docs[0];
     const orgId = memberDoc.ref.parent.parent!.id; // orgs/{orgId}/members/{memberId}
 
-    const snapshot = await adminDB
+    const snapshot = await adminDb
       .collection("orgs")
       .doc(orgId)
       .collection("invites")

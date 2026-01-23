@@ -1,6 +1,6 @@
 "use server";
 
-import { adminAuth, adminDB } from "@/firebase/server";
+import { adminAuth, adminDb } from "@/firebase/server";
 
 import { logAuditEvent } from "./log-audit";
 
@@ -10,7 +10,7 @@ export async function updateUserRole(
   adminEmail: string,
 ) {
   try {
-    const userDocRef = adminDB.collection("users").doc(userId);
+    const userDocRef = adminDb.collection("users").doc(userId);
     const userDoc = await userDocRef.get();
     const oldRole = userDoc.data()?.role;
 

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { getAuth } from "firebase-admin/auth";
 
 export async function GET(req: Request) {
@@ -15,7 +15,7 @@ export async function GET(req: Request) {
     if (!orgId)
       return NextResponse.json({ error: "No org found" }, { status: 403 });
 
-    const orgDoc = await adminDB.collection("orgs").doc(orgId).get();
+    const orgDoc = await adminDb.collection("orgs").doc(orgId).get();
     if (!orgDoc.exists)
       return NextResponse.json({ error: "Org not found" }, { status: 404 });
 
@@ -30,7 +30,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Not entitled" }, { status: 403 });
     }
 
-    const snap = await adminDB
+    const snap = await adminDb
       .collection("reports")
       .where("orgId", "==", orgId)
       .where("type", "==", "client_monthly")

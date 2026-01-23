@@ -1,7 +1,7 @@
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function getTenantBranding(tenantId: string) {
-  const snap = await adminDB.collection("companies").doc(tenantId).get();
+  const snap = await adminDb.collection("companies").doc(tenantId).get();
   if (!snap.exists) throw new Error("Tenant not found");
 
   const data = snap.data() as any;

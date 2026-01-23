@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function POST(req: Request) {
   const { userId, enabled, threshold = 5, credits = 10 } = await req.json();
@@ -8,7 +8,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing userId" }, { status: 400 });
   }
 
-  await adminDB.collection("users").doc(userId).set({
+  await adminDb.collection("users").doc(userId).set({
     billingSettings: {
       autoReload: enabled,
       autoReloadThreshold: threshold,

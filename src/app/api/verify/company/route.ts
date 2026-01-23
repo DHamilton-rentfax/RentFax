@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 // This should be your server-side Firebase admin instance
-// For this example, we'll assume a mock adminDB is available if not configured
-import { adminDB } from "@/firebase/server"; 
+// For this example, we'll assume a mock adminDb is available if not configured
+import { adminDb } from "@/firebase/server"; 
 import fetch from "node-fetch";
 
 export async function POST(req: Request) {
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     const isVerified = result?.Record?.RecordStatus === "match" || result?.Record?.RecordStatus === "partial_match";
 
     // Save the detailed result to the correct Firestore collection based on entityType
-    await adminDB.collection(entityType).doc(companyId).set({
+    await adminDb.collection(entityType).doc(companyId).set({
       verified: isVerified,
       verificationStatus: isVerified ? "verified" : "failed",
       verificationDetails: {

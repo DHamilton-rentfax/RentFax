@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -7,7 +7,7 @@ export async function GET(request: Request) {
   const source = searchParams.get("source");
 
   try {
-    let query = adminDB.collection("systemLogs").orderBy("timestamp", "desc");
+    let query = adminDb.collection("systemLogs").orderBy("timestamp", "desc");
 
     if (level) {
       query = query.where("level", "==", level);

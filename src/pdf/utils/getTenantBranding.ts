@@ -1,4 +1,4 @@
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 // This is a placeholder for the actual tenant branding logic.
 // In a real application, this would fetch the tenant's branding information
@@ -12,7 +12,7 @@ export async function getTenantBranding(tenantId: string) {
         };
     }
 
-    const tenantDoc = await adminDB.collection("companies").doc(tenantId).get();
+    const tenantDoc = await adminDb.collection("companies").doc(tenantId).get();
 
     if (!tenantDoc.exists) {
         return {

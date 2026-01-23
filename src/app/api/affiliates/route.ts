@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { dbAdmin as db } from "@@/firebase/server";
-
+import { adminDb as db } from "@/firebase/server";
 /**
  * Track referrals:
  * 1. /api/affiliates?code=XYZ is hit

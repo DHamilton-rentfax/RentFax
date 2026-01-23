@@ -1,10 +1,10 @@
 "use server";
 
-import { dbAdmin } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function getAllIncidents() {
   try {
-    const incidentsSnap = await dbAdmin
+    const incidentsSnap = await adminDb
       .collection("incidents")
       .orderBy("createdAt", "desc")
       .get();

@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import OpenAI from "openai";
-import { authAdmin } from "@/lib/authAdmin";
+import { adminAuth } from "@/lib/adminAuth";
 
 export async function POST(req: Request) {
   try {
-    const user = await authAdmin(req); // only admins trigger scoring
+    const user = await adminAuth(req); // only admins trigger scoring
     if (!user)
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
 
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     ];
 
     for (const col of collectionsToCheck) {
-      const q = adminDB.collection(col.name).where(col.field, "==", renterId);
+      const q = adminDb.collection(col.name).where(col.field, "==", renterId);
       const snap = await q.get();
       snap.forEach((doc) => signals.push({ type: col.name, data: doc.data() }));
     }
@@ -76,7 +76,7 @@ export async function POST(req: Request) {
     }
 
     // --- 4️⃣ Save to Firestore ---
-    await adminDB.collection("riskProfiles").doc(renterId).set({
+    await adminDb.collection("riskProfiles").doc(renterId).set({
       renterId,
       score,
       signalsCount: signals.length,

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { getAuth } from "firebase-admin/auth";
 
 export async function GET(req: Request) {
@@ -19,7 +19,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const snap = await adminDB
+    const snap = await adminDb
       .collection("analyticsEvents")
       .where("orgId", "==", orgId)
       .where("event", "in", ["report_previewed", "report_downloaded"])

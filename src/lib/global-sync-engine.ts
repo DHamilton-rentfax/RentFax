@@ -1,5 +1,5 @@
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { FieldValue } from "firebase-admin/firestore";
 import * as crypto from "crypto";
 
@@ -25,17 +25,17 @@ const resolveGlobalRenter = async (localRenter: any, localRenterId: string, comp
     // Strategy:
     // 1. Check if local renter is already linked to a global profile.
     if (localRenter.globalRenterId) {
-        const globalRenterSnap = await adminDB.collection('rentersGlobal').doc(localRenter.globalRenterId).get();
+        const globalRenterSnap = await adminDb.collection('rentersGlobal').doc(localRenter.globalRenterId).get();
         if (globalRenterSnap.exists) return globalRenterSnap;
     }
 
     // 2. Search for matches using emails and phone numbers.
     const searchQueries = [];
     if (localRenter.emails && localRenter.emails.length > 0) {
-        searchQueries.push(adminDB.collection('rentersGlobal').where('emails', 'array-contains-any', localRenter.emails).get());
+        searchQueries.push(adminDb.collection('rentersGlobal').where('emails', 'array-contains-any', localRenter.emails).get());
     }
     if (localRenter.phones && localRenter.phones.length > 0) {
-        searchQueries.push(adminDB.collection('rentersGlobal').where('phones', 'array-contains-any', localRenter.phones).get());
+        searchQueries.push(adminDb.collection('rentersGlobal').where('phones', 'array-contains-any', localRenter.phones).get());
     }
 
     for (const query of searchQueries) {
@@ -43,7 +43,7 @@ const resolveGlobalRenter = async (localRenter: any, localRenterId: string, comp
         if (!results.empty) {
             const matchedGlobalRenter = results.docs[0]; // Use first match for now
             // Link local renter to this global ID for future syncs
-            await adminDB.collection('companies').doc(companyId).collection('renters').doc(localRenterId).update({
+            await adminDb.collection('companies').doc(companyId).collection('renters').doc(localRenterId).update({
                 globalRenterId: matchedGlobalRenter.id,
             });
             return matchedGlobalRenter;
@@ -51,7 +51,7 @@ const resolveGlobalRenter = async (localRenter: any, localRenterId: string, comp
     }
 
     // 3. No match found, create a new global renter.
-    const newGlobalRenterRef = adminDB.collection('rentersGlobal').doc();
+    const newGlobalRenterRef = adminDb.collection('rentersGlobal').doc();
     const newGlobalRenterData = {
         firstName: localRenter.firstName,
         lastName: localRenter.lastName,
@@ -74,7 +74,7 @@ const resolveGlobalRenter = async (localRenter: any, localRenterId: string, comp
     await newGlobalRenterRef.set(newGlobalRenterData);
     
     // Link local renter to the new global ID
-    await adminDB.collection('companies').doc(companyId).collection('renters').doc(localRenterId).update({
+    await adminDb.collection('companies').doc(companyId).collection('renters').doc(localRenterId).update({
         globalRenterId: newGlobalRenterRef.id,
     });
     
@@ -88,18 +88,18 @@ const resolveGlobalRenter = async (localRenter: any, localRenterId: string, comp
  * @param incidentId - The ID of the local incident.
  */
 export const syncIncidentToGlobal = async (companyId: string, incidentId: string) => {
-    const batch = adminDB.batch();
+    const batch = adminDb.batch();
 
     // 1. Fetch all local data
-    const incidentSnap = await adminDB.collection('companies').doc(companyId).collection('incidents').doc(incidentId).get();
+    const incidentSnap = await adminDb.collection('companies').doc(companyId).collection('incidents').doc(incidentId).get();
     if (!incidentSnap.exists) throw new Error(`Incident ${incidentId} not found for company ${companyId}`);
     const incidentData = incidentSnap.data()!;
 
-    const renterSnap = await adminDB.collection('companies').doc(companyId).collection('renters').doc(incidentData.renterId).get();
+    const renterSnap = await adminDb.collection('companies').doc(companyId).collection('renters').doc(incidentData.renterId).get();
     if (!renterSnap.exists) throw new Error(`Renter ${incidentData.renterId} not found`);
     const renterData = renterSnap.data()!;
 
-    const companySnap = await adminDB.collection('companies').doc(companyId).get();
+    const companySnap = await adminDb.collection('companies').doc(companyId).get();
     const companyData = companySnap.data()!;
     const industry = companyData.industry || 'home_rental';
 
@@ -112,7 +112,7 @@ export const syncIncidentToGlobal = async (companyId: string, incidentId: string
     if (renterData.address) {
         const addressHash = hashAddress(renterData.address);
         const renterAddressRef = globalRenterRef.collection('addresses').doc(addressHash);
-        const globalAddressRef = adminDB.collection('addressesGlobal').doc(addressHash);
+        const globalAddressRef = adminDb.collection('addressesGlobal').doc(addressHash);
 
         // Add/update address in renter's subcollection
         batch.set(renterAddressRef, {
@@ -135,7 +135,7 @@ export const syncIncidentToGlobal = async (companyId: string, incidentId: string
     }
 
     // 4. Create the Global Incident record
-    const incidentGlobalRef = adminDB.collection('incidentsGlobal').doc(`${companyId}_${incidentId}`);
+    const incidentGlobalRef = adminDb.collection('incidentsGlobal').doc(`${companyId}_${incidentId}`);
     batch.set(incidentGlobalRef, {
         renterGlobalId,
         companyId,
@@ -174,7 +174,7 @@ export const syncIncidentToGlobal = async (companyId: string, incidentId: string
     });
 
     // 7. Update Fraud Signals (placeholder for now)
-    const fraudSummaryRef = adminDB.collection('fraudGlobal').doc(globalRenterId).collection('summary').doc('latest');
+    const fraudSummaryRef = adminDb.collection('fraudGlobal').doc(globalRenterId).collection('summary').doc('latest');
      batch.set(fraudSummaryRef, {
         score: FieldValue.increment(10), // Placeholder scoring
         alert: true,

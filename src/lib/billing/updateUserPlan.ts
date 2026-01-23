@@ -8,7 +8,7 @@ import {
 } from "firebase/firestore";
 import Stripe from "stripe";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -31,14 +31,14 @@ export async function updateUserPlan(session: any) {
   const canceled = session.canceled || false;
 
   // Find user by email
-  const q = query(collection(adminDB, "users"), where("email", "==", email));
+  const q = query(collection(adminDb, "users"), where("email", "==", email));
   const snap = await getDocs(q);
   if (snap.empty) {
     console.error("No user found with email:", email);
     return;
   }
 
-  const userRef = doc(adminDB, "users", snap.docs[0].id);
+  const userRef = doc(adminDb, "users", snap.docs[0].id);
   await updateDoc(userRef, {
     plan: canceled ? "free" : plan,
     role: canceled ? "renter" : "pro", // This logic might need to be more sophisticated

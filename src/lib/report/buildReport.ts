@@ -1,11 +1,11 @@
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { getPublicData } from "@/lib/public-data/getPublicData";
 import { getFraudSignals } from "@/lib/fraud/signals";
 
 export async function buildFullReport(renterId: string) {
   // Load renter core record
-  const renterSnap = await adminDB.collection("renters").doc(renterId).get();
+  const renterSnap = await adminDb.collection("renters").doc(renterId).get();
   if (!renterSnap.exists) {
     return { error: "RENTER_NOT_FOUND" };
   }
@@ -13,7 +13,7 @@ export async function buildFullReport(renterId: string) {
   const renter = renterSnap.data() as any;
 
   // Internal incidents
-  const incidentsSnap = await adminDB
+  const incidentsSnap = await adminDb
     .collection("incidents")
     .where("renterId", "==", renterId)
     .orderBy("createdAt", "desc")
@@ -22,7 +22,7 @@ export async function buildFullReport(renterId: string) {
   const incidents = incidentsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
   // Internal disputes
-  const disputesSnap = await adminDB
+  const disputesSnap = await adminDb
     .collection("disputes")
     .where("renterId", "==", renterId)
     .orderBy("createdAt", "desc")

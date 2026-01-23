@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export interface AuditLog {
   id: string;
@@ -17,7 +17,7 @@ export interface AuditLog {
  */
 export async function getDisputeHistory(id: string) {
   try {
-    const historySnapshot = await adminDB
+    const historySnapshot = await adminDb
       .collection("disputes")
       .doc(id)
       .collection("history")

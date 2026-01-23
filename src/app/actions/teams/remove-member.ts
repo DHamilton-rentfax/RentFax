@@ -1,12 +1,12 @@
 "use server";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function removeTeamMember(teamId: string, userId: string) {
-  const teamRef = adminDB.collection("teams").doc(teamId);
+  const teamRef = adminDb.collection("teams").doc(teamId);
   const team = (await teamRef.get()).data();
 
-  await adminDB
+  await adminDb
     .collection("teams")
     .doc(teamId)
     .collection("members")

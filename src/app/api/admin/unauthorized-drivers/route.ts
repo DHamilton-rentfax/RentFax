@@ -1,16 +1,16 @@
 import { NextResponse } from "next/server";
-import { authAdmin } from "@/lib/authAdmin";
-import { adminDB } from "@@/firebase/server";
+import { adminAuth } from "@/lib/adminAuth";
+import { adminDb } from "@/firebase/server";
 
 // GET /api/admin/unauthorized-drivers?status=pending
 export async function GET(req: Request) {
-  const user = await authAdmin(req);
+  const user = await adminAuth(req);
   if (!user || !["admin", "superadmin"].includes(user.role))
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
 
   const url = new URL(req.url);
   const status = url.searchParams.get("status");
-  const col = adminDB.collection("unauthorizedDrivers");
+  const col = adminDb.collection("unauthorizedDrivers");
   const q = status ? col.where("status", "==", status) : col;
   const snapshot = await q.get();
   const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
@@ -19,7 +19,7 @@ export async function GET(req: Request) {
 
 // PATCH /api/admin/unauthorized-drivers
 export async function PATCH(req: Request) {
-  const user = await authAdmin(req);
+  const user = await adminAuth(req);
   if (!user || !["admin", "superadmin"].includes(user.role))
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
 
@@ -29,7 +29,7 @@ export async function PATCH(req: Request) {
   if (!id || !status)
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
 
-  const docRef = adminDB.collection("unauthorizedDrivers").doc(id);
+  const docRef = adminDb.collection("unauthorizedDrivers").doc(id);
   const resource = await docRef.get(); // Get the doc to access its data
   if (!resource.exists) {
     return NextResponse.json({ error: "Report not found" }, { status: 404 });
@@ -43,7 +43,7 @@ export async function PATCH(req: Request) {
   });
 
   // log to auditLogs
-  await adminDB.collection("auditLogs").add({
+  await adminDb.collection("auditLogs").add({
     action: "unauthorizedDriverStatusChange",
     targetId: id,
     newStatus: status,

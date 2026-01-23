@@ -1,6 +1,6 @@
 import { collection, addDoc } from "firebase/firestore"; // For client logging
 
-import { adminDB as db } from "@/firebase/server";
+import { adminDb as db } from "@/firebase/server";
 import { getFirestore } from "firebase-admin/firestore"; // For admin logging
 
 export async function logLocale(locale: string) {

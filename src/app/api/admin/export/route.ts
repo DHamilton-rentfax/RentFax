@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
-import { dbAdmin as db, authAdmin } from "@@/firebase/server";
+import { adminDb as db, adminAuth } from "@/firebase/server";
 import Papa from "papaparse";
 import { headers } from "next/headers";
 
@@ -9,10 +9,10 @@ async function getAuth() {
   if (authorization?.startsWith("Bearer ")) {
     const idToken = authorization.substring(7);
     try {
-      const decodedIdToken = await authAdmin.verifyIdToken(idToken);
+      const decodedIdToken = await adminAuth.verifyIdToken(idToken);
       return {
         uid: decodedIdToken.uid,
-        claims: (await authAdmin.getUser(decodedIdToken.uid)).customClaims,
+        claims: (await adminAuth.getUser(decodedIdToken.uid)).customClaims,
       };
     } catch (error) {
       console.error("Error verifying token:", error);

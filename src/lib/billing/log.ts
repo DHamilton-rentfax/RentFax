@@ -1,4 +1,4 @@
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function logBillingEvent({
   userId,
@@ -8,7 +8,7 @@ export async function logBillingEvent({
   metadata = {},
   stripeObjectId = null,
 }: any) {
-  await adminDB.collection("billingLogs").add({
+  await adminDb.collection("billingLogs").add({
     timestamp: Date.now(),
     userId,
     event,

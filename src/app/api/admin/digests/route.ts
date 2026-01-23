@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { dbAdmin as db } from "@@/firebase/server";
-
+import { adminDb as db } from "@/firebase/server";
 export async function GET() {
   const snap = await db
     .collection("digestRuns")

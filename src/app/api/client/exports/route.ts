@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { stringify } from "csv-stringify/sync";
 
 export async function GET(req: NextRequest) {
@@ -8,11 +8,11 @@ export async function GET(req: NextRequest) {
 
   let docs;
   if (type === "renters") {
-    docs = await adminDB.collection(`orgs/${orgId}/renters`).get();
+    docs = await adminDb.collection(`orgs/${orgId}/renters`).get();
   } else if (type === "incidents") {
-    docs = await adminDB.collection(`orgs/${orgId}/incidents`).get();
+    docs = await adminDb.collection(`orgs/${orgId}/incidents`).get();
   } else if (type === "disputes") {
-    docs = await adminDB.collection(`orgs/${orgId}/disputes`).get();
+    docs = await adminDb.collection(`orgs/${orgId}/disputes`).get();
   } else {
     return NextResponse.json({ error: "Invalid type" }, { status: 400 });
   }

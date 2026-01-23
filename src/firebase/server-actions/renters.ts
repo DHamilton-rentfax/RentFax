@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { Timestamp } from "firebase-admin/firestore";
 
 // ----------------------------
@@ -8,7 +8,7 @@ import { Timestamp } from "firebase-admin/firestore";
 // ----------------------------
 export async function getAllRenters() {
   try {
-    const snapshot = await adminDB.collection("renters").get();
+    const snapshot = await adminDb.collection("renters").get();
 
     const renters = snapshot.docs.map((doc) => ({
       id: doc.id,
@@ -27,7 +27,7 @@ export async function getAllRenters() {
 // ----------------------------
 export async function getRenterById(renterId: string) {
   try {
-    const docSnap = await adminDB.collection("renters").doc(renterId).get();
+    const docSnap = await adminDb.collection("renters").doc(renterId).get();
 
     if (!docSnap.exists) return null;
 
@@ -43,7 +43,7 @@ export async function getRenterById(renterId: string) {
 // ----------------------------
 export async function getRenterIncidents(renterId: string) {
   try {
-    const q = adminDB
+    const q = adminDb
       .collection("incidents")
       .where("renterId", "==", renterId);
 
@@ -64,7 +64,7 @@ export async function getRenterIncidents(renterId: string) {
 // ----------------------------
 export async function getRenterDisputes(renterId: string) {
   try {
-    const q = adminDB
+    const q = adminDb
       .collection("disputes")
       .where("renterId", "==", renterId);
 
@@ -85,7 +85,7 @@ export async function getRenterDisputes(renterId: string) {
 // ----------------------------
 export async function getFraudSignals(renterId: string) {
   try {
-    const docSnap = await adminDB
+    const docSnap = await adminDb
       .collection("renters")
       .doc(renterId)
       .collection("fraud_signals")
@@ -106,7 +106,7 @@ export async function getFraudSignals(renterId: string) {
 // ----------------------------
 export async function updateRenter(renterId: string, data: any) {
   try {
-    await adminDB.collection("renters").doc(renterId).update({
+    await adminDb.collection("renters").doc(renterId).update({
       ...data,
       updatedAt: Timestamp.now(),
     });
@@ -123,7 +123,7 @@ export async function updateRenter(renterId: string, data: any) {
 // ----------------------------
 export async function deleteRenter(renterId: string) {
   try {
-    await adminDB.collection("renters").doc(renterId).delete();
+    await adminDb.collection("renters").doc(renterId).delete();
     return { success: true };
   } catch (error) {
     console.error("Error deleting renter:", error);

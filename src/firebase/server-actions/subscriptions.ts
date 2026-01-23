@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function getSubscriptions({
   plan,
@@ -9,7 +9,7 @@ export async function getSubscriptions({
   plan: string;
   status: string;
 }) {
-  let query: FirebaseFirestore.Query = adminDB.collection("subscriptions");
+  let query: FirebaseFirestore.Query = adminDb.collection("subscriptions");
 
   if (plan !== "all") {
     query = query.where("planName", "==", plan);

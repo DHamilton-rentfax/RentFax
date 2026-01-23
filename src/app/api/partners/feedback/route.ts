@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 const PARTNER_API_KEY = process.env.PARTNER_API_KEY;
 
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
     }
 
     // 1. Store the feedback in Firestore
-    const feedbackRef = await adminDB.collection("partner_feedback").add({
+    const feedbackRef = await adminDb.collection("partner_feedback").add({
       renterId,
       partnerId,
       outcome, // e.g., 'confirmed_fraud', 'eviction', 'payment_default'

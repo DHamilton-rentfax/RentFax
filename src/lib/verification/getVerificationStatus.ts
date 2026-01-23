@@ -1,7 +1,7 @@
 // src/lib/verification/getVerificationStatus.ts
 "use server";
 
-import { adminDB } from "@/lib/firebase/server";
+import { adminDb } from "@/lib/firebase/server";
 import {
   VerificationState,
   VerificationLevel,
@@ -11,7 +11,7 @@ import {
 export async function getVerificationStatus(
   renterId: string
 ): Promise<VerificationState> {
-  const doc = await adminDB.collection("renters").doc(renterId).get();
+  const doc = await adminDb.collection("renters").doc(renterId).get();
 
   if (!doc.exists) {
     // No renter yet → treat as unverified

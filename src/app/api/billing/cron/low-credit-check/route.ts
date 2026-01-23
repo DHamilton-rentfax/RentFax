@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 // A placeholder for your actual email sending service
 async function sendEmail({ to, subject, text }: { to: string; subject: string; text: string; }) {
@@ -10,14 +10,14 @@ async function sendEmail({ to, subject, text }: { to: string; subject: string; t
 
 export async function GET() {
     try {
-        const usersSnapshot = await adminDB.collection("users").get();
+        const usersSnapshot = await adminDb.collection("users").get();
 
         for (const userDoc of usersSnapshot.docs) {
             const userId = userDoc.id;
             const user = userDoc.data();
 
             if (user.email) {
-                const creditsDoc = await adminDB.collection("credits").doc(userId).get();
+                const creditsDoc = await adminDb.collection("credits").doc(userId).get();
                 const credits = creditsDoc.data()?.count ?? 0;
 
                 if (credits < 5) {

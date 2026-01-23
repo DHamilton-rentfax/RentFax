@@ -1,4 +1,4 @@
-import { dbAdmin } from "@@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
@@ -8,7 +8,7 @@ export async function GET(req: Request) {
   const disputeId = searchParams.get("disputeId");
 
   try {
-    let q: FirebaseFirestore.Query = dbAdmin
+    let q: FirebaseFirestore.Query = adminDb
       .collection("auditLogs")
       .orderBy("timestamp", "desc")
       .limit(limit);

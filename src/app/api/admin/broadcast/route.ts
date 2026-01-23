@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function POST(req: Request) {
   try {
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     const scheduled = scheduleDate ? new Date(scheduleDate) : new Date();
     const expires = expireDate ? new Date(expireDate) : null;
 
-    await adminDB.collection("scheduledBroadcasts").add({
+    await adminDb.collection("scheduledBroadcasts").add({
       message,
       audience,
       scheduleAt: scheduled,

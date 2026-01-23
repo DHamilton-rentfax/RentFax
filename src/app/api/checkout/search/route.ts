@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { enforceSearchPermission } from "@/lib/billing/enforce";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { getUserFromSessionCookie } from "@/lib/auth/getUserFromSessionCookie";
 import sendReceiptEmail from "@/utils/email/send-receipt";
 
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
 
     // If subscription covers it → no checkout needed
     if (!permission.paid) {
-      await adminDB
+      await adminDb
         .collection("searchReceipts")
         .doc(userId)
         .collection("entries")

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { dbAdmin as adminDB } from "@@/firebase/server";
+import { adminDb as adminDb } from "@/firebase/server";
 import { getAuth } from "firebase-admin/auth";
 import { jsPDF } from "jspdf";
 
@@ -27,12 +27,12 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const orgDoc = await adminDB.collection("companies").doc(orgId).get();
+    const orgDoc = await adminDb.collection("companies").doc(orgId).get();
     if (!orgDoc.exists)
       return NextResponse.json({ error: "Org not found" }, { status: 404 });
     const orgData = orgDoc.data()!;
 
-    const snap = await adminDB
+    const snap = await adminDb
       .collection("analyticsEvents")
       .where("orgId", "==", orgId)
       .where("event", "in", ["report_previewed", "report_downloaded"])

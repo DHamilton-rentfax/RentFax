@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function GET() {
-  const users = await adminDB.collection("users").get();
+  const users = await adminDb.collection("users").get();
   const lines = ["userId,email,plan,credits,searches,reports"];
 
   for (const doc of users.docs) {
@@ -10,7 +10,7 @@ export async function GET() {
     const uid = doc.id;
     let credits = 0;
     try {
-        const creditsDoc = await adminDB.collection("credits").doc(uid).get();
+        const creditsDoc = await adminDb.collection("credits").doc(uid).get();
         if(creditsDoc.exists) {
             credits = creditsDoc.data()?.count ?? 0;
         }
@@ -23,7 +23,7 @@ export async function GET() {
     let reportCount = 0;
 
     try {
-        const usageDoc = await adminDB.collection("usage").doc(uid).get()
+        const usageDoc = await adminDb.collection("usage").doc(uid).get()
         if (usageDoc.exists) {
             searchCount = usageDoc.data()?.searchesTotal ?? 0;
             reportCount = usageDoc.data()?.reportsTotal ?? 0;

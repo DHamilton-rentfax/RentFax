@@ -1,5 +1,5 @@
 // src/lib/fraudEngine/syncIncident.ts
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function syncIncident({
   renterId,
@@ -10,7 +10,7 @@ export async function syncIncident({
   risk: any;
   identity: any;
 }) {
-  const ref = adminDB.collection("incidents").doc();
+  const ref = adminDb.collection("incidents").doc();
 
   await ref.set({
     renterId,

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { authAdmin, dbAdmin } from "@@/firebase/server";
+import { adminAuth, adminDb } from "@/firebase/server";
 
 const stripe = new Stripe(process.env.STRIPE_API_KEY!, {
   apiVersion: "2024-06-20",
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const token = authHeader.split(" ")[1];
-    const decoded = await authAdmin.verifyIdToken(token);
+    const decoded = await adminAuth.verifyIdToken(token);
 
     const companyId = decoded.companyId;
     if (!companyId) {
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const companyDoc = await dbAdmin
+    const companyDoc = await adminDb
       .collection("companies")
       .doc(companyId)
       .get();

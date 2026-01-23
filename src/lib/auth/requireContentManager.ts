@@ -4,7 +4,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { authAdmin, adminDB } from "@/firebase/server";
+import { adminAuth, adminDb } from "@/firebase/server";
 
 import { getUserFromSessionCookie } from "./getUserFromSessionCookie";
 
@@ -15,7 +15,7 @@ export async function requireContentManager() {
     redirect("/login");
   }
 
-  const userRef = adminDB.collection("users").doc(user.uid);
+  const userRef = adminDb.collection("users").doc(user.uid);
   const userSnap = await userRef.get();
 
   const role = userSnap.get("role");

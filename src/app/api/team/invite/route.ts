@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { sendEmail } from "@/lib/email"; // Assuming a simple email utility
 
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     const token = Buffer.from(`${email}-${Date.now()}`).toString("base64url");
 
     // Save invite to Firestore
-    const inviteRef = await addDoc(collection(adminDB, "invites"), {
+    const inviteRef = await addDoc(collection(adminDb, "invites"), {
       email,
       role,
       status: "PENDING",

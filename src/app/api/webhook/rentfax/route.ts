@@ -1,4 +1,4 @@
-import { adminDB } from "@/lib/firebase/admin";
+import { adminDb } from "@/lib/firebase/admin";
 import { Timestamp } from "firebase-admin/firestore";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const auditRef = await adminDB.collection("rentfaxAudits").add({
+    const auditRef = await adminDb.collection("rentfaxAudits").add({
       renterId,
       fileName,
       aiIssues,
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
       source: "CodeSage",
     });
 
-    await adminDB.collection("notifications").add({
+    await adminDb.collection("notifications").add({
       userId: renterId, // Assuming renterId is the user to notify
       type: "codesage_audit_complete",
       title: "CodeSage Audit Complete",

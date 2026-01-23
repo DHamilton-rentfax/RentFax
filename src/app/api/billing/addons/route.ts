@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { authAdmin, dbAdmin } from "@@/firebase/server";
+import { adminAuth, adminDb } from "@/firebase/server";
 import { ADDON_CATALOG } from "@/lib/addons";
 
 export async function GET(req: Request) {
@@ -9,7 +9,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const token = authHeader.split(" ")[1];
-    const decoded = await authAdmin.verifyIdToken(token);
+    const decoded = await adminAuth.verifyIdToken(token);
 
     const companyId = decoded.companyId;
     if (!companyId) {
@@ -19,7 +19,7 @@ export async function GET(req: Request) {
       );
     }
 
-    const doc = await dbAdmin.collection("companies").doc(companyId).get();
+    const doc = await adminDb.collection("companies").doc(companyId).get();
     if (!doc.exists) {
       return NextResponse.json(
         { error: "Company not found." },

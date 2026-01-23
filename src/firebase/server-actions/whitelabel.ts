@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDB, adminStorage, adminAuth } from "@/firebase/server";
+import { adminDb, adminStorage, adminAuth } from "@/firebase/server";
 import { randomUUID } from "crypto";
 import sharp from "sharp";
 
@@ -51,7 +51,7 @@ export async function createWhiteLabelCompany(formData: FormData) {
     status: "active",
   };
 
-  await adminDB.collection("companies").doc(tenantId).set(companyData);
+  await adminDb.collection("companies").doc(tenantId).set(companyData);
 
   // 4. Create admin user for this company
   const adminEmail = `admin+${tenantId}@rentfax.io`;
@@ -70,7 +70,7 @@ export async function createWhiteLabelCompany(formData: FormData) {
   });
 
   // 6. Log creation
-  await adminDB.collection("system_logs").add({
+  await adminDb.collection("system_logs").add({
     type: "WHITELABEL_CREATED",
     tenantId,
     companyName,

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function GET(req: NextRequest) {
   const uid = req.nextUrl.searchParams.get("uid")!;
-  const snap = await adminDB
+  const snap = await adminDb
     .collection(`users/${uid}/notifications`)
     .orderBy("createdAt", "desc")
     .limit(20)
@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const { uid, type, title, body, link } = await req.json();
-  await adminDB.collection(`users/${uid}/notifications`).add({
+  await adminDb.collection(`users/${uid}/notifications`).add({
     type,
     title,
     body,

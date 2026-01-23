@@ -1,7 +1,7 @@
 "use server";
 
 import { VertexAI } from "@google-cloud/vertexai";
-import { adminDB } from "@/firebase/server"; // your firebase-admin wrapper
+import { adminDb } from "@/firebase/server"; // your firebase-admin wrapper
 
 // Initialize Vertex
 const vertex = new VertexAI({

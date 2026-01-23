@@ -1,15 +1,15 @@
 "use server";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function calculateRiskScore(renterId: string) {
   const renter = (
-    await adminDB.collection("renters").doc(renterId).get()
+    await adminDb.collection("renters").doc(renterId).get()
   ).data();
 
   if (!renter) return null;
 
-  const fraudSummary = await adminDB
+  const fraudSummary = await adminDb
     .collection("renters")
     .doc(renterId)
     .collection("fraud_signals")
@@ -19,7 +19,7 @@ export async function calculateRiskScore(renterId: string) {
   const fraudScore = fraudSummary.exists ? fraudSummary.data()!.score : 0;
 
   // Count incidents
-  const incidentSnap = await adminDB
+  const incidentSnap = await adminDb
     .collection("incidents")
     .where("renterId", "==", renterId)
     .get();
@@ -38,7 +38,7 @@ export async function calculateRiskScore(renterId: string) {
     fraudScore * 0.6 + totalIncidents * 5 + severitySum * 2
   );
 
-  await adminDB.collection("renters").doc(renterId).set(
+  await adminDb.collection("renters").doc(renterId).set(
     {
       riskScore: combinedScore,
       totalIncidents,

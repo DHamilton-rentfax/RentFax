@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { dbAdmin } from "@@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { collection, getDocs, query, where } from "firebase-admin/firestore";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 
@@ -12,7 +12,7 @@ export async function GET(req: Request) {
   }
 
   const q = query(
-    collection(dbAdmin, "disputes"),
+    collection(adminDb, "disputes"),
     where("renterId", "==", uid),
   );
   const snapshot = await getDocs(q);

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 
 export async function GET(
@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: { orgId: string } },
 ) {
   const { orgId } = params;
-  const rentersSnap = await adminDB.collection(`orgs/${orgId}/renters`).get();
+  const rentersSnap = await adminDb.collection(`orgs/${orgId}/renters`).get();
   const renters = rentersSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
   const pdf = await PDFDocument.create();

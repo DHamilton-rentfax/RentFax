@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function POST(
   req: NextRequest,
@@ -8,7 +8,7 @@ export async function POST(
   const { partnerId } = params;
   const { orgName } = await req.json();
 
-  const ref = await adminDB
+  const ref = await adminDb
     .collection("partners")
     .doc(partnerId)
     .collection("suborgs")

@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDB } from "@/firebase/server-admin";
+import { adminDb } from "@/firebase/server-admin";
 import { Timestamp } from "firebase-admin/firestore";
 import { getUserFromSessionCookie } from "@/lib/auth/getUserFromSessionCookie"; // Replaced client-side hook
 
@@ -23,7 +23,7 @@ async function assertAdmin() {
 export async function getDisputes(limit = 100) {
   await assertAdmin();
 
-  const snapshot = await adminDB
+  const snapshot = await adminDb
     .collection("disputes")
     .orderBy("createdAt", "desc")
     .limit(limit)
@@ -41,7 +41,7 @@ export async function getDisputes(limit = 100) {
 export async function getDisputesByRenter(renterId: string) {
   await assertAdmin();
 
-  const snapshot = await adminDB
+  const snapshot = await adminDb
     .collection("disputes")
     .where("renterId", "==", renterId)
     .orderBy("createdAt", "desc")
@@ -59,7 +59,7 @@ export async function getDisputesByRenter(renterId: string) {
 export async function getDisputesByCompany(companyId: string) {
   await assertAdmin();
 
-  const snapshot = await adminDB
+  const snapshot = await adminDb
     .collection("disputes")
     .where("companyId", "==", companyId)
     .orderBy("createdAt", "desc")
@@ -77,7 +77,7 @@ export async function getDisputesByCompany(companyId: string) {
 export async function getDisputeById(disputeId: string) {
   await assertAdmin();
 
-  const doc = await adminDB.collection("disputes").doc(disputeId).get();
+  const doc = await adminDb.collection("disputes").doc(disputeId).get();
   if (!doc.exists) return null;
 
   return { id: doc.id, ...doc.data() };
@@ -89,7 +89,7 @@ export async function getDisputeById(disputeId: string) {
 export async function createDispute(payload: any) {
   const user = await assertAdmin();
 
-  const disputeRef = adminDB.collection("disputes").doc();
+  const disputeRef = adminDb.collection("disputes").doc();
 
   const data = {
     renterId: payload.renterId,
@@ -121,7 +121,7 @@ export async function updateDispute(disputeId: string, updates: any) {
 
   updates.updatedAt = Timestamp.now();
 
-  await adminDB.collection("disputes").doc(disputeId).update(updates);
+  await adminDb.collection("disputes").doc(disputeId).update(updates);
 
   return { success: true };
 }
@@ -132,10 +132,10 @@ export async function updateDispute(disputeId: string, updates: any) {
 export async function attachEvidence(disputeId: string, files: string[]) {
   await assertAdmin();
 
-  const disputeRef = adminDB.collection("disputes").doc(disputeId);
+  const disputeRef = adminDb.collection("disputes").doc(disputeId);
 
   await disputeRef.update({
-    evidence: adminDB.FieldValue.arrayUnion(...files),
+    evidence: adminDb.FieldValue.arrayUnion(...files),
     updatedAt: Timestamp.now(),
   });
 
@@ -156,7 +156,7 @@ export async function resolveDispute(disputeId: string, resolution: any) {
     throw new Error("Invalid resolution status");
   }
 
-  await adminDB.collection("disputes").doc(disputeId).update({
+  await adminDb.collection("disputes").doc(disputeId).update({
     status,
     adminNotes: adminNotes || "",
     updatedAt: Timestamp.now(),

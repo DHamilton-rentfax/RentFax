@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10",
@@ -39,8 +39,8 @@ export async function POST(req: Request) {
         const customerId = data.customer;
 
         const [agencySnap, legalSnap] = await Promise.all([
-            adminDB.collection("collectionAgencies").where("stripeCustomerId", "==", customerId).limit(1).get(),
-            adminDB.collection("legalPartners").where("stripeCustomerId", "==", customerId).limit(1).get(),
+            adminDb.collection("collectionAgencies").where("stripeCustomerId", "==", customerId).limit(1).get(),
+            adminDb.collection("legalPartners").where("stripeCustomerId", "==", customerId).limit(1).get(),
         ]);
 
         const userDoc = !agencySnap.empty ? agencySnap.docs[0] : !legalSnap.empty ? legalSnap.docs[0] : null;

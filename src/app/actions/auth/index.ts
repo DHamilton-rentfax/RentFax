@@ -76,13 +76,13 @@ import {
   type CompanySettings,
   type UpdateCompanySettingsInput,
 } from "@/ai/flows/settings";
-import { authAdmin } from "@/firebase/server";
+import { adminAuth } from "@/firebase/server";
 
 async function getAuth(): Promise<any | undefined> {
   const authorization = headers().get("Authorization");
   if (authorization) {
     const idToken = authorization.substring(7);
-    const decodedIdToken = await authAdmin.verifyIdToken(idToken);
+    const decodedIdToken = await adminAuth.verifyIdToken(idToken);
     return {
       uid: decodedIdToken.uid,
       claims: decodedIdToken,

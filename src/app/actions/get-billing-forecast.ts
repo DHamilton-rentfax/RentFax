@@ -1,10 +1,10 @@
 "use server";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { getPricingConfig } from "@/firebase/server/pricing";
 
 export async function getBillingForecast(userId: string) {
-  const usageSnap = await adminDB.collection("usage").doc(userId).get();
+  const usageSnap = await adminDb.collection("usage").doc(userId).get();
   const pricing = await getPricingConfig();
 
   const usage = usageSnap.data() || {};

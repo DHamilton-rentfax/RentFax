@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { dbAdmin as db } from "@@/firebase/server";
-
+import { adminDb as db } from "@/firebase/server";
 export async function GET() {
   const ref = await db.doc("config/docDefaults").get();
   return NextResponse.json(ref.exists ? ref.data() : { categories: [] });

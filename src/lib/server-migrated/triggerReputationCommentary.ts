@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 
-import { adminDB as db, adminFirestore as FieldValue } from "@/firebase/server";
+import { adminDb as db, adminFirestore as FieldValue } from "@/firebase/server";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,

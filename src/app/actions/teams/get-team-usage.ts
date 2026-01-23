@@ -1,9 +1,9 @@
 "use server";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function getTeamUsage(teamId: string) {
-  const membersSnap = await adminDB
+  const membersSnap = await adminDb
     .collection("teams")
     .doc(teamId)
     .collection("members")
@@ -14,7 +14,7 @@ export async function getTeamUsage(teamId: string) {
 
   for (const doc of membersSnap.docs) {
     const usage = 
-      (await adminDB.collection("usage").doc(doc.id).get()).data() || {};
+      (await adminDb.collection("usage").doc(doc.id).get()).data() || {};
 
     totalSearches += usage.searchesThisMonth || 0;
     totalReports += usage.reportsThisMonth || 0;

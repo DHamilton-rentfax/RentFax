@@ -1,4 +1,4 @@
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { NextResponse } from "next/server";
 // Assuming a utility for AI model generation exists. For now, we'll mock it.
 // import { generateModel } from "@/utils/ai";
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
   const out = await generateModel(prompt);
   const parsed = JSON.parse(out);
 
-  await adminDB
+  await adminDb
     .collection("aiIncidentSeverity")
     .doc(renterId)
     .set(parsed, { merge: true });

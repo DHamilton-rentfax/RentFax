@@ -1,9 +1,9 @@
-import { dbAdmin } from "@@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { NextResponse } from "next/server";
 
 export async function GET(_: Request, { params }: { params: { id: string } }) {
   try {
-    const snapshot = await dbAdmin
+    const snapshot = await adminDb
       .collection("disputes")
       .where("renterId", "==", params.id)
       .orderBy("createdAt", "desc")

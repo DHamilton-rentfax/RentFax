@@ -3,7 +3,7 @@
 // File: /src/app/api/partners/list/route.ts
 // =============================================
 import { NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function GET(req: Request) {
   try {
@@ -13,8 +13,8 @@ export async function GET(req: Request) {
     const limitParam = parseInt(searchParams.get("limit") || "50", 10);
     const startAfterId = searchParams.get("startAfter");
 
-    const agenciesRef = adminDB.collection("collectionAgencies");
-    const legalRef = adminDB.collection("legalPartners");
+    const agenciesRef = adminDb.collection("collectionAgencies");
+    const legalRef = adminDb.collection("legalPartners");
 
     let results: any[] = [];
 

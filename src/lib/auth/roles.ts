@@ -1,4 +1,4 @@
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { DefaultRoleMap, User, UserRole } from "@/types";
 
 /**
@@ -32,7 +32,7 @@ export function hasPermission(user: User, requiredPermission: string): boolean {
  * This should be run once during application setup.
  */
 export async function seedRolesToFirestore() {
-  const rolesCollection = adminDB.collection("roles");
+  const rolesCollection = adminDb.collection("roles");
 
   for (const role in DefaultRoleMap) {
     const roleData = DefaultRoleMap[role as UserRole];

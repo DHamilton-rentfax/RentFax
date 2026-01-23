@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { getStorage } from "firebase-admin/storage";
 
 export async function GET(
@@ -9,7 +9,7 @@ export async function GET(
   const token = req.nextUrl.searchParams.get("token")!;
   const [orgId, renterId] = Buffer.from(token, "base64").toString().split(":");
 
-  const doc = await adminDB
+  const doc = await adminDb
     .doc(`orgs/${orgId}/renters/${renterId}/docs/${params.docId}`)
     .get();
   if (!doc.exists)

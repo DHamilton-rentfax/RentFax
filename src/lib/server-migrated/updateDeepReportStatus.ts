@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { FieldValue } from "firebase-admin/firestore";
 
 export async function updateDeepReportStatus(session: Stripe.Checkout.Session) {
@@ -8,7 +8,7 @@ export async function updateDeepReportStatus(session: Stripe.Checkout.Session) {
     throw new Error("User ID not found in session metadata");
   }
 
-  const userRef = adminDB.collection("users").doc(session.metadata.userId);
+  const userRef = adminDb.collection("users").doc(session.metadata.userId);
 
   if (session.metadata.reportType === "deep") {
     // This is for a specific deep report purchase, not a credit purchase

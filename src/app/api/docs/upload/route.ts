@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStorage } from "firebase-admin/storage";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function POST(req: NextRequest) {
   const formData = await req.formData();
@@ -20,10 +20,10 @@ export async function POST(req: NextRequest) {
     createdAt: Date.now(),
   };
 
-  const docRef = await adminDB.collection(`orgs/${orgId}/docs`).add(docData);
+  const docRef = await adminDb.collection(`orgs/${orgId}/docs`).add(docData);
 
   if (renterId) {
-    await adminDB.collection(`orgs/${orgId}/renters/${renterId}/docs`).add({
+    await adminDb.collection(`orgs/${orgId}/renters/${renterId}/docs`).add({
       docId: docRef.id,
       ...docData,
     });

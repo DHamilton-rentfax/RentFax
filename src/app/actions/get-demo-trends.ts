@@ -1,10 +1,10 @@
-import { dbAdmin } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function getDemoTrendData() {
   const ninetyDaysAgo = new Date(
     Date.now() - 90 * 24 * 60 * 60 * 1000,
   ).toISOString();
-  const snap = await dbAdmin
+  const snap = await adminDb
     .collection("demoAnalytics")
     .where("createdAt", ">=", ninetyDaysAgo) // last 90 days
     .orderBy("createdAt", "asc")
@@ -25,7 +25,7 @@ export async function getDemoTrendData() {
     if (data.event === "demo_conversion") buckets[week].conversions++;
   });
 
-  const trialSnap = await dbAdmin
+  const trialSnap = await adminDb
     .collection("users")
     .where("plan", "in", ["RENTER_TRIAL", "COMPANY_TRIAL"])
     .where("createdAt", ">=", ninetyDaysAgo) // last 90 days
@@ -40,7 +40,7 @@ export async function getDemoTrendData() {
     buckets[week].trials++;
   });
 
-  const paidSnap = await dbAdmin
+  const paidSnap = await adminDb
     .collection("users")
     .where("demoConversion", "==", true)
     .where("subscription.status", "==", "active")

@@ -1,4 +1,4 @@
-import { adminDB as db } from "@/firebase/server";
+import { adminDb as db } from "@/firebase/server";
 import { NextResponse } from "next/server";
 
 // POST /api/renters/link

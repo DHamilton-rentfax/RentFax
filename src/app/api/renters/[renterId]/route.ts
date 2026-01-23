@@ -1,9 +1,9 @@
-import { dbAdmin } from "@@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { NextResponse } from "next/server";
 
 export async function GET(_: Request, { params }: { params: { renterId: string } }) {
   try {
-    const renterRef = dbAdmin.collection("renters").doc(params.renterId);    const renterSnap = await renterRef.get();
+    const renterRef = adminDb.collection("renters").doc(params.renterId);    const renterSnap = await renterRef.get();
 
     if (!renterSnap.exists)
       return NextResponse.json({ error: "Renter not found" }, { status: 404 });
@@ -13,7 +13,7 @@ export async function GET(_: Request, { params }: { params: { renterId: string }
 
     let incidents: any[] = [];
     if (incidentRefs.length > 0) {
-      const incidentSnaps = await dbAdmin
+      const incidentSnaps = await adminDb
         .collection("incidents")
         .where("__name__", "in", incidentRefs)
         .get();

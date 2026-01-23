@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { dbAdmin as db } from "@@/firebase/server";
-import sendgrid from "@sendgrid/mail";
+import { adminDb as db } from "@/firebase/server";import sendgrid from "@sendgrid/mail";
 
 sendgrid.setApiKey(process.env.SENDGRID_API_KEY!);
 

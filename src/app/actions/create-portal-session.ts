@@ -1,7 +1,7 @@
 "use server";
 
 import Stripe from "stripe";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10",
@@ -9,7 +9,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function createPortalSession(userId: string) {
   // 1. Get user from Firestore
-  const snap = await adminDB.collection("users").doc(userId).get();
+  const snap = await adminDb.collection("users").doc(userId).get();
   if (!snap.exists) throw new Error("User not found");
 
   const user = snap.data()!;

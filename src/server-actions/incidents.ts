@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDB } from "@/firebase/server-admin";
+import { adminDb } from "@/firebase/server-admin";
 import { Timestamp } from "firebase-admin/firestore";
 
 // ------------------------------
@@ -23,7 +23,7 @@ async function assertAdmin() {
 export async function getIncidentsByRenter(renterId: string) {
   await assertAdmin();
 
-  const snapshot = await adminDB
+  const snapshot = await adminDb
     .collection("incidents")
     .where("renterId", "==", renterId)
     .orderBy("createdAt", "desc")
@@ -41,7 +41,7 @@ export async function getIncidentsByRenter(renterId: string) {
 export async function getIncidentById(incidentId: string) {
   await assertAdmin();
 
-  const doc = await adminDB.collection("incidents").doc(incidentId).get();
+  const doc = await adminDb.collection("incidents").doc(incidentId).get();
   if (!doc.exists) return null;
 
   return { id: doc.id, ...doc.data() };
@@ -53,7 +53,7 @@ export async function getIncidentById(incidentId: string) {
 export async function getIncidentsByCompany(companyId: string) {
   await assertAdmin();
 
-  const snapshot = await adminDB
+  const snapshot = await adminDb
     .collection("incidents")
     .where("companyId", "==", companyId)
     .orderBy("createdAt", "desc")
@@ -71,7 +71,7 @@ export async function getIncidentsByCompany(companyId: string) {
 export async function createIncident(payload: any) {
   const user = await assertAdmin();
 
-  const incidentRef = adminDB.collection("incidents").doc();
+  const incidentRef = adminDb.collection("incidents").doc();
 
   const data = {
     renterId: payload.renterId,
@@ -107,7 +107,7 @@ export async function updateIncident(incidentId: string, updates: any) {
 
   updates.updatedAt = Timestamp.now();
 
-  await adminDB.collection("incidents").doc(incidentId).update(updates);
+  await adminDb.collection("incidents").doc(incidentId).update(updates);
 
   return { success: true };
 }
@@ -118,7 +118,7 @@ export async function updateIncident(incidentId: string, updates: any) {
 export async function deleteIncident(incidentId: string) {
   await assertAdmin();
 
-  await adminDB.collection("incidents").doc(incidentId).delete();
+  await adminDb.collection("incidents").doc(incidentId).delete();
 
   return { success: true };
 }
@@ -129,7 +129,7 @@ export async function deleteIncident(incidentId: string) {
 export async function getIndustryStats() {
   await assertAdmin();
 
-  const snapshot = await adminDB.collection("incidents").get();
+  const snapshot = await adminDb.collection("incidents").get();
 
   const stats = {
     HOME: 0,

@@ -1,17 +1,17 @@
 "use server";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { calculateRiskScore } from "./riskEngine";
 
 export async function syncIncident(incidentId: string) {
   const incident = (
-    await adminDB.collection("incidents").doc(incidentId).get()
+    await adminDb.collection("incidents").doc(incidentId).get()
   ).data();
 
   if (!incident) return null;
 
   // Update timeline
-  await adminDB
+  await adminDb
     .collection("renters")
     .doc(incident.renterId)
     .collection("timeline")

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
-import { adminAuth } from "@@/firebase/server";
+import { adminDb } from "@/firebase/server";
+import { adminAuth } from "@/firebase/server";
 
 /**
  * Handles the verification of a renter's secure token.
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const tokenDocRef = adminDB.collection("verifyTokens").doc(token);
+    const tokenDocRef = adminDb.collection("verifyTokens").doc(token);
     const tokenDoc = await tokenDocRef.get();
 
     if (!tokenDoc.exists) {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import sendgrid from "@sendgrid/mail";
 
 sendgrid.setApiKey(process.env.SENDGRID_API_KEY!);
@@ -21,8 +21,8 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const { orgId, renterId, type, id, message } = body;
 
-  const orgDoc = await adminDB.doc(`orgs/${orgId}`).get();
-  const renterDoc = await adminDB
+  const orgDoc = await adminDb.doc(`orgs/${orgId}`).get();
+  const renterDoc = await adminDb
     .doc(`orgs/${orgId}/renters/${renterId}`)
     .get();
 
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
   if (type === "dispute_created") {
     if (orgAdminUserId) {
-      const userDoc = await adminDB.doc(`users/${orgAdminUserId}`).get();
+      const userDoc = await adminDb.doc(`users/${orgAdminUserId}`).get();
       const prefs = userDoc.get("notificationPrefs");
 
       if (prefs?.disputes?.email && !prefs?.digest?.enabled) {
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
   if (type === "message_sent") {
     if (message.from === "landlord") {
       if (renterUserId) {
-        const userDoc = await adminDB.doc(`users/${renterUserId}`).get();
+        const userDoc = await adminDb.doc(`users/${renterUserId}`).get();
         const prefs = userDoc.get("notificationPrefs");
 
         if (prefs?.messages?.email && !prefs?.digest?.enabled) {
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
       }
     } else {
       if (orgAdminUserId) {
-        const userDoc = await adminDB.doc(`users/${orgAdminUserId}`).get();
+        const userDoc = await adminDb.doc(`users/${orgAdminUserId}`).get();
         const prefs = userDoc.get("notificationPrefs");
 
         if (prefs?.messages?.email && !prefs?.digest?.enabled) {

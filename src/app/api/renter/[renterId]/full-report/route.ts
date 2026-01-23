@@ -1,28 +1,28 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function GET(req: Request, { params }: { params: { renterId: string } }) {
   const renterId = params.renterId;
 
-  const renterSnap = await adminDB.collection("renters").doc(renterId).get();
+  const renterSnap = await adminDb.collection("renters").doc(renterId).get();
   if (!renterSnap.exists) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
   const renter = renterSnap.data();
 
-  const incidents = await adminDB
+  const incidents = await adminDb
     .collection("incidents")
     .where("renterId", "==", renterId)
     .orderBy("createdAt", "desc")
     .get();
 
-  const disputes = await adminDB
+  const disputes = await adminDb
     .collection("disputes")
     .where("renterId", "==", renterId)
     .get();
 
-  const fraudSignals = await adminDB
+  const fraudSignals = await adminDb
     .collection("fraud_signals")
     .where("renterId", "==", renterId)
     .get();

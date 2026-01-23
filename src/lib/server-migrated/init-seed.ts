@@ -1,4 +1,4 @@
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { FieldValue } from "@/firebase/server/firestore";
 
 /**
@@ -28,7 +28,7 @@ import { FieldValue } from "@/firebase/server/firestore";
  *
  */
 
-const db = adminDB;
+const db = adminDb;
 
 // --- 1. SEED PLANS AND PRICING TIERS ---
 const seedPlans = async () => {

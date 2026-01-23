@@ -1,9 +1,9 @@
 
-import { authAdmin as firebaseAuthAdmin } from "@/firebase/server";
+import { adminAuth as firebaseAuthAdmin } from "@/firebase/server";
 
 // This is a simplified mock. In a real app, you'd have more robust error handling
 // and potentially unpack the full user record from your own 'users' collection.
-export const authAdmin = async (req: Request) => {
+export const adminAuth = async (req: Request) => {
   try {
     const header = req.headers.get("Authorization");
     if (!header) {

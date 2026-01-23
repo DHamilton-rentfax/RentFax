@@ -15,7 +15,7 @@ mkdir -p "$SERVER_MIGRATED"
 # 1️⃣ Replace legacy import paths
 #######################################
 echo "🧹 Fixing legacy Firebase paths..."
-grep -Rl "@@/firebase/server" src | xargs sed -i 's|@@/firebase/server|@/firebase/server|g' || true
+grep -Rl "@/firebase/server" src | xargs sed -i 's|@/firebase/server|@/firebase/server|g' || true
 grep -Rl "@/firebase/client/admin" src | xargs sed -i 's|@/firebase/client/admin|@/firebase/server|g' || true
 
 #######################################

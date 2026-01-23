@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { dbAdmin } from "@@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function GET(req: NextRequest) {
   const orgId = req.nextUrl.searchParams.get("orgId")!;
-  const snap = await dbAdmin
+  const snap = await adminDb
     .collection(`orgs/${orgId}/disputes`)
     .orderBy("createdAt", "desc")
     .get();

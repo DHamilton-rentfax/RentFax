@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 function requireApiKey(req: NextRequest) {
   const key = req.headers.get("x-api-key");
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   try {
     requireApiKey(req);
     const orgId = req.nextUrl.searchParams.get("orgId")!;
-    const renters = await adminDB
+    const renters = await adminDb
       .collection(`orgs/${orgId}/renters`)
       .limit(50)
       .get();

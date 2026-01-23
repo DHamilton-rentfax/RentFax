@@ -1,10 +1,10 @@
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 import { getIncidentById } from "./get-incident-by-id";
 
-// Mock the adminDB for testing purposes
+// Mock the adminDb for testing purposes
 jest.mock("@/firebase/server", () => ({
-  adminDB: {
+  adminDb: {
     collectionGroup: jest.fn(),
   },
 }));
@@ -21,12 +21,12 @@ describe("getIncidentById Server Action", () => {
       where: jest.fn().mockReturnThis(),
       get: jest.fn().mockResolvedValue({ empty: true, docs: [] }),
     };
-    (adminDB.collectionGroup as jest.Mock).mockReturnValue(collectionGroupMock);
+    (adminDb.collectionGroup as jest.Mock).mockReturnValue(collectionGroupMock);
 
     const incident = await getIncidentById("non-existent-id");
 
     expect(incident).toBeNull();
-    expect(adminDB.collectionGroup).toHaveBeenCalledWith("incidents");
+    expect(adminDb.collectionGroup).toHaveBeenCalledWith("incidents");
     expect(collectionGroupMock.where).toHaveBeenCalledWith(
       "id",
       "==",
@@ -53,13 +53,13 @@ describe("getIncidentById Server Action", () => {
       where: jest.fn().mockReturnThis(),
       get: jest.fn().mockResolvedValue({ empty: false, docs: [mockIncident] }),
     };
-    (adminDB.collectionGroup as jest.Mock).mockReturnValue(collectionGroupMock);
+    (adminDb.collectionGroup as jest.Mock).mockReturnValue(collectionGroupMock);
 
     // Execute the action
     const incident = await getIncidentById("incident-123");
 
     // Assertions
-    expect(adminDB.collectionGroup).toHaveBeenCalledWith("incidents");
+    expect(adminDb.collectionGroup).toHaveBeenCalledWith("incidents");
     expect(collectionGroupMock.where).toHaveBeenCalledWith(
       "id",
       "==",
@@ -83,7 +83,7 @@ describe("getIncidentById Server Action", () => {
       where: jest.fn().mockReturnThis(),
       get: jest.fn().mockRejectedValue(new Error("Firestore query failed")), // Simulate an error
     };
-    (adminDB.collectionGroup as jest.Mock).mockReturnValue(collectionGroupMock);
+    (adminDb.collectionGroup as jest.Mock).mockReturnValue(collectionGroupMock);
 
     // Mock console.error to prevent logging during tests
     const consoleErrorSpy = jest

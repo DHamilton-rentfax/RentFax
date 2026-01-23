@@ -3,7 +3,7 @@
 // File: /src/app/api/admin/partners/update-status/route.ts
 // ============================================================
 import { NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { logAudit } from "@/lib/auditLogger";
 
 export async function POST(req: Request) {
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
         ? "collectionAgencies"
         : "legalPartners";
 
-    const partnerRef = adminDB.collection(collectionName).doc(partnerId);
+    const partnerRef = adminDb.collection(collectionName).doc(partnerId);
     const partnerSnap = await partnerRef.get();
 
     if (!partnerSnap.exists) {
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
     });
 
     // Add a small in-database activity record for display in partner dashboards
-    await adminDB.collection("notifications").add({
+    await adminDb.collection("notifications").add({
       type: "partner_verification_update",
       partnerId,
       partnerType: collectionName,

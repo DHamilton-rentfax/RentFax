@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { auth } from "@/firebase/server";
 
 export async function GET(req: Request) {
@@ -13,7 +13,7 @@ export async function GET(req: Request) {
     
     const renterId = decodedToken.uid;
 
-    const snap = await adminDB
+    const snap = await adminDb
       .collection("incidents")
       .where("renterId", "==", renterId)
       .orderBy("createdAt", "desc")

@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 
-import { adminAuth, adminDB } from "@/firebase/server";
+import { adminAuth, adminDb } from "@/firebase/server";
 
 dotenv.config({ path: ".env.local" });
 
@@ -10,7 +10,7 @@ async function promoteUser(uid: string) {
     console.log(`Successfully promoted user ${uid} to SUPER_ADMIN`);
 
     // Also update the user's role in Firestore
-    const userRef = adminDB.collection("users").doc(uid);
+    const userRef = adminDb.collection("users").doc(uid);
     await userRef.set({ role: "SUPER_ADMIN" }, { merge: true });
     console.log(`Successfully updated user ${uid} role in Firestore`);
   } catch (error) {

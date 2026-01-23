@@ -1,14 +1,14 @@
 "use server";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function syncTimeline(renterId: string) {
-  const incidentsSnap = await adminDB
+  const incidentsSnap = await adminDb
     .collection("incidents")
     .where("renterId", "==", renterId)
     .get();
 
-  const timelineRef = adminDB
+  const timelineRef = adminDb
     .collection("renters")
     .doc(renterId)
     .collection("timeline");

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { doc, updateDoc, getDoc } from "firebase/firestore";
-import { dbAdmin as adminDB } from "@@/firebase/server";
+import { adminDb as adminDb } from "@/firebase/server";
 
 export async function POST(
   request: Request,
@@ -25,7 +25,7 @@ export async function POST(
 
     // **Important Data Model Assumption:**
     // Assuming disputes are in a top-level collection called `disputes`
-    const disputeRef = doc(adminDB, "disputes", id);
+    const disputeRef = doc(adminDb, "disputes", id);
     const disputeSnap = await getDoc(disputeRef);
 
     if (!disputeSnap.exists()) {

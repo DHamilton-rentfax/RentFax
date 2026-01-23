@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDB, adminStorage } from "@/firebase/server";
+import { adminDb, adminStorage } from "@/firebase/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { z } from "zod";
 import { requireUser, requireCompanyPermission } from "@/utils/auth/permissions";
@@ -78,7 +78,7 @@ export async function saveEvidenceMetadata(
     permission: "createIncidents",
   });
 
-  const incidentRef = adminDB.collection("incidents").doc(parsed.incidentId);
+  const incidentRef = adminDb.collection("incidents").doc(parsed.incidentId);
 
   const incidentSnap = await incidentRef.get();
   if (!incidentSnap.exists) throw new Error("Incident not found.");
@@ -93,7 +93,7 @@ export async function saveEvidenceMetadata(
 
   // Update incident record
   await incidentRef.update({
-    evidence: adminDB.FieldValue.arrayUnion(fileMeta),
+    evidence: adminDb.FieldValue.arrayUnion(fileMeta),
     updatedAt: Timestamp.now(),
   });
 
@@ -139,7 +139,7 @@ export async function deleteEvidence(
     permission: "createIncidents",
   });
 
-  const incidentRef = adminDB.collection("incidents").doc(parsed.incidentId);
+  const incidentRef = adminDb.collection("incidents").doc(parsed.incidentId);
 
   // 1. Delete file from company folder
   await adminStorage.bucket().file(parsed.storagePath).delete().catch(() => "");
@@ -152,7 +152,7 @@ export async function deleteEvidence(
 
   // 3. Remove metadata
   await incidentRef.update({
-    evidence: adminDB.FieldValue.arrayRemove({
+    evidence: adminDb.FieldValue.arrayRemove({
       fileName: parsed.fileName,
       storagePath: parsed.storagePath,
     }),

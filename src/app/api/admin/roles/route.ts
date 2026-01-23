@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
-import { dbAdmin, authAdmin } from "@@/firebase/server";
+import { adminDb, adminAuth } from "@/firebase/server";
 import { logAudit } from "@/ai/flows/audit";
 
 export async function POST(req: Request) {
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const token = authHeader.split(" ")[1];
-    const decoded = await authAdmin.verifyIdToken(token);
+    const decoded = await adminAuth.verifyIdToken(token);
     if (decoded.role !== "super_admin") {
       return NextResponse.json(
         { error: "Forbidden: Only super admins can change roles." },
@@ -45,11 +45,11 @@ export async function POST(req: Request) {
     });
 
     // Also store in Firestore for querying if you have a `users` collection
-    const userDocRef = dbAdmin.collection("users").doc(uid);
+    const userDocRef = adminDb.collection("users").doc(uid);
     await userDocRef.set({ role }, { merge: true });
 
     // Invalidate user's token to force a refresh on the client
-    await authAdmin.revokeRefreshTokens(uid);
+    await adminAuth.revokeRefreshTokens(uid);
 
     // Audit log
     await logAudit({

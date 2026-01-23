@@ -1,11 +1,11 @@
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { generateDisputePDF } from "@/lib/pdf-report";
 import { NextResponse } from "next/server";
 
 export async function GET(_: Request, { params }: { params: { id: string } }) {
   try {
-    const doc = await adminDB.collection("disputes").doc(params.id).get();
+    const doc = await adminDb.collection("disputes").doc(params.id).get();
     if (!doc.exists)
       return NextResponse.json({ error: "Not found" }, { status: 404 });
 

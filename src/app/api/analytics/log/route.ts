@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { getAuth } from "firebase-admin/auth";
 
 export async function POST(req: Request) {
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing params" }, { status: 400 });
     }
 
-    await adminDB.collection("analyticsEvents").add({
+    await adminDb.collection("analyticsEvents").add({
       orgId: decoded.orgId,
       userId: decoded.uid,
       event,

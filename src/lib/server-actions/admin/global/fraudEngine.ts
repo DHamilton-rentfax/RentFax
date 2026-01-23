@@ -1,11 +1,11 @@
 "use server";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { generateEmbeddings } from "./generateEmbeddings";
 import { cosineSimilarity } from "./utils/cosineSimilarity";
 
 export async function runFraudEngine(renterId: string) {
-  const renterRef = adminDB.collection("renters").doc(renterId);
+  const renterRef = adminDb.collection("renters").doc(renterId);
   const renter = (await renterRef.get()).data();
 
   if (!renter) return null;
@@ -13,7 +13,7 @@ export async function runFraudEngine(renterId: string) {
   const fraudSignals = [];
 
   // 1) Duplicate Email
-  const dupEmailSnap = await adminDB
+  const dupEmailSnap = await adminDb
     .collection("renters")
     .where("email", "==", renter.email)
     .get();
@@ -27,7 +27,7 @@ export async function runFraudEngine(renterId: string) {
   }
 
   // 2) Duplicate Phone
-  const dupPhoneSnap = await adminDB
+  const dupPhoneSnap = await adminDb
     .collection("renters")
     .where("phone", "==", renter.phone)
     .get();
@@ -43,7 +43,7 @@ export async function runFraudEngine(renterId: string) {
   // 3) Identity similarity check
   const targetEmbedding = renter.embedding ?? [];
 
-  const allRentersSnap = await adminDB.collection("renters").get();
+  const allRentersSnap = await adminDb.collection("renters").get();
 
   for (const doc of allRentersSnap.docs) {
     const r = doc.data();
@@ -64,7 +64,7 @@ export async function runFraudEngine(renterId: string) {
   // Compute overall score
   const score = Math.min(100, fraudSignals.length * 15);
 
-  const summaryRef = adminDB
+  const summaryRef = adminDb
     .collection("renters")
     .doc(renterId)
     .collection("fraud_signals")

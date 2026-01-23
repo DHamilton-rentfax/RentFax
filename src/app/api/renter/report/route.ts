@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import PDFDocument from "pdfkit";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -10,7 +10,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Missing renterId" }, { status: 400 });
   }
 
-  const renter = await adminDB.collection("renters").doc(renterId).get();
+  const renter = await adminDb.collection("renters").doc(renterId).get();
 
   if (!renter.exists) {
     return NextResponse.json({ error: "Renter not found" }, { status: 404 });

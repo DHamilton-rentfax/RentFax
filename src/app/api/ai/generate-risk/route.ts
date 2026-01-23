@@ -1,4 +1,4 @@
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { NextResponse } from "next/server";
 // Assuming you will create this utility. For now, let's mock it.
 // import { generateModel } from "@/utils/ai"; 
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
 
   const parsed = JSON.parse(out);
 
-  await adminDB.collection("aiRiskScores").doc(renterId).set(parsed, {
+  await adminDb.collection("aiRiskScores").doc(renterId).set(parsed, {
     merge: true,
   });
 

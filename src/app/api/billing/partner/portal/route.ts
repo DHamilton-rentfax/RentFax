@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10",
@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     }
 
     const collectionName = role === "agency" ? "collectionAgencies" : "legalPartners";
-    const userRef = adminDB.collection(collectionName).doc(userId);
+    const userRef = adminDb.collection(collectionName).doc(userId);
     const userSnap = await userRef.get();
     const userData = userSnap.data();
 

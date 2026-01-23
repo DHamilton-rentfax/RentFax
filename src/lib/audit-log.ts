@@ -1,6 +1,6 @@
 "use server";
 
-import { dbAdmin } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function logAuditEvent({
   disputeId,
@@ -14,7 +14,7 @@ export async function logAuditEvent({
   details: string;
 }) {
   try {
-    await dbAdmin.collection("auditLogs").add({
+    await adminDb.collection("auditLogs").add({
       disputeId,
       action,
       actor,

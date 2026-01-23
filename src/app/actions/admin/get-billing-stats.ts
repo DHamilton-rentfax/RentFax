@@ -1,7 +1,7 @@
 "use server";
 
 import Stripe from "stripe";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10",
@@ -9,7 +9,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function getBillingStats() {
   // 1. Users
-  const usersSnap = await adminDB.collection("users").get();
+  const usersSnap = await adminDb.collection("users").get();
 
   let totalPaidUsers = 0;
   let totalFreeUsers = 0;
@@ -22,7 +22,7 @@ export async function getBillingStats() {
   });
 
   // 2. Credits Sold
-  const creditsSnap = await adminDB.collection("billingLogs")
+  const creditsSnap = await adminDb.collection("billingLogs")
     .where("event", "==", "CREDITS_PURCHASED")
     .get();
 
@@ -32,14 +32,14 @@ export async function getBillingStats() {
   });
 
   // 3. Identity checks today
-  const identitySnap = await adminDB.collection("billingLogs")
+  const identitySnap = await adminDb.collection("billingLogs")
     .where("event", "==", "IDENTITY_CHECK_CHARGED")
     .get();
 
   const identityChecksToday = identitySnap.size;
 
   // 4. Reports this month
-  const reportSnap = await adminDB.collection("billingLogs")
+  const reportSnap = await adminDb.collection("billingLogs")
     .where("event", "==", "FULL_REPORT_CHARGED")
     .get();
 
@@ -65,7 +65,7 @@ export async function getBillingStats() {
     suspiciousActivity: 0,
   };
 
-  const failedSnap = await adminDB.collection("billingLogs")
+  const failedSnap = await adminDb.collection("billingLogs")
     .where("event", "==", "PAYMENT_FAILED")
     .get();
 

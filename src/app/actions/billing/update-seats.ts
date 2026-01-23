@@ -1,14 +1,14 @@
 "use server";
 
 import Stripe from "stripe";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10",
 });
 
 export async function updateTeamSeats(teamId: string, newSeatCount: number) {
-  const teamRef = adminDB.collection("teams").doc(teamId);
+  const teamRef = adminDb.collection("teams").doc(teamId);
   const team = (await teamRef.get()).data();
 
   if (!team || !team.stripeSubscriptionId) {

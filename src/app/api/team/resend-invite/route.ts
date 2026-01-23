@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import sgMail from "@sendgrid/mail";
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     const token = req.headers.get("authorization")?.split(" ")[1];
     const decoded = await getAuth().verifyIdToken(token!);
 
-    const inviteRef = adminDB
+    const inviteRef = adminDb
       .collection("orgs")
       .doc(orgId)
       .collection("invites")
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
       `,
     });
 
-    await adminDB.collection("auditLogs").add({
+    await adminDb.collection("auditLogs").add({
       type: "INVITE_RESENT",
       actorUid: decoded.uid,
       targetEmail: invite.email,

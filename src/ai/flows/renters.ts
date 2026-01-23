@@ -7,7 +7,7 @@ import { FlowAuth } from "genkit/flow";
 import { v4 as uuid } from "uuid";
 
 import { ai } from "@/ai/genkit";
-import { admin, adminDB as db, adminAuth } from "@/firebase/server";
+import { admin, adminDb as db, adminAuth } from "@/firebase/server";
 
 import { logAudit } from "./audit";
 

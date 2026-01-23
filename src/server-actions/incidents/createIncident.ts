@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { IncidentSchema, IncidentStatusEnum } from "./types";
 import { Timestamp } from "firebase-admin/firestore";
 import { z } from "zod";
@@ -48,7 +48,7 @@ export async function createIncident(input: z.infer<typeof CreateIncidentInput>)
   }
 
   // 4. Create Firestore incident doc
-  const incidentRef = adminDB.collection("incidents").doc();
+  const incidentRef = adminDb.collection("incidents").doc();
 
   const incidentData = {
     id: incidentRef.id,
@@ -70,7 +70,7 @@ export async function createIncident(input: z.infer<typeof CreateIncidentInput>)
   await incidentRef.set(incidentData);
 
   // 5. Create timeline entry
-  await adminDB
+  await adminDb
     .collection("incidents")
     .doc(incidentRef.id)
     .collection("timeline")
@@ -86,7 +86,7 @@ export async function createIncident(input: z.infer<typeof CreateIncidentInput>)
     });
 
   // 6. Fraud Engine Hook
-  await adminDB
+  await adminDb
     .collection("fraudQueue")
     .add({
       incidentId: incidentRef.id,

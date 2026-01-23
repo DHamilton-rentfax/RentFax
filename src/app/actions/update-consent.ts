@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { headers } from "next/headers";
 
 /**
@@ -31,7 +31,7 @@ and dispute records for the purpose of rental application screening.
 This consent remains valid for 60 days.
   `.trim();
 
-  const consentRef = adminDB
+  const consentRef = adminDb
     .collection("renters")
     .doc(renterId)
     .collection("consents")

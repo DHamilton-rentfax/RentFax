@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { FieldValue } from "@/firebase/server/firestore";
 
 const disposableEmailProviders = [
@@ -17,7 +17,7 @@ async function findDuplicates(
   excludeId: string,
 ) {
   if (!value) return [];
-  const snapshot = await adminDB
+  const snapshot = await adminDb
     .collection(collectionName)
     .where(field, "==", value)
     .get();
@@ -47,7 +47,7 @@ async function updateFraudSummary(renterId: string, signals: any[]) {
   };
 
   // Use set with merge to create or update the summary sub-collection
-  await adminDB
+  await adminDb
     .doc(`renters/${renterId}/fraud/summary`)
     .set(summary, { merge: true });
 
@@ -60,7 +60,7 @@ export async function getFraudSignals(uid: string) {
   }
 
   // Assuming 'users' collection holds renter data for fraud checking
-  const userDoc = await adminDB.doc(`users/${uid}`).get();
+  const userDoc = await adminDb.doc(`users/${uid}`).get();
   const userData = userDoc.data();
 
   if (!userData) {

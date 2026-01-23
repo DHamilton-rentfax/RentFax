@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDB } from "@/firebase/server-admin";
+import { adminDb } from "@/firebase/server-admin";
 import { Timestamp } from "firebase-admin/firestore";
 
 // ------------------------------
@@ -23,7 +23,7 @@ async function assertAdmin() {
 export async function getRenters(limit = 50) {
   await assertAdmin();
 
-  const snapshot = await adminDB
+  const snapshot = await adminDb
     .collection("renters")
     .orderBy("createdAt", "desc")
     .limit(limit)
@@ -41,7 +41,7 @@ export async function getRenters(limit = 50) {
 export async function getRenterById(renterId: string) {
   await assertAdmin();
 
-  const doc = await adminDB.collection("renters").doc(renterId).get();
+  const doc = await adminDb.collection("renters").doc(renterId).get();
   if (!doc.exists) return null;
 
   return { id: doc.id, ...doc.data() };
@@ -53,7 +53,7 @@ export async function getRenterById(renterId: string) {
 export async function createRenter(payload: any) {
   await assertAdmin();
 
-  const renterRef = adminDB.collection("renters").doc();
+  const renterRef = adminDb.collection("renters").doc();
 
   const data = {
     firstName: payload.firstName,
@@ -81,7 +81,7 @@ export async function updateRenter(renterId: string, updates: any) {
 
   updates.updatedAt = Timestamp.now();
 
-  await adminDB.collection("renters").doc(renterId).update(updates);
+  await adminDb.collection("renters").doc(renterId).update(updates);
 
   return { success: true };
 }
@@ -92,7 +92,7 @@ export async function updateRenter(renterId: string, updates: any) {
 export async function deleteRenter(renterId: string) {
   await assertAdmin();
 
-  await adminDB.collection("renters").doc(renterId).delete();
+  await adminDb.collection("renters").doc(renterId).delete();
 
   return { success: true };
 }
@@ -103,7 +103,7 @@ export async function deleteRenter(renterId: string) {
 export async function getRenterAddresses(renterId: string) {
   await assertAdmin();
 
-  const doc = await adminDB.collection("renters").doc(renterId).get();
+  const doc = await adminDb.collection("renters").doc(renterId).get();
   if (!doc.exists) return [];
 
   return doc.data()?.addresses || [];
@@ -115,17 +115,17 @@ export async function getRenterAddresses(renterId: string) {
 export async function getRenterTimeline(renterId: string) {
   await assertAdmin();
 
-  const incidentsSnap = await adminDB
+  const incidentsSnap = await adminDb
     .collection("incidents")
     .where("renterId", "==", renterId)
     .get();
 
-  const disputesSnap = await adminDB
+  const disputesSnap = await adminDb
     .collection("disputes")
     .where("renterId", "==", renterId)
     .get();
 
-  const fraudSnap = await adminDB
+  const fraudSnap = await adminDb
     .collection("renters")
     .doc(renterId)
     .collection("fraud_signals")
@@ -173,7 +173,7 @@ export async function getRenterTimeline(renterId: string) {
 export async function getRenterFraudSummary(renterId: string) {
   await assertAdmin();
 
-  const fraudSnap = await adminDB
+  const fraudSnap = await adminDb
     .collection("renters")
     .doc(renterId)
     .collection("fraud_signals")

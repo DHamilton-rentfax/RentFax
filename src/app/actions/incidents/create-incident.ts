@@ -1,6 +1,6 @@
 'use server';
 
-import { adminDB } from '@/firebase/server';
+import { adminDb } from '@/firebase/server';
 import { FieldValue } from 'firebase-admin/firestore';
 import { sendIncidentCreatedEmail } from './send-incident-email';
 
@@ -14,7 +14,7 @@ export async function createIncident(data: {
   try {
     const { renterId, type, description, amount, evidence } = data;
 
-    const newIncidentRef = adminDB.collection('incidents').doc();
+    const newIncidentRef = adminDb.collection('incidents').doc();
     await newIncidentRef.set({
       renterId,
       type,
@@ -25,7 +25,7 @@ export async function createIncident(data: {
       status: 'OPEN',
     });
 
-    await adminDB.collection('audit-logs').add({
+    await adminDb.collection('audit-logs').add({
       action: 'CREATE_INCIDENT',
       incidentId: newIncidentRef.id,
       timestamp: FieldValue.serverTimestamp(),

@@ -1,4 +1,4 @@
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { sendIncidentAlertEmail } from "@/lib/emails/sendIncidentAlert";
 
 import { createIncident } from "./create-incident";
@@ -9,7 +9,7 @@ jest.mock("@/lib/emails/sendIncidentAlert");
 
 describe("createIncident Server Action", () => {
   // Create typed mocks for easier use
-  const mockedAdminDB = adminDB as jest.Mocked<typeof adminDB>;
+  const mockedAdminDB = adminDb as jest.Mocked<typeof adminDb>;
   const mockedSendEmail = sendIncidentAlertEmail as jest.Mock;
 
   const mockRenterId = "renter-123";

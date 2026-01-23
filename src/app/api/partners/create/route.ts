@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 /**
  * Create a partner account (e.g., property manager)
@@ -8,7 +8,7 @@ import { adminDB } from "@/firebase/server";
 export async function POST(req: NextRequest) {
   const { partnerName } = await req.json();
 
-  const partnerRef = await adminDB.collection("partners").add({
+  const partnerRef = await adminDb.collection("partners").add({
     name: partnerName,
     createdAt: Date.now(),
   });

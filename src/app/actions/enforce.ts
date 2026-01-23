@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { auth } from "@/auth";
 
 export async function enforce() {
@@ -20,7 +20,7 @@ export async function enforce() {
   // @ts-ignore
   if (user.companyId) {
     // @ts-ignore
-    const teamSnap = await adminDB.collection("teams").doc(user.companyId).get();
+    const teamSnap = await adminDb.collection("teams").doc(user.companyId).get();
     const team = teamSnap.data();
 
     if (!team) {

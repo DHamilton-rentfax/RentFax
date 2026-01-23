@@ -1,4 +1,4 @@
-import { dbAdmin } from "@@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { NextResponse } from "next/server";
 import { sendDisputeNotification } from "@/lib/notifications";
 import { generateDisputeSummary } from "@/lib/ai-summary";
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     if (!disputeId)
       return NextResponse.json({ error: "Missing disputeId" }, { status: 400 });
 
-    const ref = dbAdmin.collection("disputes").doc(disputeId);
+    const ref = adminDb.collection("disputes").doc(disputeId);
     const snap = await ref.get();
     if (!snap.exists)
       return NextResponse.json({ error: "Dispute not found" }, { status: 404 });
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     });
 
     // 4️⃣ Send notification
-    const renterRef = await dbAdmin
+    const renterRef = await adminDb
       .collection("renters")
       .doc(dispute.renterId)
       .get();

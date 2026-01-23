@@ -2,7 +2,7 @@
 
 import { sendEmail } from "@/lib/email/resend";
 import { IncidentCreatedEmail } from "@/emails/IncidentCreatedEmail";
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function sendIncidentCreatedEmail({
   renterId,
@@ -11,7 +11,7 @@ export async function sendIncidentCreatedEmail({
   renterId: string;
   incidentId: string;
 }) {
-  const db = adminDB;
+  const db = adminDb;
 
   // Fetch renter details
   const renterDoc = await db.collection("renters").doc(renterId).get();

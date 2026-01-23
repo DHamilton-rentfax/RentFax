@@ -9,7 +9,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 
-import { adminDB } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 import { sendEmail } from "@/lib/notifications/sendEmail";
 import { sendSMS } from "@/lib/notifications/sendSMS";
 
@@ -25,7 +25,7 @@ export async function createVerificationToken({
   const token = randomBytes(24).toString("hex");
   const expiresAt = Timestamp.fromMillis(Date.now() + 24 * 60 * 60 * 1000); // 24 h
 
-  await addDoc(collection(adminDB, "verificationTokens"), {
+  await addDoc(collection(adminDb, "verificationTokens"), {
     token,
     renterEmail: email,
     renterName: name,
