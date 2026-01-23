@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "@/firebase/server";
 import OpenAI from "openai";
-import { adminAuth } from "@/lib/adminAuth";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 
 export async function POST(req: Request) {
   try {
-    const user = await adminAuth(req); // only admins trigger scoring
-    if (!user)
+    const user = await requireAdmin(req); // only admins trigger scoring
+    if (!user || !["admin", "superadmin"].includes(user.role))
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
 
     const body = await req.json();
@@ -104,7 +104,6 @@ export async function POST(req: Request) {
     });
   } catch (err: any) {
     console.error("Risk engine error:", err);
-    // It's good practice to not expose internal error messages.
     return NextResponse.json(
       {
         error: "An unexpected error occurred in the risk engine.",

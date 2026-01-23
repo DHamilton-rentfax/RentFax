@@ -1,21 +1,21 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { adminDb } from "@/firebase/server";
-import { adminAuth } from "@/lib/adminAuth";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2024-04-10",
 });
 
 export async function POST(req: Request) {
-  const user = await adminAuth(req);
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-  }
-
-  const { renterId } = await req.json(); // ID of the renter to run the report on
-
   try {
+    const user = await requireAdmin(req);
+    if (!user || !["admin", "superadmin"].includes(user.role)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    const { renterId } = await req.json(); // ID of the renter to run the report on
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
