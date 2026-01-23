@@ -19,7 +19,7 @@
     "isolatedModules": true,
     "esModuleInterop": true,
 
-    "types": ["node", "playwright"],
+    "types": ["node"],
 
     "baseUrl": ".",
     "paths": {

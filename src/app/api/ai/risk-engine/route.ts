@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { adminDb } from "@/firebase/server";
 import OpenAI from "openai";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
+import type { FirebaseFirestore } from "firebase-admin";
 
 export async function POST(req: Request) {
   try {
@@ -26,7 +27,9 @@ export async function POST(req: Request) {
     for (const col of collectionsToCheck) {
       const q = adminDb.collection(col.name).where(col.field, "==", renterId);
       const snap = await q.get();
-      snap.forEach((doc) => signals.push({ type: col.name, data: doc.data() }));
+      snap.forEach((doc: FirebaseFirestore.QueryDocumentSnapshot) => {
+        signals.push({ type: col.name, data: doc.data() });
+      });
     }
 
     // --- 2️⃣ Score each signal ---

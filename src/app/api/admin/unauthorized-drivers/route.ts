@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { adminDb } from "@/firebase/server";
+import type { FirebaseFirestore } from 'firebase-admin';
 
 // GET /api/admin/unauthorized-drivers?status=pending
 export async function GET(req: Request) {
@@ -14,7 +15,7 @@ export async function GET(req: Request) {
     const col = adminDb.collection("unauthorizedDrivers");
     const q = status ? col.where("status", "==", status) : col;
     const snapshot = await q.get();
-    const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+    const data = snapshot.docs.map((d: FirebaseFirestore.QueryDocumentSnapshot) => ({ id: d.id, ...d.data() }));
     return NextResponse.json({ reports: data });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 401 });
@@ -28,7 +29,12 @@ export async function PATCH(req: Request) {
     if (!["admin", "superadmin"].includes(user.role))
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
 
-    const body = await req.json();
+    const body: { 
+      id: string;
+      status: string;
+      adminNote?: string;
+    } = await req.json();
+    
     const { id, status, adminNote } = body;
 
     if (!id || !status)
