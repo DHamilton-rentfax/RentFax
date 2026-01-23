@@ -22,11 +22,7 @@ export async function POST(req: NextRequest) {
       await sendEmail({
         to: log.email,
         subject: "Digest Notification",
-        react: (
-          <div>
-            <p>This is a system notification.</p>
-          </div>
-        ),
+        react: "This is a system notification." as any,
       });
       log.status = "sent";
     } catch (err) {
