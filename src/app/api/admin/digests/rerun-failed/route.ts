@@ -1,8 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/firebase/server";
-import sendgrid from "@sendgrid/mail";
-
-sendgrid.setApiKey(process.env.SENDGRID_API_KEY!);
+import { sendEmail } from "@/lib/email/resend";
+import type React from "react";
 
 export async function POST(req: NextRequest) {
   const { runId } = await req.json();
@@ -20,27 +19,15 @@ export async function POST(req: NextRequest) {
     const userDoc = await adminDb.doc(`users/${log.uid}`).get();
     if (!userDoc.exists) continue;
 
-    const notifSnap = await adminDb
-      .collection(`users/${log.uid}/notifications`)
-      .where("read", "==", false)
-      .get();
-
-    if (notifSnap.empty) continue;
-
-    const lines = notifSnap.docs.map(
-      (d) => `- ${d.get("title")}: ${d.get("body")}`,
-    );
-    const emailBody = `
-            <p>Here’s your digest:</p>
-            <ul>${lines.map((l) => `<li>${l}</li>`).join("")}</ul>
-        `;
-
     try {
-      await sendgrid.send({
+      await sendEmail({
         to: log.email,
-        from: "noreply@rentfax.ai",
-        subject: `Your RentFAX Digest`,
-        html: emailBody,
+        subject: "Digest Notification",
+        react: (
+          <div>
+            <p>This is a system notification.</p>
+          </div>
+        ),
       });
       log.status = "sent";
     } catch (err) {

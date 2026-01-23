@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/firebase/server";
-import sendgrid from "@sendgrid/mail";
-
-sendgrid.setApiKey(process.env.SENDGRID_API_KEY!);
+import { sendEmail } from "@/lib/email/resend";
+import type React from "react";
 
 async function sendNotification(
   userId: string,
@@ -39,12 +38,19 @@ export async function POST(req: NextRequest) {
       const prefs = userDoc.get("notificationPrefs");
 
       if (prefs?.disputes?.email && !prefs?.digest?.enabled) {
-        await sendgrid.send({
+        await sendEmail({
           to: orgEmail,
-          from: "noreply@rentfax.ai",
           subject: "🚨 New Dispute Filed",
-          html: `<p>A new dispute has been filed by ${renterData?.name}.</p>
-                        <p><a href='''${process.env.NEXT_PUBLIC_APP_URL}/dashboard/disputes/${id}'''>View Dispute</a></p>`,
+          react: (
+            <div>
+              <p>A new dispute has been filed by {renterData?.name}.</p>
+              <p>
+                <a href={`${process.env.NEXT_PUBLIC_APP_URL}/dashboard/disputes/${id}`}>
+                  View Dispute
+                </a>
+              </p>
+            </div>
+          ),
         });
       }
       if (prefs?.disputes?.inApp) {
@@ -65,12 +71,20 @@ export async function POST(req: NextRequest) {
         const prefs = userDoc.get("notificationPrefs");
 
         if (prefs?.messages?.email && !prefs?.digest?.enabled) {
-          await sendgrid.send({
+          await sendEmail({
             to: renterEmail,
-            from: "noreply@rentfax.ai",
             subject: "💬 New Message in Dispute",
-            html: `<p>You have a new message from your landlord.</p><blockquote>${message.text}</blockquote>
-                            <p><a href='''${process.env.NEXT_PUBLIC_APP_URL}/renter/disputes/${id}'''>Open Dispute</a></p>`,
+            react: (
+              <div>
+                <p>You have a new message from your landlord.</p>
+                <blockquote>{message.text}</blockquote>
+                <p>
+                  <a href={`${process.env.NEXT_PUBLIC_APP_URL}/renter/disputes/${id}`}>
+                    Open Dispute
+                  </a>
+                </p>
+              </div>
+            ),
           });
         }
 
@@ -89,12 +103,20 @@ export async function POST(req: NextRequest) {
         const prefs = userDoc.get("notificationPrefs");
 
         if (prefs?.messages?.email && !prefs?.digest?.enabled) {
-          await sendgrid.send({
+          await sendEmail({
             to: orgEmail,
-            from: "noreply@rentfax.ai",
             subject: "💬 New Message in Dispute",
-            html: `<p>${renterData?.name} wrote:</p><blockquote>${message.text}</blockquote>
-                            <p><a href='''${process.env.NEXT_PUBLIC_APP_URL}/dashboard/disputes/${id}'''>Open Dispute</a></p>`,
+            react: (
+              <div>
+                <p>{renterData?.name} wrote:</p>
+                <blockquote>{message.text}</blockquote>
+                <p>
+                  <a href={`${process.env.NEXT_PUBLIC_APP_URL}/dashboard/disputes/${id}`}>
+                    Open Dispute
+                  </a>
+                </p>
+              </div>
+            ),
           });
         }
         if (prefs?.messages?.inApp) {

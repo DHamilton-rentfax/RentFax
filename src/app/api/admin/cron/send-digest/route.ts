@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { adminDb as db } from "@/firebase/server";import sendgrid from "@sendgrid/mail";
-
-sendgrid.setApiKey(process.env.SENDGRID_API_KEY!);
+import { adminDb as db } from "@/firebase/server";
+import { sendEmail } from "@/lib/email/resend";
+import type React from "react";
 
 export async function GET() {
   const runRef = db.collection("digestRuns").doc();
@@ -22,22 +22,17 @@ export async function GET() {
 
     if (notifSnap.empty) continue;
 
-    const lines = notifSnap.docs.map(
-      (d) => `- ${d.get("title")}: ${d.get("body")}`,
-    );
-    const emailBody = `
-      <p>Here’s your ${prefs.digest.frequency} RentFAX digest:</p>
-      <ul>${lines.map((l) => `<li>${l}</li>`).join("")}</ul>
-    `;
-
     try {
-      await sendgrid.send({
+      await sendEmail({
         to: user.get("email"),
-        from: "noreply@rentfax.ai",
-        subject: `Your ${prefs.digest.frequency} RentFAX Digest`,
-        html: emailBody,
+        subject: "Digest Notification",
+        react: (
+          <div>
+            <p>This is a system notification.</p>
+          </div>
+        ),
       });
-      logs.push({ uid: user.id, email: user.get("email"), status: "sent" });
+      logs.push({ uid: user.id, email: user.get("email") });
       totalSent++;
     } catch (err) {
       logs.push({ uid: user.id, email: user.get("email"), status: "failed" });

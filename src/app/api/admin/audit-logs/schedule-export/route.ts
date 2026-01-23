@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/firebase/server";
 import { sendEmail } from "@/lib/email/resend";
+import type React from "react";
 
 export async function POST(req: Request) {
   try {
@@ -41,8 +42,7 @@ export async function POST(req: Request) {
       ];
     });
 
-    const csv = [header, ...rows].map((r) => r.join(",")).join("
-");
+    const csv = [header, ...rows].map((r) => r.join(",")).join("\n");
 
     await sendEmail({
       to: emails,
