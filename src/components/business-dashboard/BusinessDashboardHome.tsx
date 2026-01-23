@@ -7,7 +7,7 @@ import RecentSearches from "./RecentSearches";
 import RecentIncidents from "./RecentIncidents";
 import RecentRenters from "./RecentRenters";
 
-import { getDashboardData } from "@/app/(Superadmin-dashboard)/business/actions/getDashboardData";
+import { getDashboardData } from "@/app/(superadmin-dashboard)/business/actions/getDashboardData";
 
 export default function BusinessDashboardHome() {
   const [loading, setLoading] = useState(true);
