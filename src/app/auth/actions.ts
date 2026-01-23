@@ -75,7 +75,7 @@ import {
   type UpdateCompanySettingsInput,
 } from "@/ai/flows/settings";
 import { headers } from "next/headers";
-import { authAdmin } from "@/firebase/client-admin";
+import { authAdmin } from "@@/firebase/server";
 
 async function getAuth(): Promise<any | undefined> {
   const authorization = headers().get("Authorization");

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { dbAdmin as adminDB } from "@/firebase/client-admin";
+import { dbAdmin as adminDB } from "@@/firebase/server";
 import { getAuth } from "firebase-admin/auth";
 import { jsPDF } from "jspdf";
 

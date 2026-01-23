@@ -1,4 +1,4 @@
-import { dbAdmin } from "@/firebase/client-admin";
+import { dbAdmin } from "@@/firebase/server";
 import { NextResponse } from "next/server";
 
 export async function GET(_: Request, { params }: { params: { renterId: string } }) {

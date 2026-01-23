@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email";
-import { dbAdmin as db } from "@/firebase/client-admin";
+import { dbAdmin as db } from "@@/firebase/server";
 
 export async function POST(req: NextRequest) {
   try {

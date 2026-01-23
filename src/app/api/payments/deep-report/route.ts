@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { authUser } from "@/lib/authUser";
-import { adminDB } from "@/firebase/client-admin";
+import { adminDB } from "@@/firebase/server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10",

@@ -8,8 +8,8 @@ set -e
 echo "🔧 Starting Firebase import cleanup..."
 
 # 1️⃣ Replace legacy aliases with the correct server import
-echo "🧹 Replacing '@/firebase/client-admin' → '@/firebase/server'"
-grep -Rl "@/firebase/client-admin" src | xargs sed -i 's|@/firebase/client-admin|@/firebase/server|g' || true
+echo "🧹 Replacing '@@/firebase/server' → '@/firebase/server'"
+grep -Rl "@@/firebase/server" src | xargs sed -i 's|@@/firebase/server|@/firebase/server|g' || true
 
 echo "🧹 Replacing '@/firebase/client/admin' → '@/firebase/server'"
 grep -Rl "@/firebase/client/admin" src | xargs sed -i 's|@/firebase/client/admin|@/firebase/server|g' || true

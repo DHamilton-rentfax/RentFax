@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDB } from "@/firebase/server";
-import { adminAuth } from "@/firebase/client-admin";
+import { adminAuth } from "@@/firebase/server";
 
 /**
  * Handles the verification of a renter's secure token.

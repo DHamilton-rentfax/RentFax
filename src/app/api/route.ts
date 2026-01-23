@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@/firebase/client-admin";
+import { adminDB } from "@@/firebase/server";
 import { FieldValue } from "firebase-admin/firestore";
 
 export async function GET(request: Request) {

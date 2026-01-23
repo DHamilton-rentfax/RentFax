@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
-import { dbAdmin as db } from "@/firebase/client-admin";
+import { dbAdmin as db } from "@@/firebase/server";
 import cron from "node-cron";
 import nodemailer from "nodemailer";
 

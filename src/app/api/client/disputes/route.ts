@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { dbAdmin } from "@/firebase/client-admin";
+import { dbAdmin } from "@@/firebase/server";
 
 export async function GET(req: NextRequest) {
   const orgId = req.nextUrl.searchParams.get("orgId")!;

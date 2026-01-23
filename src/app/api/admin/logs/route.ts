@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@/firebase/client-admin";
+import { adminDB } from "@@/firebase/server";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

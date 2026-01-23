@@ -1,4 +1,4 @@
-import { adminDB } from "@/firebase/client-admin";
+import { adminDB } from "@@/firebase/server";
 import { FieldValue } from "firebase-admin/firestore";
 import Stripe from "stripe";
 

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDB } from "@/firebase/client-admin";
+import { adminDB } from "@@/firebase/server";
 import { OpenAI } from "openai";
 import { authUser } from "@/lib/authUser";
 import { v4 as uuidv4 } from "uuid";
