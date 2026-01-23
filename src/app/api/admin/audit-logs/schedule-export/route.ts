@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/firebase/server";
 import { sendEmail } from "@/lib/email/resend";
-import type React from "react";
 
 export async function POST(req: Request) {
   try {
@@ -47,12 +46,7 @@ export async function POST(req: Request) {
     await sendEmail({
       to: emails,
       subject: "Scheduled Audit Log Export",
-      react: (
-        <div>
-          <p>Your scheduled audit log export is attached.</p>
-          <p>Total rows: {rows.length}</p>
-        </div>
-      ),
+      html: `<p>Your scheduled audit log export is attached.</p><p>Total rows: ${rows.length}</p>`,
       attachments: [
         {
           filename: "audit-logs.csv",

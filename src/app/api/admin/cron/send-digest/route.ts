@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { adminDb as db } from "@/firebase/server";
 import { sendEmail } from "@/lib/email/resend";
-import type React from "react";
 
 export async function GET() {
   const runRef = db.collection("digestRuns").doc();
@@ -26,11 +25,7 @@ export async function GET() {
       await sendEmail({
         to: user.get("email"),
         subject: "Digest Notification",
-        react: (
-          <div>
-            <p>This is a system notification.</p>
-          </div>
-        ),
+        html: "<p>This is a system notification.</p>",
       });
       logs.push({ uid: user.id, email: user.get("email") });
       totalSent++;
