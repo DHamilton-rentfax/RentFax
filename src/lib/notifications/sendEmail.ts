@@ -1,18 +1,34 @@
-import nodemailer from "nodemailer";
+import type React from "react";
+import { resend } from "@/lib/email/resend";
 
-const transporter = nodemailer.createTransport({
-  service: "SendGrid",
-  auth: {
-    user: process.env.SENDGRID_USERNAME,
-    pass: process.env.SENDGRID_PASSWORD,
-  },
-});
+const FROM = "RentFAX <notifications@rentfax.io>";
 
-export async function sendEmail(to: string, subject: string, html: string) {
-  return transporter.sendMail({
-    from: "RentFAX <no-reply@rentfax.io>",
+type SendEmailParams = {
+  to: string | string[];
+  subject: string;
+  react: React.ReactElement;
+  attachments?: {
+    filename: string;
+    content: string; // base64
+  }[];
+};
+
+export async function sendEmail({
+  to,
+  subject,
+  react,
+  attachments,
+}: SendEmailParams) {
+  if (!process.env.RESEND_API_KEY) {
+    console.log("📧 Email skipped (no RESEND_API_KEY)");
+    return { skipped: true };
+  }
+
+  return resend.emails.send({
+    from: FROM,
     to,
     subject,
-    html,
+    react,
+    attachments,
   });
 }

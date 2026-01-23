@@ -1,6 +1,6 @@
-
 // src/lib/email/resend.ts
-import { Resend } from 'resend';
+import { Resend } from "resend";
+import type React from "react";
 
 if (!process.env.RESEND_API_KEY) {
   console.warn("⚠️ RESEND_API_KEY is not set. Email functionality will be disabled.");
@@ -16,18 +16,20 @@ export async function sendEmail({
   subject,
   react,
 }: {
-  to: string;
+  to: string | string[];
   subject: string;
   react: React.ReactElement;
 }) {
   if (!process.env.RESEND_API_KEY) {
-    console.log(`📧 Email sending skipped (no RESEND_API_KEY). To: ${to}, Subject: ${subject}`);
-    return { success: true, message: "Email skipped in dev environment." };
+    console.log(
+      `📧 Email skipped (no RESEND_API_KEY). To: ${to}, Subject: ${subject}`
+    );
+    return { success: true, skipped: true };
   }
-  
+
   try {
     const result = await resend.emails.send({
-      from: "RentFAX <notifications@rentfax.io>", // Replace with your verified domain
+      from: "RentFAX <notifications@rentfax.io>", // must be a verified sender
       to,
       subject,
       react,

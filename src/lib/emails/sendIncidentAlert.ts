@@ -1,4 +1,4 @@
-import sgMail from "@sendgrid/mail";
+
 
 // Ensure the SendGrid API key is set.
 if (process.env.SENDGRID_API_KEY) {

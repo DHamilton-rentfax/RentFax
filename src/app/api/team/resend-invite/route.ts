@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
 import { adminDb } from "@/firebase/server";
-import sgMail from "@sendgrid/mail";
+
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
 
