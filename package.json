@@ -38,6 +38,7 @@
     "firebase": "^10.14.1",
     "framer-motion": "^11.3.19",
     "genkit": "^1.27.0",
+    "json2csv": "^6.0.0-alpha.2",
     "libphonenumber-js": "^1.12.33",
     "lucide-react": "^0.562.0",
     "next": "^14.2.35",
