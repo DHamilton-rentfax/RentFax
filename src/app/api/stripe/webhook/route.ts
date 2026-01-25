@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { adminDb } from "@/firebase/server";
+import { adminDb } from "@/lib/server/firebase-admin";
 import { provisionPdplVerification } from "@/lib/verification/provisionPdplVerification";
 
 /* -------------------------------------------------------------------------- */
 /* STRIPE INIT                                                                 */
 /* -------------------------------------------------------------------------- */
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-});
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 

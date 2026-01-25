@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { adminDb } from "@/lib/server/firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { assertReportUnlockAllowed } from "@/lib/reports/assertReportUnlockAllowed";
-import { processBilling } from "@/lib/billing/processBilling";
+import { verifyCreditsOrCharge } from "@/lib/billing/verifyCreditsOrCharge";
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     /* -------------------------------------------------------
      *  BILLING (CREDIT OR PAYG — REAL)
      * ------------------------------------------------------ */
-    await processBilling({
+    await verifyCreditsOrCharge({
       companyId: orgId,
       renterId,
       amountCents: 2000,

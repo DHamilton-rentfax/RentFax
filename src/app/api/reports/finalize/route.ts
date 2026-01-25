@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/firestore";
-import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { adminDb } from "@/lib/server/firebase-admin";
 
 export async function POST(req: Request) {
   const { reportId, behaviorSummary } = await req.json();
 
-  await updateDoc(doc(db, "reports", reportId), {
+  await adminDb.collection("reports").doc(reportId).update({
     status: "finalized",
     behaviorSummary,
-    finalizedAt: serverTimestamp()
+    finalizedAt: new Date(),
   });
 
   return NextResponse.json({ success: true });

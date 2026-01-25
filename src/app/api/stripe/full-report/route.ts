@@ -1,14 +1,22 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
-import { getServerUser } from "@/lib/auth-server";
+import { getServerSession } from "@/lib/auth/getServerSession";
+import { adminDb } from "@/lib/server/firebase-admin";
 
 export async function POST() {
-  const user = await getServerUser();
+  const user = await getServerSession();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const userDoc = await adminDb.collection("users").doc(user.uid).get();
+  const userData = userDoc.data();
+
+  if (!userData) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
 
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
-    customer: user.stripeCustomerId,
+    customer: userData.stripeCustomerId,
     line_items: [
       {
         price: process.env.STRIPE_PRICE_FULL_REPORT, // $20
