@@ -1,1 +1,25 @@
-import { NextResponse } from \"next/server\";\n\nexport async function GET(req: Request) {\n  const { searchParams } = new URL(req.url);\n  const email = searchParams.get(\"email\");\n  if (!email) return NextResponse.json({ error: \"Missing email\" }, { status: 400 });\n\n  try {\n    // In a real app, you would use a service like Kickbox, but for now we'll use a simple domain check.\n    const disposableDomains = [\"mailinator.com\", \"tempmail.com\", \"10minutemail.com\"];\n    const domain = email.split(\"@\")[1].toLowerCase();\n\n    const isDisposable = disposableDomains.includes(domain);\n    const isDeliverable = !isDisposable && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);\n\n    return NextResponse.json({\n      deliverable: isDeliverable,\n      disposable: isDisposable,\n      domain: domain,\n    });\n  } catch (err) {\n    console.error(\"Email verification error:\", err);\n    return NextResponse.json({ error: \"Verification failed\" }, { status: 500 });\n  }\n}\n
+import { NextResponse } from "next/server";
+
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const email = searchParams.get("email");
+  if (!email) return NextResponse.json({ error: "Missing email" }, { status: 400 });
+
+  try {
+    // In a real app, you would use a service like Kickbox, but for now we'll use a simple domain check.
+    const disposableDomains = ["mailinator.com", "tempmail.com", "10minutemail.com"];
+    const domain = email.split("@")[1].toLowerCase();
+
+    const isDisposable = disposableDomains.includes(domain);
+    const isDeliverable = !isDisposable && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+    return NextResponse.json({
+      deliverable: isDeliverable,
+      disposable: isDisposable,
+      domain: domain,
+    });
+  } catch (err) {
+    console.error("Email verification error:", err);
+    return NextResponse.json({ error: "Verification failed" }, { status: 500 });
+  }
+}

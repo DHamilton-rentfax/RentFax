@@ -1,28 +1,38 @@
-import { adminDb } from "@/firebase/server";
-import { getServerUser } from "@/lib/auth-server";
 import { NextResponse } from "next/server";
+import { adminDb } from "@/lib/server/firebase-admin";
+import { FieldValue } from "firebase-admin/firestore";
+import crypto from "crypto";
 
 export async function POST(req: Request) {
-  const user = await getServerUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const { renterEmail, renterPhone, landlordId, companyId } =
+      await req.json();
 
-  const { idFrontUrl, idBackUrl, selfieUrl } = await req.json();
+    if (!renterEmail || !landlordId) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
 
-  const ref = adminDb.collection("renterVerifications").doc();
-  await ref.set({
-    id: ref.id,
-    userId: user.uid,
-    idFrontUrl,
-    idBackUrl,
-    selfieUrl,
-    status: "pending",
-    createdAt: Date.now(),
-  });
+    const token = crypto.randomUUID();
 
-  await adminDb.collection("users").doc(user.uid).update({
-    verificationId: ref.id,
-    verificationLevel: "pending",
-  });
+    await adminDb.collection("verification_requests").add({
+      token,
+      renterEmail,
+      renterPhone: renterPhone || null,
+      landlordId,
+      companyId: companyId || null,
+      status: "pending",
+      createdAt: FieldValue.serverTimestamp(),
+    });
 
-  return NextResponse.json({ verificationId: ref.id });
+    return NextResponse.json({ ok: true, token });
+  } catch (err) {
+    console.error("Verification create error:", err);
+    return NextResponse.json(
+      { error: "Server error" },
+      { status: 500 }
+    );
+  }
 }

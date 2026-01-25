@@ -1,33 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { adminDb } from "@/lib/server/firebase-admin";
 import { requireSupportRole } from "@/lib/auth/roles";
+import { FieldValue } from "firebase-admin/firestore";
 
-export async function PATCH(req: NextRequest, { params }: { { params }: { params: { reportNameId: string } } }) {
-  requireSupportRole(req);
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { ticketId: string } }
+) {
+  await requireSupportRole(req);
+
   const body = await req.json();
 
   await adminDb
     .collection("support_content_backlog")
-    .doc(params.id)
+    .doc(params.ticketId)
     .update({
       ...body,
-      updatedAt: new Date(),
+      updatedAt: FieldValue.serverTimestamp(),
     });
 
   return NextResponse.json({ success: true });
 }
 
-export async function GET(req: NextRequest, { params }: { { params }: { params: { reportNameId: string } } }) {
-  requireSupportRole(req);
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { ticketId: string } }
+) {
+  await requireSupportRole(req);
 
   const doc = await adminDb
     .collection("support_content_backlog")
-    .doc(params.id)
+    .doc(params.ticketId)
     .get();
 
-    if (!doc.exists) {
-        return NextResponse.json({ error: "Not Found" }, { status: 404 });
-    }
+  if (!doc.exists) {
+    return NextResponse.json(
+      { error: "Ticket not found" },
+      { status: 404 }
+    );
+  }
 
-  return NextResponse.json({ item: { id: doc.id, ...doc.data() } });
+  return NextResponse.json({
+    id: doc.id,
+    ...doc.data(),
+  });
 }

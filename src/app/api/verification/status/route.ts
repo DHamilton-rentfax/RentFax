@@ -1,16 +1,31 @@
-
 import { NextResponse } from "next/server";
-import { getVerificationStatus } from "@/actions/verification/getVerificationStatus";
+import { adminDb } from "@/lib/server/firebase-admin";
 
-export async function POST(req: Request) {
-  try {
-    const { token } = await req.json();
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const token = searchParams.get("token");
 
-    const status = await getVerificationStatus(token);
-
-    return NextResponse.json({ ok: true, status });
-  } catch (err: any) {
-    console.error("Verification Status Error:", err);
-    return NextResponse.json({ ok: false, error: err.message }, { status: 500 });
+  if (!token) {
+    return NextResponse.json(
+      { error: "Missing token" },
+      { status: 400 }
+    );
   }
+
+  const snap = await adminDb
+    .collection("verification_requests")
+    .where("token", "==", token)
+    .limit(1)
+    .get();
+
+  if (snap.empty) {
+    return NextResponse.json({ status: "invalid" });
+  }
+
+  const data = snap.docs[0].data();
+
+  return NextResponse.json({
+    status: data.status,
+    updatedAt: data.updatedAt || null,
+  });
 }

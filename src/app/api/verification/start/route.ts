@@ -1,22 +1,38 @@
-
 import { NextResponse } from "next/server";
-import { createVerificationRequest } from "@/actions/verification/createVerificationRequest";
+import { adminDb } from "@/lib/server/firebase-admin";
+import { FieldValue } from "firebase-admin/firestore";
+import crypto from "crypto";
 
 export async function POST(req: Request) {
   try {
-    const data = await req.json();
-    const { renterEmail, renterPhone, landlordId, companyId } = data;
+    const { renterEmail, renterPhone, landlordId, companyId } =
+      await req.json();
 
-    const token = await createVerificationRequest({
+    if (!renterEmail || !landlordId) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    const token = crypto.randomUUID();
+
+    await adminDb.collection("verification_requests").add({
+      token,
       renterEmail,
-      renterPhone,
+      renterPhone: renterPhone || null,
       landlordId,
-      companyId,
+      companyId: companyId || null,
+      status: "pending",
+      createdAt: FieldValue.serverTimestamp(),
     });
 
     return NextResponse.json({ ok: true, token });
-  } catch (err: any) {
-    console.error("Verification Start Error:", err);
-    return NextResponse.json({ ok: false, error: err.message }, { status: 500 });
+  } catch (err) {
+    console.error("Verification start error:", err);
+    return NextResponse.json(
+      { error: "Server error" },
+      { status: 500 }
+    );
   }
 }
