@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/firestore";
-import { doc, updateDoc } from "firebase/firestore";
+import { adminDb } from "@/lib/server/firebase-admin";
 import { extractAgreement } from "@/lib/ai/extractAgreement";
 // Assume pdf parsing logic exists
 // import { parsePdf } from "@/lib/pdf";
@@ -14,8 +13,8 @@ export async function POST(req: Request) {
   const text = "This is a mock response"; // Mocking PDF parsing
   const extracted = await extractAgreement(text);
 
-  await updateDoc(doc(db, "reports", reportId), {
-    "extracted.agreement": extracted
+  await adminDb.collection("reports").doc(reportId).update({
+    "extracted.agreement": extracted,
   });
 
   return NextResponse.json({ extracted });
