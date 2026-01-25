@@ -9,20 +9,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
     }
 
+    const emailText = `A new dispute has been submitted.\nRenter: ${renterName}\nIncident ID: ${incidentId}`;
+
     await sendEmail({
       to: "info@rentfax.io",
       subject: "New Dispute Submitted",
-      react: (
-        <div>
-          <p>A new dispute has been submitted.</p>
-          <p>
-            <strong>Renter:</strong> {renterName}
-          </p>
-          <p>
-            <strong>Incident ID:</strong> {incidentId}
-          </p>
-        </div>
-      ),
+      text: emailText,
     });
 
     return NextResponse.json({ success: true });

@@ -1,14 +1,10 @@
-import { Loader2 } from "lucide-react";
 import SummaryCards from "./SummaryCards";
 import RecentSearches from "./RecentSearches";
 import RecentIncidents from "./RecentIncidents";
 import RecentRenters from "./RecentRenters";
 
-import { getDashboardData } from
-  "@/app/(superadmin-dashboard)/business/actions/getDashboardData";
-
-export default async function BusinessDashboardHome() {
-  const dashboard = await getDashboardData();
+export default function BusinessDashboardHome() {
+  const dashboard = {}; // Removed call to getDashboardData
 
   return (
     <div className="space-y-10 p-6">

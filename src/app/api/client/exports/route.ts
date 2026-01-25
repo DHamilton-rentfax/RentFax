@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
-import { stringify } from "csv-stringify/sync";
+import { adminDb } from "@/lib/server/firebase-admin";
+import { toCSV } from "@/lib/server/csv";
 
 export async function GET(req: NextRequest) {
   const orgId = req.nextUrl.searchParams.get("orgId")!;
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
   }
 
   const rows = docs.docs.map((d) => ({ id: d.id, ...d.data() }));
-  const csv = stringify(rows, { header: true });
+  const csv = toCSV(rows);
 
   return new NextResponse(csv, {
     headers: {

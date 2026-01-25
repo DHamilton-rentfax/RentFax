@@ -1,203 +1,137 @@
-
-import { NextResponse } from "next/server";
-import { headers } from "next/headers";
+import "server-only";
+import { adminDb } from "@/lib/server/firebase-admin";
 import { stripe } from "@/lib/stripe/server";
-import { adminDb } from "@/firebase/server";
-import { FieldValue } from "firebase-admin/firestore";
-import {
-  mapPlanToProvisioning,
-  ProvisioningConfig,
-} from "@/lib/provisioning/applyStripeSubscription";
+import { headers } from "next/headers";
+import { NextResponse } from "next/server";
+import Stripe from "stripe";
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
-
-/* -------------------------------------------------------------------------- */
-/* HELPERS                                                                     */
-/* -------------------------------------------------------------------------- */
-
-async function applyProvisioning(
-  orgRef: FirebaseFirestore.DocumentReference,
-  config: ProvisioningConfig,
-  billing: {
-    customerId?: string;
-    subscriptionId?: string;
-    currentPeriodEnd?: Date;
-  }
-) {
-  await orgRef.update({
-    plan: config.plan,
-    limits: config.limits,
-    features: config.features,
-    seats: {
-      limit: config.seats.limit,
-    },
-    billing,
-    status: "ACTIVE",
-    updatedAt: FieldValue.serverTimestamp(),
-  });
-}
-
-/* -------------------------------------------------------------------------- */
-/* WEBHOOK HANDLER                                                             */
-/* -------------------------------------------------------------------------- */
+const relevantEvents = new Set([
+  "product.created",
+  "product.updated",
+  "price.created",
+  "price.updated",
+  "checkout.session.completed",
+  "customer.subscription.created",
+  "customer.subscription.updated",
+  "customer.subscription.deleted",
+]);
 
 export async function POST(req: Request) {
+  const body = await req.text();
   const sig = headers().get("stripe-signature");
-  if (!sig) {
-    return NextResponse.json({ error: "Missing signature" }, { status: 400 });
+  const webhookSecret =
+    process.env.STRIPE_WEBHOOK_SECRET_LIVE ?? process.env.STRIPE_WEBHOOK_SECRET;
+
+  if (!sig || !webhookSecret) {
+    return NextResponse.json(
+        { error: "Missing Stripe signature or webhook secret" },
+        { status: 400 }
+    );
   }
 
-  const body = await req.text();
-  let event;
+  let event: Stripe.Event;
 
   try {
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
   } catch (err: any) {
-    console.error("Webhook verification failed", err.message);
-    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+    console.log(`❌ Error message: ${err.message}`);
+    return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
   }
 
-  switch (event.type) {
-    /* ---------------------------------------------------------------------- */
-    /* CHECKOUT COMPLETE                                                       */
-    /* ---------------------------------------------------------------------- */
-    case "checkout.session.completed": {
-      const session: any = event.data.object;
-
-      /* ---------------- PAYG / PDPL (INTENT-BASED) ---------------- */
-      if (session.metadata?.intentId) {
-        const intentRef = adminDb
-          .collection("payment_intents")
-          .doc(session.metadata.intentId);
-
-        const snap = await intentRef.get();
-        if (!snap.exists) break;
-
-        if (snap.data()?.status !== "paid") {
-          await intentRef.update({
-            status: "paid",
-            stripeSessionId: session.id,
-            completedAt: FieldValue.serverTimestamp(),
-            updatedAt: FieldValue.serverTimestamp(),
+  if (relevantEvents.has(event.type)) {
+    try {
+      switch (event.type) {
+        case "product.created":
+        case "product.updated":
+          await adminDb
+            .collection("products")
+            .doc(event.data.object.id)
+            .set(event.data.object);
+          break;
+        case "price.created":
+        case "price.updated":
+          await adminDb
+            .collection("products")
+            .doc(event.data.object.product as string)
+            .collection("prices")
+            .doc(event.data.object.id)
+            .set(event.data.object);
+          break;
+        case "customer.subscription.created": {
+          const sub = event.data.object as Stripe.Subscription;
+          const uid = sub.metadata?.uid;
+          if (!uid) break;
+          await adminDb.collection("users").doc(uid).update({
+            subscription: {
+              id: sub.id,
+              status: sub.status,
+            },
           });
+          break;
         }
-        break;
+        case "customer.subscription.updated": {
+          const sub = event.data.object as Stripe.Subscription;
+          const uid = sub.metadata?.uid;
+          if (!uid) break;
+          await adminDb.collection("users").doc(uid).update({
+            subscription: {
+              id: sub.id,
+              status: sub.status,
+            },
+          });
+          break;
+        }
+        case "customer.subscription.deleted": {
+          const sub = event.data.object as Stripe.Subscription;
+          const uid = sub.metadata?.uid;
+          if (!uid) break;
+          await adminDb
+            .collection("users")
+            .doc(uid)
+            .update({
+              subscription: null,
+            });
+          break;
+        }
+        case "checkout.session.completed": {
+          const session = event.data.object as Stripe.Checkout.Session;
+          if (!session.subscription) {
+            console.log("Checkout session did not have a subscription");
+            break;
+          }
+          const subscription = (await stripe.subscriptions.retrieve(
+            session.subscription as string
+          )) as Stripe.Subscription;
+
+          const uid = subscription.metadata?.uid;
+          if (!uid) break;
+
+          const item = subscription.items.data[0];
+
+          await adminDb.collection("users").doc(uid).update({
+            subscription: {
+              id: subscription.id,
+              status: subscription.status,
+              price_id: item?.price?.id ?? null,
+              created_at: subscription.created,
+              period_ends_at: subscription.current_period_end,
+            },
+          });
+          break;
+        }
+        default:
+          throw new Error("Unhandled relevant event!");
       }
-
-      /* ---------------- SUBSCRIPTION ---------------- */
-      if (session.mode === "subscription" && session.metadata?.orgId) {
-        const orgRef = adminDb.collection("orgs").doc(session.metadata.orgId);
-
-        const subscription = await stripe.subscriptions.retrieve(
-          session.subscription
-        );
-
-        const planKey = subscription.items.data[0]?.price.id;
-        if (!planKey) break;
-
-        const config = mapPlanToProvisioning(planKey);
-
-        await applyProvisioning(orgRef, config, {
-          customerId: session.customer,
-          subscriptionId: subscription.id,
-          currentPeriodEnd: new Date(
-            subscription.current_period_end * 1000
-          ),
-        });
-
-        await orgRef.update({
-          "credits.available": FieldValue.increment(
-            config.credits.monthlyAllocation
-          ),
-          "credits.reserved": 0,
-        });
-      }
-      break;
-    }
-
-    /* ---------------------------------------------------------------------- */
-    /* SUBSCRIPTION UPDATED                                                    */
-    /* ---------------------------------------------------------------------- */
-    case "customer.subscription.updated": {
-      const sub: any = event.data.object;
-      const orgId = sub.metadata?.orgId;
-      if (!orgId) break;
-
-      const planKey = sub.items.data[0]?.price.id;
-      if (!planKey) break;
-
-      const config = mapPlanToProvisioning(planKey);
-      const orgRef = adminDb.collection("orgs").doc(orgId);
-
-      await applyProvisioning(orgRef, config, {
-        subscriptionId: sub.id,
-        currentPeriodEnd: new Date(sub.current_period_end * 1000),
-      });
-      break;
-    }
-
-    /* ---------------------------------------------------------------------- */
-    /* SUBSCRIPTION CANCELED                                                   */
-    /* ---------------------------------------------------------------------- */
-    case "customer.subscription.deleted": {
-      const sub: any = event.data.object;
-      const orgId = sub.metadata?.orgId;
-      if (!orgId) break;
-
-      const free = mapPlanToProvisioning("price_free_monthly");
-      const orgRef = adminDb.collection("orgs").doc(orgId);
-
-      await orgRef.update({
-        plan: free.plan,
-        limits: free.limits,
-        features: free.features,
-        seats: { limit: free.seats.limit },
-        status: "CANCELED",
-        "billing.subscriptionId": null,
-        "credits.available": 0,
-        "credits.reserved": 0,
-        updatedAt: FieldValue.serverTimestamp(),
-      });
-      break;
-    }
-
-    /* ---------------------------------------------------------------------- */
-    /* MONTHLY RENEWAL (CREDIT RESET)                                          */
-    /* ---------------------------------------------------------------------- */
-    case "invoice.payment_succeeded": {
-      const invoice: any = event.data.object;
-      if (invoice.billing_reason !== "subscription_cycle") break;
-
-      const subscription = await stripe.subscriptions.retrieve(
-        invoice.subscription
+    } catch (error) {
+      console.log(error);
+      return new NextResponse(
+        "Webhook handler failed. View your nextjs function logs.",
+        {
+          status: 400,
+        }
       );
-      const planKey = subscription.items.data[0]?.price.id;
-      if (!planKey) break;
-
-      const config = mapPlanToProvisioning(planKey);
-
-      const snap = await adminDb
-        .collection("orgs")
-        .where("billing.subscriptionId", "==", subscription.id)
-        .limit(1)
-        .get();
-
-      if (!snap.empty) {
-        await snap.docs[0].ref.update({
-          "credits.available": config.credits.monthlyAllocation,
-          "credits.reserved": 0,
-          "billing.currentPeriodEnd": new Date(
-            subscription.current_period_end * 1000
-          ),
-          updatedAt: FieldValue.serverTimestamp(),
-        });
-      }
-      break;
     }
-
-    default:
-      console.log(`Unhandled event: ${event.type}`);
   }
 
-  return NextResponse.json({ received: true });
+  return NextResponse.json({ received: true }, { status: 200 });
 }

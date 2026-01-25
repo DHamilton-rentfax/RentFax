@@ -1,13 +1,15 @@
-
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb, serverTimestamp } from "@/firebase/server";
-import { authGuard } from "@/lib/auth/auth-guard";
+import { adminDb, serverTimestamp } from "@/lib/server/firebase-admin";
+import { getUserFromSessionCookie } from "@/lib/auth/getUserFromSessionCookie";
 import { createIncident } from "@/lib/incidents/createIncident";
+
+const ALLOWED_ROLES = ["COMPANY", "LANDLORD", "LEGAL"];
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await authGuard(req, { allow: ["COMPANY", "LANDLORD", "LEGAL"] });
-    if (!user) {
+    const user = await getUserFromSessionCookie(req);
+
+    if (!user || !ALLOWED_ROLES.includes(user.role)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
