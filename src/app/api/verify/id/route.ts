@@ -1,28 +1,26 @@
 
 import { NextResponse } from "next/server";
-import { extractTextFromId } from "@/lib/verify/ocr";
+import { extractIdText } from "@/lib/verify/ocr";
 import { matchFace } from "@/lib/verify/face";
-import { checkLiveness } from "@/lib/verify/liveness";
+import { runLivenessCheck } from "@/lib/verify/liveness";
 
 export async function POST(req: Request) {
   const { imageFront, imageBack, selfie, renterId } = await req.json();
 
   try {
-    const [frontData, backData, faceMatchScore, liveness] = await Promise.all([
-        extractTextFromId(imageFront),
-        extractTextFromId(imageBack),
+    const [frontData, backData, faceMatchResult, livenessResult] = await Promise.all([
+        extractIdText(imageFront),
+        extractIdText(imageBack),
         matchFace(selfie, imageFront),
-        checkLiveness(selfie),
+        runLivenessCheck(selfie),
     ]);
 
     const result = {
       extracted: { frontData, backData },
-      faceMatchScore,
-      liveness,
-      verified:
-        faceMatchScore > 0.75 &&
-        liveness === true &&
-        frontData.name === backData.name,
+      faceMatch: faceMatchResult,
+      liveness: livenessResult,
+      verified: false, // Always false as AI verification is stubbed
+      reason: "Verification services temporarily unavailable. Please try again later."
     };
 
     return NextResponse.json(result);
