@@ -302,6 +302,11 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /ai_audit_logs/{id} {
+      allow read: if request.auth != null && isAdmin();
+      allow write: if false; // server-only
+    }
+
     /* ======================================================
        DEFAULT DENY
     ====================================================== */
