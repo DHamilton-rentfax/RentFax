@@ -1,17 +1,26 @@
 "use server";
-import { whoAmI as whoAmIFlow, type WhoAmIOutput } from "@/ai/flows/who-am-i";
+
 import { headers } from "next/headers";
 import { adminAuth } from "@/firebase/server";
+
+/* =========================
+   AI FLOWS
+========================= */
+
+import { whoAmI as whoAmIFlow, type WhoAmIOutput } from "@/ai/flows/who-am-i";
+
 import {
   setUserClaims as setUserClaimsFlow,
   type SetUserClaimsInput,
   type SetUserClaimsOutput,
 } from "@/ai/flows/set-user-claims";
+
 import {
   createCompany as createCompanyFlow,
   type CreateCompanyInput,
   type CreateCompanyOutput,
 } from "@/ai/flows/create-company";
+
 import {
   createInvite as createInviteFlow,
   acceptInvite as acceptInviteFlow,
@@ -20,6 +29,7 @@ import {
   type AcceptInviteInput,
   type AcceptInviteOutput,
 } from "@/ai/flows/invites";
+
 import {
   upsertRental as upsertRentalFlow,
   deleteRental as deleteRentalFlow,
@@ -28,6 +38,7 @@ import {
   type DeleteRentalInput,
   type DeleteRentalOutput,
 } from "@/ai/flows/rentals";
+
 import {
   upsertRenter as upsertRenterFlow,
   importRenters as importRentersFlow,
@@ -36,16 +47,19 @@ import {
   type ImportRentersInput,
   type ImportRentersOutput,
 } from "@/ai/flows/renters";
+
 import {
   createIncident as createIncidentFlow,
   type CreateIncidentInput,
   type CreateIncidentOutput,
 } from "@/ai/flows/incidents";
+
 import {
   recomputeRenterScore as recomputeRenterScoreFlow,
   type RecomputeScoreInput,
   type RecomputeScoreOutput,
 } from "@/ai/flows/risk-scorer";
+
 import {
   startDispute as startDisputeFlow,
   postDisputeMessage as postDisputeMessageFlow,
@@ -57,18 +71,19 @@ import {
   type UpdateDisputeStatusInput,
   type UpdateDisputeStatusOutput,
 } from "@/ai/flows/disputes";
+
 import {
   seedStaging as seedStagingFlow,
   type SeedStagingInput,
   type SeedStagingOutput,
 } from "@/ai/flows/seed";
+
 import { health as healthFlow, type HealthOutput } from "@/ai/flows/health";
 import { startAIAssistantFlow } from "@/ai/flows/ai-assistant";
-import {
-  detectFraudSignals as detectFraudSignalsFlow,
-  type DetectFraudSignalsInput,
-  type DetectFraudSignalsOutput,
-} from "@/ai/flows/fraud-detector";
+
+/* ✅ CORRECT FRAUD FLOW IMPORT */
+import { fraudDetector as detectFraudSignalsFlow } from "@/ai/flows/fraud-detector";
+
 import {
   getCompanySettings as getCompanySettingsFlow,
   updateCompanySettings as updateCompanySettingsFlow,
@@ -76,146 +91,182 @@ import {
   type UpdateCompanySettingsInput,
 } from "@/ai/flows/settings";
 
+/* =========================
+   AUTH HELPER
+========================= */
+
 async function getAuth(): Promise<any | undefined> {
   const authorization = headers().get("Authorization");
-  if (authorization) {
-    const idToken = authorization.substring(7);
-    const decodedIdToken = await adminAuth.verifyIdToken(idToken);
-    return {
-      uid: decodedIdToken.uid,
-      claims: decodedIdToken,
-      scopes: [],
-    };
-  }
+
+  if (!authorization?.startsWith("Bearer ")) return;
+
+  const idToken = authorization.substring(7);
+  const decoded = await adminAuth.verifyIdToken(idToken);
+
+  return {
+    uid: decoded.uid,
+    claims: decoded,
+    scopes: [],
+  };
 }
+
+/* =========================
+   STANDARD ACTIONS
+========================= */
 
 export async function whoAmI(): Promise<WhoAmIOutput> {
   const auth = await getAuth();
-  return await whoAmIFlow(auth);
+  return whoAmIFlow(auth);
 }
 
 export async function setUserClaims(
   params: SetUserClaimsInput,
 ): Promise<SetUserClaimsOutput> {
   const auth = await getAuth();
-  return await setUserClaimsFlow(params, auth);
+  return setUserClaimsFlow(params, auth);
 }
 
 export async function createCompany(
   params: CreateCompanyInput,
 ): Promise<CreateCompanyOutput> {
   const auth = await getAuth();
-  return await createCompanyFlow(params, auth);
+  return createCompanyFlow(params, auth);
 }
 
 export async function createInvite(
   params: CreateInviteInput,
 ): Promise<CreateInviteOutput> {
   const auth = await getAuth();
-  return await createInviteFlow(params, auth);
+  return createInviteFlow(params, auth);
 }
 
 export async function acceptInvite(
   params: AcceptInviteInput,
 ): Promise<AcceptInviteOutput> {
   const auth = await getAuth();
-  return await acceptInviteFlow(params, auth);
+  return acceptInviteFlow(params, auth);
 }
 
 export async function upsertRenter(
   params: RenterType,
 ): Promise<UpsertRenterOutput> {
   const auth = await getAuth();
-  return await upsertRenterFlow(params, auth);
+  return upsertRenterFlow(params, auth);
 }
 
 export async function importRenters(
   params: ImportRentersInput,
 ): Promise<ImportRentersOutput> {
   const auth = await getAuth();
-  return await importRentersFlow(params, auth);
+  return importRentersFlow(params, auth);
 }
 
 export async function upsertRental(
   params: UpsertRentalInput,
 ): Promise<UpsertRentalOutput> {
   const auth = await getAuth();
-  return await upsertRentalFlow(params, auth);
+  return upsertRentalFlow(params, auth);
 }
 
 export async function deleteRental(
   params: DeleteRentalInput,
 ): Promise<DeleteRentalOutput> {
   const auth = await getAuth();
-  return await deleteRentalFlow(params, auth);
+  return deleteRentalFlow(params, auth);
 }
 
 export async function createIncident(
   params: CreateIncidentInput,
 ): Promise<CreateIncidentOutput> {
   const auth = await getAuth();
-  return await createIncidentFlow(params, auth);
+  return createIncidentFlow(params, auth);
 }
 
 export async function recomputeRenterScore(
   params: RecomputeScoreInput,
 ): Promise<RecomputeScoreOutput> {
   const auth = await getAuth();
-  return await recomputeRenterScoreFlow(params, auth);
+  return recomputeRenterScoreFlow(params, auth);
 }
 
 export async function startDispute(
   params: StartDisputeInput,
 ): Promise<StartDisputeOutput> {
   const auth = await getAuth();
-  return await startDisputeFlow(params, auth);
+  return startDisputeFlow(params, auth);
 }
 
 export async function postDisputeMessage(
   params: PostDisputeMessageInput,
 ): Promise<PostDisputeMessageOutput> {
   const auth = await getAuth();
-  return await postDisputeMessageFlow(params, auth);
+  return postDisputeMessageFlow(params, auth);
 }
 
 export async function updateDisputeStatus(
   params: UpdateDisputeStatusInput,
 ): Promise<UpdateDisputeStatusOutput> {
   const auth = await getAuth();
-  return await updateDisputeStatusFlow(params, auth);
+  return updateDisputeStatusFlow(params, auth);
 }
 
 export async function seedStaging(
   params: SeedStagingInput,
 ): Promise<SeedStagingOutput> {
   const auth = await getAuth();
-  return await seedStagingFlow(params, auth);
+  return seedStagingFlow(params, auth);
 }
 
 export async function health(): Promise<HealthOutput> {
-  return await healthFlow();
+  return healthFlow();
 }
 
 export async function startAIAssistant(input: string): Promise<any> {
   const auth = await getAuth();
-  return await startAIAssistantFlow(auth, input);
+  return startAIAssistantFlow(auth, input);
 }
+
+/* =========================
+   ✅ FRAUD DETECTION (FIXED)
+========================= */
+
+export type DetectFraudSignalsInput = {
+  renterId?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  address?: string;
+  [key: string]: any;
+};
+
+export type DetectFraudSignalsOutput = {
+  score: number;
+  flags: string[];
+};
 
 export async function detectFraudSignals(
   params: DetectFraudSignalsInput,
 ): Promise<DetectFraudSignalsOutput> {
-  const auth = await getAuth();
-  return await detectFraudSignalsFlow(params, auth);
+  const flags = await detectFraudSignalsFlow(params);
+
+  return {
+    score: flags.length > 0 ? 50 : 0,
+    flags,
+  };
 }
+
+/* =========================
+   SETTINGS
+========================= */
 
 export async function getCompanySettings(): Promise<CompanySettings | null> {
   const auth = await getAuth();
-  return await getCompanySettingsFlow(auth);
+  return getCompanySettingsFlow(auth);
 }
 
 export async function updateCompanySettings(
   params: UpdateCompanySettingsInput,
 ): Promise<void> {
   const auth = await getAuth();
-  return await updateCompanySettingsFlow(params, auth);
+  return updateCompanySettingsFlow(params, auth);
 }
