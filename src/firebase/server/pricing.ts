@@ -1,4 +1,4 @@
-import { db as adminDb } from "./server";
+import { adminDb } from "@/lib/server/firebase-admin";
 
 export async function getPricingConfig() {
   const ref = adminDb.doc("config/rentfax-pricing");

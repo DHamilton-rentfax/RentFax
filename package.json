@@ -16,6 +16,7 @@
     "check-firebase-imports": "echo \"✓ firebase import check skipped (rules-only commit)\""
   },
   "dependencies": {
+    "@faker-js/faker": "^10.2.0",
     "@genkit-ai/flow": "^0.5.17",
     "@genkit-ai/googleai": "^1.27.0",
     "@google-cloud/bigquery": "^8.1.1",

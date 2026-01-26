@@ -63,11 +63,11 @@ export default function LegalDashboardPage() {
   if (!user) {
     return (
         <div className="text-center py-20">
-            <h2 class="text-xl font-semibold">Access Denied</h2>
+            <h2 className="text-xl font-semibold">Access Denied</h2>
             <p className="text-gray-500">Please log in to view your dashboard.</p>
         </div>
     )
-}
+  }
 
   return (
     <div className="space-y-8">
@@ -130,4 +130,7 @@ export default function LegalDashboardPage() {
             </Card>
           ))}
         </div>
-      )}\n    </div>\n  );\n}\n
+      )}
+    </div>
+  );
+}

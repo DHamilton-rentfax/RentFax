@@ -1,7 +1,7 @@
 "use server";
 
 import { adminDb } from "@/firebase/server";
-import { getCurrentUser } from "@/server-actions/auth";
+import { getCurrentUser } from "@/app/actions/auth";
 
 export async function createDispute(data: {
   reportNameId: string;
