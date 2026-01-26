@@ -1,14 +1,19 @@
-
 "use server";
 
-import { db } from "@/lib/firebase/server";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { adminDb } from "@/firebase/server";
+import { FieldValue } from "firebase-admin/firestore";
 
 export async function updateGlobalCommissionSettings(data: any) {
-  const ref = doc(db, "commission_settings", "global");
-  await setDoc(ref, {
-    ...data,
-    updatedAt: serverTimestamp(),
-  });
+  await adminDb
+    .collection("commission_settings")
+    .doc("global")
+    .set(
+      {
+        ...data,
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
+
   return { success: true };
 }
