@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSupport } from "@/ai/flows/ai-support-assistant";
+// import { getSupport } from "@/ai/flows/ai-support-assistant";
 
 export async function POST(req: Request) {
   try {
@@ -11,10 +11,10 @@ export async function POST(req: Request) {
       );
     }
 
-    const reply = await getSupport({ query: message });
+    // const reply = await getSupport({ query: message });
 
     return NextResponse.json({
-      reply: reply.relevantResource,
+      reply: "AI support is currently unavailable.", // reply.relevantResource,
     });
   } catch (error: any) {
     console.error("[API analyze-dispute] Error:", error);

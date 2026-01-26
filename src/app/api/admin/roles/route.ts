@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
 import { adminDb, adminAuth } from "@/firebase/server";
-import { logAudit } from "@/ai/flows/audit";
+// import { logAudit } from "@/ai/flows/audit";
 
 export async function POST(req: Request) {
   try {
@@ -52,6 +52,7 @@ export async function POST(req: Request) {
     await adminAuth.revokeRefreshTokens(uid);
 
     // Audit log
+    /*
     await logAudit({
       actorUid: decoded.uid,
       actorRole: "super_admin",
@@ -61,6 +62,7 @@ export async function POST(req: Request) {
       before: { role: oldRole },
       after: { role },
     });
+    */
 
     return NextResponse.json({ success: true, uid, role });
   } catch (err: any) {

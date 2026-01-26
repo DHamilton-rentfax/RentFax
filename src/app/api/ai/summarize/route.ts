@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { aiReportSummarizer } from "@/ai/flows/ai-report-summarizer";
+// import { aiReportSummarizer } from "@/ai/flows/ai-report-summarizer";
 
 export async function POST(req: Request) {
   try {
@@ -10,8 +10,8 @@ export async function POST(req: Request) {
         { status: 400 },
       );
     }
-    const result = await aiReportSummarizer({ dispute });
-    return NextResponse.json(result);
+    // const result = await aiReportSummarizer({ dispute });
+    return NextResponse.json({ summary: "AI summarization is currently unavailable." });
   } catch (e: any) {
     console.error("[API Summarize Error]", e);
     return NextResponse.json(
