@@ -1,20 +1,33 @@
-
 "use server";
 
-import { db } from "@/lib/firebase/server";
-import { doc, setDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
+import { adminDb } from "@/firebase/server";
+import { FieldValue } from "firebase-admin/firestore";
 
-export async function updateRepCommission(repId: string, data: any) {
-  const ref = doc(db, "rep_commission", repId);
-  await setDoc(ref, { 
-    ...data, 
-    updatedAt: serverTimestamp() 
-  });
-  return { success: true };
-}
+export async function updateRepCommission(
+  repId: string,
+  data: {
+    rate?: number;
+    overrides?: {
+      enterprise?: number;
+      [key: string]: any;
+    };
+    [key: string]: any;
+  },
+) {
+  if (!repId) {
+    throw new Error("repId is required");
+  }
 
-export async function removeRepCommissionOverride(repId: string) {
-  const ref = doc(db, "rep_commission", repId);
-  await deleteDoc(ref);
+  await adminDb
+    .collection("rep_commission")
+    .doc(repId)
+    .set(
+      {
+        ...data,
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
+
   return { success: true };
 }
