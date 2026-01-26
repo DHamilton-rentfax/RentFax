@@ -1,272 +1,155 @@
 "use server";
 
-import { headers } from "next/headers";
-import { adminAuth } from "@/firebase/server";
+// IMPORTANT: This file is now stubbed to remove all Genkit dependencies.
+// The original logic is preserved in src/_legacy_ai
+// All AI logic should be re-implemented through the new /src/lib/ai service layer.
 
 /* =========================
-   AI FLOWS
+   TYPE DEFINITIONS (STUBBED)
 ========================= */
 
-import { whoAmI as whoAmIFlow, type WhoAmIOutput } from "@/ai/flows/who-am-i";
+// These types are simplified to ensure API contracts are met without Genkit.
+export type WhoAmIOutput = { role: string | null; companyId: string | null; };
+export type SetUserClaimsOutput = { success: boolean; };
+export type CreateCompanyOutput = { companyId: string; };
+export type CreateInviteOutput = { inviteId: string; };
+export type AcceptInviteOutput = { success: boolean; };
+export type UpsertRenterOutput = { renterId: string; };
+export type ImportRentersOutput = { success: boolean; errors: any[]; };
+export type UpsertRentalOutput = { rentalId: string; };
+export type DeleteRentalOutput = { success: boolean; };
+export type CreateIncidentOutput = { incidentId: string; };
+export type RecomputeScoreOutput = { score: number; };
+export type StartDisputeOutput = { disputeId: string; };
+export type PostDisputeMessageOutput = { messageId: string; };
+export type UpdateDisputeStatusOutput = { success: boolean; };
+export type SeedStagingOutput = { success: boolean; };
+export type HealthOutput = { status: string; };
+export type DetectFraudSignalsInput = { [key: string]: any; };
+export type DetectFraudSignalsOutput = { score: number; flags: string[]; };
+export type CompanySettings = { [key: string]: any; };
+export type UpdateCompanySettingsInput = { [key: string]: any; };
+export type RenterType = { [key: string]: any; };
+export type UpsertRentalInput = { [key: string]: any; };
+export type DeleteRentalInput = { [key: string]: any; };
+export type CreateIncidentInput = { [key: string]: any; };
+export type RecomputeScoreInput = { [key: string]: any; };
+export type StartDisputeInput = { [key: string]: any; };
+export type PostDisputeMessageInput = { [key: string]: any; };
+export type UpdateDisputeStatusInput = { [key: string]: any; };
+export type SeedStagingInput = { [key: string]: any; };
+export type CreateInviteInput = { [key: string]: any; };
+export type AcceptInviteInput = { [key: string]: any; };
+export type CreateCompanyInput = { [key: string]: any; };
+export type SetUserClaimsInput = { [key: string]: any; };
+export type ImportRentersInput = { [key: string]: any; };
 
-import {
-  setUserClaims as setUserClaimsFlow,
-  type SetUserClaimsInput,
-  type SetUserClaimsOutput,
-} from "@/ai/flows/set-user-claims";
-
-import {
-  createCompany as createCompanyFlow,
-  type CreateCompanyInput,
-  type CreateCompanyOutput,
-} from "@/ai/flows/create-company";
-
-import {
-  createInvite as createInviteFlow,
-  acceptInvite as acceptInviteFlow,
-  type CreateInviteInput,
-  type CreateInviteOutput,
-  type AcceptInviteInput,
-  type AcceptInviteOutput,
-} from "@/ai/flows/invites";
-
-import {
-  upsertRental as upsertRentalFlow,
-  deleteRental as deleteRentalFlow,
-  type UpsertRentalInput,
-  type UpsertRentalOutput,
-  type DeleteRentalInput,
-  type DeleteRentalOutput,
-} from "@/ai/flows/rentals";
-
-import {
-  upsertRenter as upsertRenterFlow,
-  importRenters as importRentersFlow,
-  type Renter as RenterType,
-  type UpsertRenterOutput,
-  type ImportRentersInput,
-  type ImportRentersOutput,
-} from "@/ai/flows/renters";
-
-import {
-  createIncident as createIncidentFlow,
-  type CreateIncidentInput,
-  type CreateIncidentOutput,
-} from "@/ai/flows/incidents";
-
-import {
-  recomputeRenterScore as recomputeRenterScoreFlow,
-  type RecomputeScoreInput,
-  type RecomputeScoreOutput,
-} from "@/ai/flows/risk-scorer";
-
-import {
-  startDispute as startDisputeFlow,
-  postDisputeMessage as postDisputeMessageFlow,
-  updateDisputeStatus as updateDisputeStatusFlow,
-  type StartDisputeInput,
-  type StartDisputeOutput,
-  type PostDisputeMessageInput,
-  type PostDisputeMessageOutput,
-  type UpdateDisputeStatusInput,
-  type UpdateDisputeStatusOutput,
-} from "@/ai/flows/disputes";
-
-import {
-  seedStaging as seedStagingFlow,
-  type SeedStagingInput,
-  type SeedStagingOutput,
-} from "@/ai/flows/seed";
-
-import { health as healthFlow, type HealthOutput } from "@/ai/flows/health";
-import { startAIAssistantFlow } from "@/ai/flows/ai-assistant";
-
-/* ✅ CORRECT FRAUD FLOW IMPORT */
-import { fraudDetector as detectFraudSignalsFlow } from "@/ai/flows/fraud-detector";
-
-import {
-  getCompanySettings as getCompanySettingsFlow,
-  updateCompanySettings as updateCompanySettingsFlow,
-  type CompanySettings,
-  type UpdateCompanySettingsInput,
-} from "@/ai/flows/settings";
 
 /* =========================
-   AUTH HELPER
-========================= */
-
-async function getAuth(): Promise<any | undefined> {
-  const authorization = headers().get("Authorization");
-
-  if (!authorization?.startsWith("Bearer ")) return;
-
-  const idToken = authorization.substring(7);
-  const decoded = await adminAuth.verifyIdToken(idToken);
-
-  return {
-    uid: decoded.uid,
-    claims: decoded,
-    scopes: [],
-  };
-}
-
-/* =========================
-   STANDARD ACTIONS
+   STUBBED ACTIONS
 ========================= */
 
 export async function whoAmI(): Promise<WhoAmIOutput> {
-  const auth = await getAuth();
-  return whoAmIFlow(auth);
+  console.log("STUB: whoAmI called");
+  return { role: null, companyId: null };
 }
 
-export async function setUserClaims(
-  params: SetUserClaimsInput,
-): Promise<SetUserClaimsOutput> {
-  const auth = await getAuth();
-  return setUserClaimsFlow(params, auth);
+export async function setUserClaims(params: SetUserClaimsInput): Promise<SetUserClaimsOutput> {
+  console.log("STUB: setUserClaims called with:", params);
+  return { success: true };
 }
 
-export async function createCompany(
-  params: CreateCompanyInput,
-): Promise<CreateCompanyOutput> {
-  const auth = await getAuth();
-  return createCompanyFlow(params, auth);
+export async function createCompany(params: CreateCompanyInput): Promise<CreateCompanyOutput> {
+  console.log("STUB: createCompany called with:", params);
+  return { companyId: "stub_company_id" };
 }
 
-export async function createInvite(
-  params: CreateInviteInput,
-): Promise<CreateInviteOutput> {
-  const auth = await getAuth();
-  return createInviteFlow(params, auth);
+export async function createInvite(params: CreateInviteInput): Promise<CreateInviteOutput> {
+  console.log("STUB: createInvite called with:", params);
+  return { inviteId: "stub_invite_id" };
 }
 
-export async function acceptInvite(
-  params: AcceptInviteInput,
-): Promise<AcceptInviteOutput> {
-  const auth = await getAuth();
-  return acceptInviteFlow(params, auth);
+export async function acceptInvite(params: AcceptInviteInput): Promise<AcceptInviteOutput> {
+  console.log("STUB: acceptInvite called with:", params);
+  return { success: true };
 }
 
-export async function upsertRenter(
-  params: RenterType,
-): Promise<UpsertRenterOutput> {
-  const auth = await getAuth();
-  return upsertRenterFlow(params, auth);
+export async function upsertRenter(params: RenterType): Promise<UpsertRenterOutput> {
+  console.log("STUB: upsertRenter called with:", params);
+  return { renterId: "stub_renter_id" };
 }
 
-export async function importRenters(
-  params: ImportRentersInput,
-): Promise<ImportRentersOutput> {
-  const auth = await getAuth();
-  return importRentersFlow(params, auth);
+export async function importRenters(params: ImportRentersInput): Promise<ImportRentersOutput> {
+  console.log("STUB: importRenters called with:", params);
+  return { success: true, errors: [] };
 }
 
-export async function upsertRental(
-  params: UpsertRentalInput,
-): Promise<UpsertRentalOutput> {
-  const auth = await getAuth();
-  return upsertRentalFlow(params, auth);
+export async function upsertRental(params: UpsertRentalInput): Promise<UpsertRentalOutput> {
+  console.log("STUB: upsertRental called with:", params);
+  return { rentalId: "stub_rental_id" };
 }
 
-export async function deleteRental(
-  params: DeleteRentalInput,
-): Promise<DeleteRentalOutput> {
-  const auth = await getAuth();
-  return deleteRentalFlow(params, auth);
+export async function deleteRental(params: DeleteRentalInput): Promise<DeleteRentalOutput> {
+  console.log("STUB: deleteRental called with:", params);
+  return { success: true };
 }
 
-export async function createIncident(
-  params: CreateIncidentInput,
-): Promise<CreateIncidentOutput> {
-  const auth = await getAuth();
-  return createIncidentFlow(params, auth);
+export async function createIncident(params: CreateIncidentInput): Promise<CreateIncidentOutput> {
+  console.log("STUB: createIncident called with:", params);
+  return { incidentId: "stub_incident_id" };
 }
 
-export async function recomputeRenterScore(
-  params: RecomputeScoreInput,
-): Promise<RecomputeScoreOutput> {
-  const auth = await getAuth();
-  return recomputeRenterScoreFlow(params, auth);
+export async function recomputeRenterScore(params: RecomputeScoreInput): Promise<RecomputeScoreOutput> {
+  console.log("STUB: recomputeRenterScore called with:", params);
+  return { score: 0 };
 }
 
-export async function startDispute(
-  params: StartDisputeInput,
-): Promise<StartDisputeOutput> {
-  const auth = await getAuth();
-  return startDisputeFlow(params, auth);
+export async function startDispute(params: StartDisputeInput): Promise<StartDisputeOutput> {
+  console.log("STUB: startDispute called with:", params);
+  return { disputeId: "stub_dispute_id" };
 }
 
-export async function postDisputeMessage(
-  params: PostDisputeMessageInput,
-): Promise<PostDisputeMessageOutput> {
-  const auth = await getAuth();
-  return postDisputeMessageFlow(params, auth);
+export async function postDisputeMessage(params: PostDisputeMessageInput): Promise<PostDisputeMessageOutput> {
+  console.log("STUB: postDisputeMessage called with:", params);
+  return { messageId: "stub_message_id" };
 }
 
-export async function updateDisputeStatus(
-  params: UpdateDisputeStatusInput,
-): Promise<UpdateDisputeStatusOutput> {
-  const auth = await getAuth();
-  return updateDisputeStatusFlow(params, auth);
+export async function updateDisputeStatus(params: UpdateDisputeStatusInput): Promise<UpdateDisputeStatusOutput> {
+  console.log("STUB: updateDisputeStatus called with:", params);
+  return { success: true };
 }
 
-export async function seedStaging(
-  params: SeedStagingInput,
-): Promise<SeedStagingOutput> {
-  const auth = await getAuth();
-  return seedStagingFlow(params, auth);
+export async function seedStaging(params: SeedStagingInput): Promise<SeedStagingOutput> {
+  console.log("STUB: seedStaging called with:", params);
+  return { success: true };
 }
 
 export async function health(): Promise<HealthOutput> {
-  return healthFlow();
+  console.log("STUB: health called");
+  return { status: "ok" };
 }
 
 export async function startAIAssistant(input: string): Promise<any> {
-  const auth = await getAuth();
-  return startAIAssistantFlow(auth, input);
-}
-
-/* =========================
-   ✅ FRAUD DETECTION (FIXED)
-========================= */
-
-export type DetectFraudSignalsInput = {
-  renterId?: string;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  address?: string;
-  [key: string]: any;
-};
-
-export type DetectFraudSignalsOutput = {
-  score: number;
-  flags: string[];
-};
-
-export async function detectFraudSignals(
-  params: DetectFraudSignalsInput,
-): Promise<DetectFraudSignalsOutput> {
-  const flags = await detectFraudSignalsFlow(params);
-
+  console.log("STUB: startAIAssistant called with:", input);
   return {
-    score: flags.length > 0 ? 50 : 0,
-    flags,
+    message: "AI assistant temporarily unavailable",
   };
 }
 
-/* =========================
-   SETTINGS
-========================= */
-
-export async function getCompanySettings(): Promise<CompanySettings | null> {
-  const auth = await getAuth();
-  return getCompanySettingsFlow(auth);
+export async function detectFraudSignals(params: DetectFraudSignalsInput): Promise<DetectFraudSignalsOutput> {
+  console.log("STUB: detectFraudSignals called with:", params);
+  return {
+    score: 0,
+    flags: [],
+  };
 }
 
-export async function updateCompanySettings(
-  params: UpdateCompanySettingsInput,
-): Promise<void> {
-  const auth = await getAuth();
-  return updateCompanySettingsFlow(params, auth);
+export async function getCompanySettings(): Promise<CompanySettings | null> {
+  console.log("STUB: getCompanySettings called");
+  return {};
+}
+
+export async function updateCompanySettings(params: UpdateCompanySettingsInput): Promise<void> {
+  console.log("STUB: updateCompanySettings called with:", params);
+  return;
 }
