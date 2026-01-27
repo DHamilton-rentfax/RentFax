@@ -3,8 +3,8 @@
 // Location: src/app/api/rentals/end/route.ts
 // ===========================================
 import { NextResponse } from "next/server";
-import { db } from "@/firebase/server";
-import { collection, addDoc, doc, updateDoc, getDoc, Timestamp } from "firebase/firestore";
+import { adminDb } from "@/firebase/server";
+import { FieldValue } from "firebase-admin/firestore";
 
 export async function POST(req: Request) {
   try {
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Missing required data" }, { status: 400 });
 
     // Create new rental review
-    const reviewRef = await addDoc(collection(db, "rentalReviews"), {
+    const reviewRef = await adminDb.collection("rentalReviews").add({
       renterRef: renterId,
       propertyRef: propertyId || null,
       submittedBy: userId,
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
       communicationScore: scores.communication,
       damageReported: scores.damageReported,
       comments,
-      createdAt: Timestamp.now(),
+      createdAt: FieldValue.serverTimestamp(),
     });
 
     // Calculate average score
@@ -32,17 +32,17 @@ export async function POST(req: Request) {
       (scores.damageReported ? 1 : 0);
 
     // Update renter profile behavior score
-    const renterRef = doc(db, "renterProfiles", renterId);
-    const renterSnap = await getDoc(renterRef);
+    const renterRef = adminDb.collection("renterProfiles").doc(renterId);
+    const renterSnap = await renterRef.get();
     const existing = renterSnap.data();
 
     const newBehaviorScore = existing?.behaviorScore
       ? Math.round((existing.behaviorScore + avgScore) / 2)
       : avgScore;
 
-    await updateDoc(renterRef, {
+    await renterRef.update({
       behaviorScore: newBehaviorScore,
-      lastBehaviorUpdate: Timestamp.now(),
+      lastBehaviorUpdate: FieldValue.serverTimestamp(),
     });
 
     // Return summary

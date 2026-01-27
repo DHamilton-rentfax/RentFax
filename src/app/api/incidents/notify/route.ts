@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
       return new NextResponse("Missing id", { status: 400 });
     }
 
-    const incidentDoc = await db.collection("incidents").doc(id).get();
+    const incidentDoc = await adminDb.collection("incidents").doc(id).get();
     if (!incidentDoc.exists) {
       return new NextResponse("Incident not found", { status: 404 });
     }

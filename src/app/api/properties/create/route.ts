@@ -1,6 +1,8 @@
+import { FieldValue } from "firebase-admin/firestore";
+
 import { NextResponse } from "next/server";
 import { adminDb } from "@/firebase/server";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+
 
 export async function POST(req: Request) {
   const { name, address } = await req.json();
@@ -10,8 +12,8 @@ export async function POST(req: Request) {
     tenantId,
     name,
     address,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp()
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp()
   });
 
   return NextResponse.json({ success: true });

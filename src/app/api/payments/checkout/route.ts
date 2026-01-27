@@ -1,5 +1,8 @@
+import { FieldValue } from "firebase-admin/firestore";
+
+import { adminDb } from "@/firebase/server";
 import { NextRequest, NextResponse } from "next/server";
-import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+
 import { adminDb } from "@/lib/server/firebase-admin";
 import { getUserFromSessionCookie } from "@/lib/auth/getUserFromSessionCookie";
 import { stripe } from "@/lib/stripe/server"; // Assumes a configured Stripe client
@@ -71,7 +74,7 @@ export async function POST(req: NextRequest) {
     // Associate the Stripe session with our intent for webhook reconciliation
     await updateDoc(intentRef, {
       stripeSessionId: stripeSession.id,
-      updatedAt: serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     });
 
     // Redirect user to Stripe

@@ -1,7 +1,9 @@
+import { FieldValue } from "firebase-admin/firestore";
+
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { adminDb } from "@/firebase/server";
-import { doc, setDoc } from "firebase/firestore";
+
 
 export async function POST(req: Request) {
   const { renterId, userId } = await req.json();

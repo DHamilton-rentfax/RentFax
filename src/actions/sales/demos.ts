@@ -1,15 +1,15 @@
 "use server";
 
-import { db } from "@/lib/firebase/server";
-import { collection, doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { adminDb } from "@/firebase/server";
+import { FieldValue } from "firebase-admin/firestore";
 import { logActivity } from "./activities";
 
 export async function scheduleDemo(data: any) {
-  const ref = doc(collection(db, "demos"));
+  const ref = adminDb.collection("demos").doc();
 
-  await setDoc(ref, {
+  await ref.set({
     ...data,
-    createdAt: serverTimestamp(),
+    createdAt: FieldValue.serverTimestamp(),
   });
 
   // Log activity

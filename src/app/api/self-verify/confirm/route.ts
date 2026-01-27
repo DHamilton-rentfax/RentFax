@@ -1,11 +1,8 @@
+import { FieldValue } from "firebase-admin/firestore";
+
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/firebase/server";
-import {
-  getDoc,
-  doc,
-  updateDoc,
-  serverTimestamp,
-} from "firebase/firestore";
+
 
 type Decision = "CONFIRMED" | "DENIED" | "UNKNOWN";
 
@@ -56,7 +53,7 @@ export async function POST(req: NextRequest) {
     await updateDoc(ref, {
       used: true,
       decision,
-      decidedAt: serverTimestamp(),
+      decidedAt: FieldValue.serverTimestamp(),
       decidedIp: ip,
       decidedUserAgent: userAgent,
     });
@@ -66,7 +63,7 @@ export async function POST(req: NextRequest) {
       await updateDoc(doc(db, "renters", data.renterId), {
         fraudFlag: true,
         fraudReason: "RENTER_DENIED_SELF_VERIFICATION",
-        fraudAt: serverTimestamp(),
+        fraudAt: FieldValue.serverTimestamp(),
       });
     }
 
@@ -76,7 +73,7 @@ export async function POST(req: NextRequest) {
         verification: {
           status: decision === "CONFIRMED" ? "CONFIRMED" : "DENIED",
           verificationId: token,
-          decidedAt: serverTimestamp(),
+          decidedAt: FieldValue.serverTimestamp(),
         },
       });
     }

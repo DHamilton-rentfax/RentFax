@@ -1,23 +1,17 @@
 "use server";
 
-import { adminDb as db } from "@/firebase/server";
-import {
-  collection,
-  doc,
-  setDoc,
-  updateDoc,
-  serverTimestamp,
-} from "firebase/firestore";
+import { adminDb } from "@/firebase/server";
+import { FieldValue } from "firebase-admin/firestore";
 import { logActivity } from "./activities";
 
 export async function createDeal(data: any) {
-  const ref = doc(collection(db, "deals"));
-  await setDoc(ref, {
+  const ref = adminDb.collection("deals").doc();
+  await ref.set({
     ...data,
     stage: "new",
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-    lastActivityAt: serverTimestamp(),
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+    lastActivityAt: FieldValue.serverTimestamp(),
   });
 
   await logActivity({
@@ -30,23 +24,23 @@ export async function createDeal(data: any) {
 }
 
 export async function updateDeal(id: string, data: any) {
-  const ref = doc(db, "deals", id);
-  await updateDoc(ref, {
+  const ref = adminDb.collection("deals").doc(id);
+  await ref.update({
     ...data,
-    updatedAt: serverTimestamp(),
-    lastActivityAt: serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+    lastActivityAt: FieldValue.serverTimestamp(),
   });
 
   return { success: true };
 }
 
 export async function updateDealStage(dealId: string, stage: string) {
-  const ref = doc(db, "deals", dealId);
+  const ref = adminDb.collection("deals").doc(dealId);
 
-  await updateDoc(ref, {
+  await ref.update({
     stage,
-    updatedAt: serverTimestamp(),
-    lastActivityAt: serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+    lastActivityAt: FieldValue.serverTimestamp(),
   });
 
   return { success: true };

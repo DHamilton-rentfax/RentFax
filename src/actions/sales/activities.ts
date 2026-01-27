@@ -1,13 +1,13 @@
 "use server";
 
-import { db } from "@/lib/firebase/server";
-import { collection, doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { adminDb } from "@/firebase/server";
+import { FieldValue } from "firebase-admin/firestore";
 
 export async function logActivity(data: any) {
-  const ref = doc(collection(db, "activities"));
-  await setDoc(ref, {
+  const ref = adminDb.collection("activities").doc();
+  await ref.set({
     ...data,
-    timestamp: serverTimestamp(),
+    timestamp: FieldValue.serverTimestamp(),
   });
   return { id: ref.id };
 }

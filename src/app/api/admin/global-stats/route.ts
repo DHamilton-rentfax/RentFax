@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
 import { adminDb as db } from "@/firebase/server";
 export async function GET() {
-  const orgs = await db.collection("orgs").get();
+  const orgs = await adminDb.collection("orgs").get();
 
   let totalRenters = 0;
   let totalDisputes = 0;
   let fraudFlags = 0;
 
   for (const org of orgs.docs) {
-    const renters = await db.collection(`orgs/${org.id}/renters`).get();
-    const disputes = await db.collection(`orgs/${org.id}/disputes`).get();
+    const renters = await adminDb.collection(`orgs/${org.id}/renters`).get();
+    const disputes = await adminDb.collection(`orgs/${org.id}/disputes`).get();
     const flagged = renters.docs.filter(
       (d) => d.get("fraudFlag") === true,
     ).length;
@@ -70,7 +70,7 @@ export async function GET() {
   const orgIds = Object.keys(orgEngagement);
   if (orgIds.length) {
     const orgDocs = await db.getAll(
-      ...orgIds.map((id) => db.collection("orgs").doc(id)),
+      ...orgIds.map((id) => adminDb.collection("orgs").doc(id)),
     );
     orgDocs.forEach((doc) => {
       if (doc.exists) orgsData[doc.id] = doc.data();

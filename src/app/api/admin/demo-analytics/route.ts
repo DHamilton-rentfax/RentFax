@@ -4,7 +4,7 @@ import { adminDb as db } from "@/firebase/server"; // ✅ fixed import path
 export async function GET() {
   try {
     // Example Firestore query
-    const snapshot = await db.collection("demo_analytics").get();
+    const snapshot = await adminDb.collection("demo_analytics").get();
 
     const data = snapshot.docs.map((doc) => ({
       id: doc.id,

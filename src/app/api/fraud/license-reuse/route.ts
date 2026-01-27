@@ -1,6 +1,8 @@
+import { FieldValue } from "firebase-admin/firestore";
+
 import { NextResponse } from "next/server";
 import { db } from "@/firebase/server";
-import { doc, getDoc, setDoc, updateDoc, arrayUnion } from "firebase/firestore";
+
 import { hashLicense } from "@/lib/fraud/hashLicense";
 import { detectLicenseReuse } from "@/lib/fraud/signals/licenseReuseSignal";
 

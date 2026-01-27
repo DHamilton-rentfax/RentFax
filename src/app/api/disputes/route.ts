@@ -1,13 +1,6 @@
 import { NextResponse } from "next/server";
-import { db } from "@/firebase/server";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  addDoc,
-  Timestamp,
-} from "firebase/firestore";
+import { adminDb } from "@/firebase/server";
+import { FieldValue } from "firebase-admin/firestore";
 
 // GET - list disputes depending on role
 export async function GET() {
@@ -15,11 +8,11 @@ export async function GET() {
   // if (!user)
     // return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const disputesRef = collection(db, "disputes");
+  const disputesRef = adminDb.collection("disputes");
 
-  const q = query(disputesRef);
+  const q = disputesRef;
 
-  const snapshot = await getDocs(q);
+  const snapshot = await q.get();
   const disputes = snapshot.docs.map((doc) => ({
     id: doc.id,
     ...doc.data(),
@@ -40,14 +33,14 @@ export async function POST(request: Request) {
   if (!renterId || !reportId || !description)
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
 
-  const docRef = await addDoc(collection(db, "disputes"), {
+  const docRef = await adminDb.collection("disputes").add({
     renterId,
     reportId,
     description,
     evidenceUrls,
     status: "pending",
     // createdBy: user.uid,
-    createdAt: Timestamp.now(),
+    createdAt: FieldValue.serverTimestamp(),
   });
 
   return NextResponse.json({ id: docRef.id, success: true });

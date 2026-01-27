@@ -1,3 +1,6 @@
+import { FieldValue } from "firebase-admin/firestore";
+
+import { adminDb } from "@/firebase/server";
 
 // ===========================================
 // RentFAX | Monthly Credit Reset Function
@@ -5,7 +8,7 @@
 // ===========================================
 
 import * as functions from "firebase-functions";
-import { getFirestore, collection, getDocs, writeBatch } from "firebase/firestore";
+
 
 export const monthlyCreditReset = functions.pubsub
     .schedule('0 0 1 * *') // Runs on the 1st of every month at midnight

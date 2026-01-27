@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/firebase/server";
-import { doc, getDoc } from "firebase/firestore";
+import { adminDb } from "@/firebase/server";
 import { PDFDocument, StandardFonts } from "pdf-lib";
 
 export async function GET(req: NextRequest) {
@@ -11,8 +10,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Missing reportId" }, { status: 400 });
   }
 
-  const reportSnap = await getDoc(doc(db, "reports", reportId));
-  if (!reportSnap.exists()) {
+  const reportSnap = await adminDb.collection("reports").doc(reportId).get();
+  if (!reportSnap.exists) {
     return NextResponse.json({ error: "Report not found" }, { status: 404 });
   }
 
@@ -32,7 +31,7 @@ Renter Verification Status:
 ${verification?.status ?? "UNKNOWN"}
 
 Decision Date:
-${verification?.decidedAt?.toDate?.()?.toISOString() ?? "N/A"}
+${new Date(verification?.decidedAt?._seconds * 1000)?.toISOString() ?? "N/A"}
 
 This affidavit certifies that the renter ${
     verification?.status === "CONFIRMED"

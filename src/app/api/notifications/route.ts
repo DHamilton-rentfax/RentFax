@@ -1,13 +1,8 @@
+import { FieldValue } from "firebase-admin/firestore";
+
 import { NextResponse } from "next/server";
 import { db } from "@/firebase/server";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  addDoc,
-  Timestamp,
-} from "firebase/firestore";
+
 
 // GET - fetch user notifications
 export async function GET() {
@@ -45,7 +40,7 @@ export async function POST(request: Request) {
     type,
     read: false,
     // createdBy: user.uid,
-    createdAt: Timestamp.now(),
+    createdAt: FieldValue.serverTimestamp(),
   });
 
   return NextResponse.json({ id: docRef.id, success: true });

@@ -1,6 +1,8 @@
+import { FieldValue } from "firebase-admin/firestore";
+
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/firebase/server";
-import { getDoc, doc } from "firebase/firestore";
+
 
 export async function POST(req: NextRequest) {
   try {

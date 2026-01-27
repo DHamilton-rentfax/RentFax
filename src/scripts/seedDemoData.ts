@@ -1,4 +1,7 @@
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { FieldValue } from "firebase-admin/firestore";
+
+import { adminDb } from "@/firebase/server";
+
 
 import { db } from "@/firebase/client";
 
@@ -14,7 +17,7 @@ export async function seedDemoData() {
       ...r,
       role: "renter",
       plan: "pro",
-      createdAt: serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
     });
   }
 
@@ -36,7 +39,7 @@ export async function seedDemoData() {
   for (const d of disputes) {
     await addDoc(collection(db, "disputes"), {
       ...d,
-      createdAt: serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
     });
   }
 }

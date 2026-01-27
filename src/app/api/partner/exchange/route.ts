@@ -1,6 +1,8 @@
+import { FieldValue } from "firebase-admin/firestore";
+
 import { NextResponse } from "next/server";
 import { db } from "@/firebase/server";
-import { collection, addDoc, doc, updateDoc, getDoc } from "firebase/firestore";
+
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 

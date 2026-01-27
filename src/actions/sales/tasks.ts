@@ -1,25 +1,25 @@
 "use server";
 
-import { db } from "@/lib/firebase/server";
-import { collection, doc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { adminDb } from "@/firebase/server";
+import { FieldValue } from "firebase-admin/firestore";
 
 // CREATE TASK
 export async function createTask(data: any) {
-  const ref = doc(collection(db, "tasks"));
-  await setDoc(ref, {
+  const ref = adminDb.collection("tasks").doc();
+  await ref.set({
     ...data,
     status: "open",
-    createdAt: serverTimestamp(),
+    createdAt: FieldValue.serverTimestamp(),
   });
   return { id: ref.id };
 }
 
 // COMPLETE TASK
 export async function completeTask(taskId: string) {
-  const ref = doc(db, "tasks", taskId);
-  await updateDoc(ref, {
+  const ref = adminDb.collection("tasks").doc(taskId);
+  await ref.update({
     status: "completed",
-    completedAt: serverTimestamp(),
+    completedAt: FieldValue.serverTimestamp(),
   });
   return { success: true };
 }

@@ -1,5 +1,7 @@
+import { FieldValue } from "firebase-admin/firestore";
+
 import { NextResponse } from "next/server";
-import { collection, addDoc, serverTimestamp, updateDoc, doc } from "firebase/firestore";
+
 import { db } from "@/firebase/server";
 import { verifySession } from "@/lib/auth/verifySession";
 
@@ -47,15 +49,15 @@ export async function POST(req: Request) {
       },
 
       status: "pending",
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     });
 
     // 🔓 INTERNAL COMPANY BYPASS
     if (session.companyBillingMode === "INTERNAL") {
       await updateDoc(doc(db, "payment_intents", intentRef.id), {
         status: "bypassed",
-        completedAt: serverTimestamp(),
+        completedAt: FieldValue.serverTimestamp(),
       });
 
       return NextResponse.json({

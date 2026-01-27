@@ -1,6 +1,9 @@
+import { FieldValue } from "firebase-admin/firestore";
+
+import { adminDb } from "@/firebase/server";
 
 import { db } from "@/firebase/client";
-import { collection, getDocs } from "firebase/firestore";
+
 import { NextResponse } from "next/server";
 import normalizePhone from "libphonenumber-js/max";
 

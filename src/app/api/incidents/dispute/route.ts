@@ -15,10 +15,10 @@ export async function POST(req: NextRequest) {
       createdAt: new Date(),
     };
 
-    await db.collection("disputes").add(dispute);
+    await adminDb.collection("disputes").add(dispute);
 
     // Also update the incident status to 'disputed'
-    await db.collection("incidents").doc(id).update({ status: "disputed" });
+    await adminDb.collection("incidents").doc(id).update({ status: "disputed" });
 
     return new NextResponse("Dispute submitted successfully", { status: 200 });
   } catch (error) {

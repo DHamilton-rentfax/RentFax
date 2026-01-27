@@ -1,11 +1,13 @@
+import { FieldValue } from "firebase-admin/firestore";
 
 // ===========================================
 // RentFAX | Re-Verification API
 // Location: src/app/api/report/reverify/route.ts
 // ===========================================
+
 import { NextResponse } from "next/server";
 import { db } from "@/firebase/server";
-import { doc, getDoc, updateDoc, Timestamp } from "firebase/firestore";
+
 import { randomUUID } from "crypto";
 
 // Fictional external identity verification service
@@ -69,7 +71,7 @@ export async function POST(req: Request) {
 
     // 🔹 3. Update renter profile with fresh data
     await updateDoc(renterRef, {
-      lastVerified: Timestamp.now(),
+      lastVerified: FieldValue.serverTimestamp(),
       needsReverify: false,
       riskScore: verifyData.riskProfile.fraudScore,
       lastVerificationProvider: "AcmeIdentity",
@@ -78,7 +80,7 @@ export async function POST(req: Request) {
 
     // 🔹 4. Log re-verification event for the user
     await updateDoc(doc(db, "users", userId), {
-      lastVerificationRun: Timestamp.now(),
+      lastVerificationRun: FieldValue.serverTimestamp(),
       // Optionally, you could store more details about the verification run
     });
 

@@ -1,10 +1,12 @@
+import { FieldValue } from "firebase-admin/firestore";
 // ===========================================
 // RentFAX | Create Report Intent
 // Location: src/app/api/report/intent/create/route.ts
 // ===========================================
+
 import { NextResponse } from "next/server";
 import { db } from "@/firebase/server";
-import { collection, addDoc, Timestamp } from "firebase/firestore";
+
 
 export async function POST(req: Request) {
   try {
@@ -19,7 +21,7 @@ export async function POST(req: Request) {
       license,
       match,
       renterId: renterId || null,
-      createdAt: Timestamp.now(),
+      createdAt: FieldValue.serverTimestamp(),
       converted: false,
     });
 

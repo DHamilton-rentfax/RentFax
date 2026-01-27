@@ -1,5 +1,7 @@
+import { FieldValue } from "firebase-admin/firestore";
+
 import { NextResponse } from "next/server";
-import { adminDb as db } from "@/firebase/server";import { serverTimestamp } from "firebase/firestore";
+import { adminDb as db } from "@/firebase/server";
 
 export async function POST(req: Request) {
   try {
@@ -11,13 +13,13 @@ export async function POST(req: Request) {
       );
     }
 
-    await db.collection("notifications").add({
+    await adminDb.collection("notifications").add({
       userId,
       type,
       message,
       link: link || null,
       read: false,
-      createdAt: serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
     });
 
     return NextResponse.json({ success: true });

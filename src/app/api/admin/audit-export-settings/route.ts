@@ -42,7 +42,7 @@ export async function POST(req: Request) {
 
     const { enabled, frequency, recipients } = await req.json();
 
-    await db.collection("settings").doc("auditExports").set(
+    await adminDb.collection("settings").doc("auditExports").set(
       {
         enabled,
         frequency,

@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   if (!code)
     return NextResponse.json({ error: "Missing code" }, { status: 400 });
 
-  const ref = await db.collection("affiliates").doc(code).get();
+  const ref = await adminDb.collection("affiliates").doc(code).get();
   if (!ref.exists) {
     return NextResponse.json({ error: "Invalid code" }, { status: 404 });
   }

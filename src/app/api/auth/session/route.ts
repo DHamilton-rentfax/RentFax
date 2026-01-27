@@ -1,3 +1,4 @@
+import { adminDb } from "@/firebase/server";
 
 import { NextResponse } from "next/server";
 import admin from "firebase-admin";
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
     const uid = decoded.uid;
 
     // Fetch user's plan from Firestore
-    const userRef = db.collection("users").doc(uid);
+    const userRef = adminDb.collection("users").doc(uid);
     const snap = await userRef.get();
     const plan = snap.exists ? snap.data()?.plan || "free" : "free";
 

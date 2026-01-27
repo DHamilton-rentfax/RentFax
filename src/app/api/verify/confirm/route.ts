@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const tokenRef = db.collection("verificationTokens").doc(token);
+  const tokenRef = adminDb.collection("verificationTokens").doc(token);
   const snap = await tokenRef.get();
 
   if (!snap.exists) {
@@ -30,13 +30,13 @@ export async function POST(req: Request) {
     status: decision === "confirm" ? "confirmed" : "denied_unrecognized",
   });
 
-  await db.collection("reports").doc(data.reportId).update({
+  await adminDb.collection("reports").doc(data.reportId).update({
     verificationStatus:
       decision === "confirm" ? "confirmed" : "denied_unrecognized",
     disputeAllowed: decision === "confirm",
   });
 
-  await db.collection("auditLogs").add({
+  await adminDb.collection("auditLogs").add({
     actorType: "renter",
     action:
       decision === "confirm"

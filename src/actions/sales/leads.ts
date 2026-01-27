@@ -1,25 +1,25 @@
 "use server";
 
-import { adminDb as db } from "@/firebase/server";
-import { collection, doc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { adminDb } from "@/firebase/server";
+import { FieldValue } from "firebase-admin/firestore";
 
 export async function createLead(data: any) {
-  const ref = doc(collection(db, "leads"));
-  await setDoc(ref, {
+  const ref = adminDb.collection("leads").doc();
+  await ref.set({
     ...data,
     status: "new",
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
   });
 
   return { id: ref.id };
 }
 
 export async function updateLead(id: string, data: any) {
-  const ref = doc(db, "leads", id);
-  await updateDoc(ref, {
+  const ref = adminDb.collection("leads").doc(id);
+  await ref.update({
     ...data,
-    updatedAt: serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
   });
 
   return { success: true };

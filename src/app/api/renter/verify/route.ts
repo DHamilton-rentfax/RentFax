@@ -1,7 +1,9 @@
+import { FieldValue } from "firebase-admin/firestore";
+
 import { NextResponse } from "next/server";
 import { db, storage } from "@/firebase/server";
 import { ref, uploadBytes } from "firebase/storage";
-import { doc, updateDoc } from "firebase/firestore";
+
 
 export async function POST(req: Request) {
   const data = await req.formData();

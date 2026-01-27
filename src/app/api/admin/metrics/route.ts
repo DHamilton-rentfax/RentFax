@@ -1,11 +1,7 @@
+import { FieldValue } from "firebase-admin/firestore";
+
 import { NextResponse } from "next/server";
-import {
-  collection,
-  getCountFromServer,
-  getDocs,
-  query,
-  where,
-} from "firebase/firestore";
+
 import { adminDb } from "@/firebase/server";
 
 export async function GET() {

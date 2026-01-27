@@ -25,9 +25,9 @@ export async function GET() {
     });
 
     // optional Firestore cache
-    // const batch = db.batch();
+    // const batch = adminDb.batch();
     // formatted.forEach((f) => {
-    //   const ref = db.collection("stripe_catalog").doc(f.id);
+    //   const ref = adminDb.collection("stripe_catalog").doc(f.id);
     //   batch.set(ref, f);
     // });
     // await batch.commit();

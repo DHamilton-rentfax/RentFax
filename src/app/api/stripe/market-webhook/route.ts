@@ -1,13 +1,7 @@
+import { FieldValue } from "firebase-admin/firestore";
+
 import { db } from "@/firebase/server";
-import {
-  collection,
-  addDoc,
-  query,
-  where,
-  getDocs,
-  updateDoc,
-  doc,
-} from "firebase/firestore";
+
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);

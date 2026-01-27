@@ -3,13 +3,13 @@ import { adminDb as db } from "@/firebase/server";
 import { sendEmail } from "@/lib/email/resend";
 
 export async function GET() {
-  const runRef = db.collection("digestRuns").doc();
+  const runRef = adminDb.collection("digestRuns").doc();
   const logs: any[] = [];
 
   let totalSent = 0;
   let totalFailed = 0;
 
-  const usersSnap = await db.collection("users").get();
+  const usersSnap = await adminDb.collection("users").get();
   for (const user of usersSnap.docs) {
     const prefs = user.get("notificationPrefs") || {};
     if (!prefs.digest?.enabled) continue;

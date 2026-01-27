@@ -1,13 +1,5 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "@/firebase/server";
-import {
-  doc,
-  getDoc,
-  collection,
-  query,
-  where,
-  getDocs,
-} from "firebase/firestore";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 
 export const dynamic = "force-dynamic";
@@ -15,23 +7,20 @@ export const runtime = "nodejs";
 
 async function buildReportPdf(reportId: string) {
   // Fetch report
-  const reportRef = doc(db, "reports", reportId);
-  const reportSnap = await getDoc(reportRef);
-  if (!reportSnap.exists()) throw new Error("Report not found");
+  const reportRef = adminDb.collection("reports").doc(reportId);
+  const reportSnap = await reportRef.get();
+  if (!reportSnap.exists) throw new Error("Report not found");
   const report = reportSnap.data() as any;
 
   // Fetch renter
-  const renterRef = doc(db, "renters", report.renterId);
-  const renterSnap = await getDoc(renterRef);
-  const renter = renterSnap.exists() ? (renterSnap.data() as any) : null;
+  const renterRef = adminDb.collection("renters").doc(report.renterId);
+  const renterSnap = await renterRef.get();
+  const renter = renterSnap.exists ? (renterSnap.data() as any) : null;
 
   // Fetch incidents linked to this renter
-  const incidentsRef = collection(db, "incidents");
-  const incidentsQ = query(
-    incidentsRef,
-    where("renterId", "==", report.renterId)
-  );
-  const incidentsSnap = await getDocs(incidentsQ);
+  const incidentsRef = adminDb.collection("incidents");
+  const incidentsQ = incidentsRef.where("renterId", "==", report.renterId);
+  const incidentsSnap = await incidentsQ.get();
   const incidents = incidentsSnap.docs.map((d) => d.data() as any);
 
   const pdfDoc = await PDFDocument.create();

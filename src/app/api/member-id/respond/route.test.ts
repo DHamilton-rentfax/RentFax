@@ -2,7 +2,7 @@ import { POST } from "./route";
 import { adminDb } from "@/firebase/server";
 import { verifyApprovalToken } from "@/lib/memberId/generateApprovalToken";
 import { enqueueMemberIdNotification } from "@/lib/notifications/enqueueMemberIdNotification";
-import { firestore } from 'firebase-admin';
+
 
 // Mock dependencies (firebase-admin is now mocked globally in jest.setup.ts)
 jest.mock("@/firebase/server");

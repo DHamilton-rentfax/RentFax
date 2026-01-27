@@ -1,7 +1,9 @@
+import { FieldValue } from "firebase-admin/firestore";
+
 import { NextResponse } from "next/server";
 import { db, storage } from "@/firebase/server";
 import { ref, uploadBytes } from "firebase/storage";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+
 
 export async function POST(req: Request) {
   const form = await req.formData();
@@ -28,8 +30,8 @@ export async function POST(req: Request) {
     idFrontUrl: frontPath,
     idBackUrl: backPath,
     selfieUrl: selfiePath,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp()
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp()
   });
 
   return NextResponse.json({ success: true });

@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/firebase/server";
-import {
-  doc,
-  updateDoc,
-  arrayUnion,
-  increment,
-} from "firebase/firestore";
+import { adminDb } from "@/firebase/server";
+import { FieldValue } from "firebase-admin/firestore";
 
 import { hashLicense } from "@/lib/security/hashLicense";
 import { detectLicenseReuse } from "@/lib/fraud/detectLicenseReuse";
@@ -23,10 +18,10 @@ export async function POST(req: NextRequest) {
     }
 
     const licenseHash = hashLicense(licenseNumber);
-    const renterRef = doc(db, "renters", renterId);
-    const reportRef = doc(db, "reports", reportId);
+    const renterRef = adminDb.collection("renters").doc(renterId);
+    const reportRef = adminDb.collection("reports").doc(reportId);
 
-    await updateDoc(renterRef, { licenseHash });
+    await renterRef.update({ licenseHash });
 
     const reuse = await detectLicenseReuse(licenseHash, renterId);
 
@@ -36,9 +31,9 @@ export async function POST(req: NextRequest) {
         reuseCount: reuse.count,
       });
 
-      await updateDoc(reportRef, {
-        fraudSignals: arrayUnion(signal),
-        fraudScore: increment(25),
+      await reportRef.update({
+        fraudSignals: FieldValue.arrayUnion(signal),
+        fraudScore: FieldValue.increment(25),
         disputeLocked: true,
         flagged: true,
       });

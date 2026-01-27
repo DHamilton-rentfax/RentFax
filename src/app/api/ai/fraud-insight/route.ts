@@ -1,19 +1,13 @@
+import { FieldValue } from "firebase-admin/firestore";
 // ===========================================
 // RentFAX | AI Fraud Insight Generator
 // Location: src/app/api/ai/fraud-insight/route.ts
 // ===========================================
 
+
 import { NextResponse } from "next/server";
 import { db } from "@/firebase/server";
-import {
-  doc,
-  getDoc,
-  collection,
-  query,
-  where,
-  getDocs,
-  updateDoc,
-} from "firebase/firestore";
+
 import OpenAI from "openai";
 
 // --- Initialize AI client ---

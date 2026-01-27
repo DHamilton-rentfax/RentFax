@@ -1,15 +1,11 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "@/firebase/server";
-import { collection, query, where, getDocs } from "firebase/firestore";
 
 export async function POST(req: Request) {
   const { hash } = await req.json();
 
-  const q = query(
-    collection(db, "blockchain_anchors"),
-    where("hash", "==", hash)
-  );
-  const snapshot = await getDocs(q);
+  const q = adminDb.collection("blockchain_anchors").where("hash", "==", hash);
+  const snapshot = await q.get();
 
   if (snapshot.empty) {
     return NextResponse.json({

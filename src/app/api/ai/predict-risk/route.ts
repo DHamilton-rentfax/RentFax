@@ -1,6 +1,8 @@
+import { FieldValue } from "firebase-admin/firestore";
+
 import { NextResponse } from "next/server";
 import { db } from "@/firebase/server";
-import { collection, query, where, getDocs } from "firebase/firestore";
+
 import OpenAI from "openai";
 
 export async function POST(req: Request) {
@@ -67,7 +69,7 @@ export async function POST(req: Request) {
     const forecast = JSON.parse(resultText);
 
     // Save forecast to a new collection
-    await db.collection("riskForecasts").doc(renterId).set({
+    await adminDb.collection("riskForecasts").doc(renterId).set({
       renterId,
       forecast,
       updatedAt: new Date().toISOString(),

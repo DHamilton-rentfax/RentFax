@@ -1,6 +1,8 @@
+import { FieldValue } from "firebase-admin/firestore";
+
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/firebase/server";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+
 import { sendEmail } from "@/lib/email"; // Assuming a simple email utility
 
 export async function POST(req: NextRequest) {
@@ -22,7 +24,7 @@ export async function POST(req: NextRequest) {
       email,
       role,
       status: "PENDING",
-      createdAt: serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
       inviterName,
       companyName,
       token,

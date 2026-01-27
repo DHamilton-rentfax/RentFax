@@ -1,6 +1,8 @@
+import { FieldValue } from "firebase-admin/firestore";
+
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/firebase/server";
-import { getDoc, doc, updateDoc, serverTimestamp } from "firebase/firestore";
+
 
 const MAX_SENDS = 3;
 
@@ -34,7 +36,7 @@ export async function POST(req: NextRequest) {
 
   await updateDoc(ref, {
     sendCount: (data.sendCount ?? 0) + 1,
-    lastSentAt: serverTimestamp(),
+    lastSentAt: FieldValue.serverTimestamp(),
   });
 
   return NextResponse.json({ success: true });

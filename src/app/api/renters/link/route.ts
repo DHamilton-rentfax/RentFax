@@ -8,7 +8,7 @@ export async function POST(req: Request) {
     const { renterId } = await req.json();
     if (!renterId) throw new Error("Missing renterId");
 
-    const renterRef = db.collection("renters").doc(renterId);
+    const renterRef = adminDb.collection("renters").doc(renterId);
     const renterSnap = await renterRef.get();
     if (!renterSnap.exists) throw new Error("Renter not found");
 
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     }
 
     // --- Match resolutions linked to those incidents ---
-    const resolutionQuery = await db.collection("resolutions").get();
+    const resolutionQuery = await adminDb.collection("resolutions").get();
     const matchedResolutions: string[] = [];
 
     for (const doc of resolutionQuery.docs) {

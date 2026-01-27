@@ -17,7 +17,7 @@ export async function GET(req: Request) {
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
 
-    let query: FirebaseFirestore.Query = db.collection("auditLogs");
+    let query: FirebaseFirestore.Query = adminDb.collection("auditLogs");
 
     if (type) query = query.where("type", "==", type);
     if (orgId) query = query.where("orgId", "==", orgId);

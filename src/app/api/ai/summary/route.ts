@@ -1,11 +1,13 @@
+import { FieldValue } from "firebase-admin/firestore";
 // ===========================================
 // RentFAX | AI Summary Generator
 // Location: src/app/api/ai/summary/route.ts
 // ===========================================
+
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { db } from "@/firebase/server";
-import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
+
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 

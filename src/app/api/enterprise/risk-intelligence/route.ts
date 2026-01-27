@@ -1,6 +1,8 @@
+import { FieldValue } from "firebase-admin/firestore";
+
 import { NextResponse } from "next/server";
 import { db } from "@/firebase/server";
-import { doc, getDoc } from "firebase/firestore";
+
 import { headers } from "next/headers";
 
 async function validateEnterpriseKey() {

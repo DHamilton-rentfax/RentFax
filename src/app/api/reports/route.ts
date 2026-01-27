@@ -1,13 +1,6 @@
 import { NextResponse } from "next/server";
-import { db } from "@/firebase/server";
-import {
-  collection,
-  getDocs,
-  query,
-  where,
-  addDoc,
-  Timestamp,
-} from "firebase/firestore";
+import { adminDb } from "@/firebase/server";
+import { FieldValue } from "firebase-admin/firestore";
 
 // GET - retrieve reports
 export async function GET() {
@@ -15,11 +8,11 @@ export async function GET() {
   // if (!user)
     // return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const reportsRef = collection(db, "reports");
+  const reportsRef = adminDb.collection("reports");
 
-  const q = query(reportsRef);
+  const q = reportsRef;
 
-  const snapshot = await getDocs(q);
+  const snapshot = await q.get();
   const reports = snapshot.docs.map((doc) => ({
     id: doc.id,
     ...doc.data(),
@@ -43,13 +36,13 @@ export async function POST(request: Request) {
       { status: 400 },
     );
 
-  const docRef = await addDoc(collection(db, "reports"), {
+  const docRef = await adminDb.collection("reports").add({
     renterId,
     reportDetails,
     fraudScore: fraudScore ?? null,
     country: country ?? "US",
     // createdBy: user.uid,
-    createdAt: Timestamp.now(),
+    createdAt: FieldValue.serverTimestamp(),
   });
 
   return NextResponse.json({ id: docRef.id, success: true });

@@ -1,11 +1,5 @@
-import { db } from "@/firebase/server";
-import {
-  collection,
-  addDoc,
-  doc,
-  updateDoc,
-  increment,
-} from "firebase/firestore";
+import { adminDb } from "@/firebase/server";
+import { FieldValue } from "firebase-admin/firestore";
 import Stripe from "stripe";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -15,7 +9,7 @@ export async function POST(req: Request) {
     if (!clientId) return new Response("Missing clientId", { status: 400 });
 
     // Store usage locally
-    await addDoc(collection(db, "apiUsageLogs"), {
+    await adminDb.collection("apiUsageLogs").add({
       clientId,
       renterId,
       endpoint,
@@ -23,11 +17,11 @@ export async function POST(req: Request) {
     });
 
     // Increment usage counter
-    const clientRef = doc(db, "enterpriseClients", clientId);
-    await updateDoc(clientRef, { usageCount: increment(1) });
+    const clientRef = adminDb.collection("enterpriseClients").doc(clientId);
+    await clientRef.update({ usageCount: FieldValue.increment(1) });
 
     // Report to Stripe (metered billing)
-    const snap = await getDoc(clientRef);
+    const snap = await clientRef.get();
     const client = snap.data();
     if (client?.stripeSubscriptionId) {
       await stripe.subscriptionItems.createUsageRecord(

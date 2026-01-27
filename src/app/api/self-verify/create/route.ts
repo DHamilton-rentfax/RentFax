@@ -1,7 +1,9 @@
+import { FieldValue } from "firebase-admin/firestore";
+
 
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/firebase/server";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+
 import { customAlphabet } from "nanoid";
 
 const nanoid = customAlphabet("1234567890abcdefghijklmnopqrstuvwxyz", 24);
@@ -26,10 +28,10 @@ export async function POST(req: NextRequest) {
       renterEmail: renter.email ?? null,
       renterPhone: renter.phone ?? null,
       status: "pending",
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
       sendCount: 1, // Initial send
-      lastSentAt: serverTimestamp(),
+      lastSentAt: FieldValue.serverTimestamp(),
     });
 
     // TODO: Actually send email/SMS here

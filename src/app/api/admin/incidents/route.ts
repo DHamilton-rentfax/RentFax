@@ -1,6 +1,8 @@
+import { FieldValue } from "firebase-admin/firestore";
+
 import { NextResponse } from "next/server";
 import { adminDb } from "@/firebase/server";
-import { collection, getDocs } from "firebase/firestore";
+
 
 export async function GET() {
   const incidents = await getDocs(collection(db, "incidents"));

@@ -1,10 +1,12 @@
+import { FieldValue } from "firebase-admin/firestore";
 // ===========================================
 // RentFAX | Super-Admin Analytics API
 // Location: src/app/api/admin/analytics/route.ts
 // ===========================================
+
 import { NextResponse } from "next/server";
 import { db } from "@/firebase/server";
-import { collection, getDocs } from "firebase/firestore";
+
 
 // In a real application, this route should be protected by a robust authentication
 // and authorization check to ensure only super-admins can access it.

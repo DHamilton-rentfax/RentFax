@@ -1,7 +1,9 @@
+import { FieldValue } from "firebase-admin/firestore";
+
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { adminDb } from "@/firebase/server";
-import { doc, updateDoc } from "firebase/firestore";
+
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 

@@ -1,3 +1,4 @@
+import { adminDb } from "@/firebase/server";
 
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
@@ -16,7 +17,7 @@ const db = admin.firestore();
 
 const getStripeCustomerId = async (email: string, userId?: string): Promise<string> => {
     if (userId) {
-        const userRef = db.collection('users').doc(userId);
+        const userRef = adminDb.collection('users').doc(userId);
         const userDoc = await userRef.get();
         if (userDoc.exists && userDoc.data()?.stripeCustomerId) {
             return userDoc.data()?.stripeCustomerId;
@@ -32,7 +33,7 @@ const getStripeCustomerId = async (email: string, userId?: string): Promise<stri
     // Create a new Stripe customer
     const customer = await stripe.customers.create({ email });
     if (userId) {
-        await db.collection('users').doc(userId).set({ stripeCustomerId: customer.id }, { merge: true });
+        await adminDb.collection('users').doc(userId).set({ stripeCustomerId: customer.id }, { merge: true });
     }
     return customer.id;
 };

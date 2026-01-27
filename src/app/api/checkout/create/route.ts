@@ -1,10 +1,12 @@
+import { FieldValue } from "firebase-admin/firestore";
 // ===========================================
 // RentFAX | Create Checkout Session
 // Location: src/app/api/checkout/create/route.ts
 // ===========================================
+
 import { NextResponse } from "next/server";
 import { db } from "@/firebase/server";
-import { doc, getDoc } from "firebase/firestore";
+
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {

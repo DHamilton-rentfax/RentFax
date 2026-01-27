@@ -1,3 +1,4 @@
+import { adminDb } from "@/firebase/server";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import admin from "firebase-admin";
@@ -35,7 +36,7 @@ export async function POST() {
   try {
     console.log("🔁 Starting Stripe plan sync job (App Hosting route)...");
 
-    const usersSnap = await db.collection("users").get();
+    const usersSnap = await adminDb.collection("users").get();
     let updatedCount = 0;
 
     for (const doc of usersSnap.docs) {
@@ -61,7 +62,7 @@ export async function POST() {
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
           });
 
-          await db.collection("auditLogs").add({
+          await adminDb.collection("auditLogs").add({
             type: "PLAN_SYNC",
             userId: doc.id,
             email: user.email,

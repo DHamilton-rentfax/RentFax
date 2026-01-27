@@ -1,10 +1,12 @@
+import { FieldValue } from "firebase-admin/firestore";
 // ===========================================
 // RentFAX | Generic Notification Sender API
 // Location: src/app/api/notifications/send/route.ts
 // ===========================================
+
 import { NextResponse } from "next/server";
 import { db } from "@/firebase/server";
-import { collection, addDoc, doc, getDoc, Timestamp } from "firebase/firestore";
+
 
 // In a real app, you would use a service like SendGrid, Postmark, or AWS SES
 async function sendEmail({ to, subject, body }: { to: string; subject: string; body: string }) {
@@ -65,7 +67,7 @@ export async function POST(req: Request) {
       email,
       template,
       status: "sent",
-      sentAt: Timestamp.now(),
+      sentAt: FieldValue.serverTimestamp(),
       providerMessageId: emailResult.messageId,
       data, // Store context data
     });

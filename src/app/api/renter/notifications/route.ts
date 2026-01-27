@@ -1,6 +1,8 @@
+import { FieldValue } from "firebase-admin/firestore";
+
 import { NextResponse } from "next/server";
 import { adminDb } from "@/firebase/server";
-import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
+
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);

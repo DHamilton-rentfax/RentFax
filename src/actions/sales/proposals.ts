@@ -1,8 +1,7 @@
 "use server";
 
-import { db, storage } from "@/lib/firebase/server";
-import { doc, collection, setDoc, serverTimestamp } from "firebase/firestore";
-import { ref, uploadBytes } from "firebase/storage";
+import { adminDb, adminStorage } from "@/firebase/server";
+import { FieldValue } from "firebase-admin/firestore";
 import { PDFDocument, StandardFonts } from "pdf-lib";
 import { logActivity } from "./activities";
 
@@ -37,9 +36,9 @@ export async function generateProposalPDF(data: any) {
 
   // Upload to Firebase Storage
   const path = `proposals/${data.company}-${Date.now()}.pdf`;
-  const storageRef = ref(storage, path);
+  const bucket = adminStorage.bucket();
 
-  await uploadBytes(storageRef, pdfBytes, {
+  await bucket.file(path).save(pdfBytes, {
     contentType: "application/pdf",
   });
 

@@ -1,6 +1,8 @@
+import { FieldValue } from "firebase-admin/firestore";
+
 
 import { NextResponse } from 'next/server';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+
 import { db } from '@/firebase/server';
 import { verifySession } from '@/lib/auth/verifySession';
 

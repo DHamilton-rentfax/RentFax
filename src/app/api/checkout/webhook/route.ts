@@ -1,6 +1,8 @@
+import { FieldValue } from "firebase-admin/firestore";
+
 import Stripe from "stripe";
 import { db } from "@/firebase/server";
-import { doc, updateDoc } from "firebase/firestore";
+
 import { NextResponse } from "next/server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
