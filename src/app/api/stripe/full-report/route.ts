@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { getServerSession } from "@/lib/auth/getServerSession";
-import { adminDb } from "@/lib/server/firebase-admin";
+import { adminDb } from "@/firebase/server";
 
 export async function POST() {
   const user = await getServerSession();

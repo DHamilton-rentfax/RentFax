@@ -1,4 +1,4 @@
-import { adminDb } from "@/lib/server/firebase-admin";
+import { adminDb } from "@/firebase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { getUserFromSessionCookie } from "@/lib/auth/getUserFromSessionCookie";
 

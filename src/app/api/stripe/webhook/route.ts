@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { adminDb } from "@/lib/server/firebase-admin";
+import { adminDb } from "@/firebase/server";
 import { provisionPdplVerification } from "@/lib/verification/provisionPdplVerification";
 
 /* -------------------------------------------------------------------------- */

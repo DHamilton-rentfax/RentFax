@@ -1,5 +1,5 @@
 import "server-only";
-import { adminDb } from "@/lib/server/firebase-admin";
+import { adminDb } from "@/firebase/server";
 import { stripe } from "@/lib/stripe/server";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";

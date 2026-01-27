@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/lib/server/firebase-admin";
+import { adminDb } from "@/firebase/server";
 import { getUserRoleFromHeaders } from "@/lib/auth/roles";
 import { toCSV } from "@/lib/server/csv";
 

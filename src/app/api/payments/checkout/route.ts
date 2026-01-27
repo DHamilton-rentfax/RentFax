@@ -3,7 +3,6 @@ import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "@/firebase/server";
 import { NextRequest, NextResponse } from "next/server";
 
-import { adminDb } from "@/lib/server/firebase-admin";
 import { getUserFromSessionCookie } from "@/lib/auth/getUserFromSessionCookie";
 import { stripe } from "@/lib/stripe/server"; // Assumes a configured Stripe client
 

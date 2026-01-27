@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb, serverTimestamp } from "@/lib/server/firebase-admin";
+import { adminDb, serverTimestamp } from "@/firebase/server";
 import { getUserFromSessionCookie } from "@/lib/auth/getUserFromSessionCookie";
 import { createIncident } from "@/lib/incidents/createIncident";
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/lib/server/firebase-admin";
+import { adminDb } from "@/firebase/server";
 import { FieldValue } from "firebase-admin/firestore";
 import { assertReportUnlockAllowed } from "@/lib/reports/assertReportUnlockAllowed";
 import { verifyCreditsOrCharge } from "@/lib/billing/verifyCreditsOrCharge";

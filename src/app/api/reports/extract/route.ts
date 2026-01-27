@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/lib/server/firebase-admin";
+import { adminDb } from "@/firebase/server";
 import { extractAgreement } from "@/lib/ai/extractAgreement";
 // Assume pdf parsing logic exists
 // import { parsePdf } from "@/lib/pdf";

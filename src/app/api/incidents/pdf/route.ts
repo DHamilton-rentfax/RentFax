@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import PDFDocument from "pdfkit";
-import { adminDb } from "@/lib/server/firebase-admin";
+import { adminDb } from "@/firebase/server";
 
 export async function GET(req: NextRequest) {
   const id = req.nextUrl.searchParams.get("id");
