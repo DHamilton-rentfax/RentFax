@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/table";
 
 import { Loader2 } from "lucide-react";
-import ReportIdentitySection from "@/components/reports/ReportIdentitySection";
+import { ReportIdentitySection } from "@/components/reports/ReportIdentitySection";
 import RecommendedHelp from "@/components/support/RecommendedHelp";
 import SupportChat from "@/components/support/SupportChat";
 
