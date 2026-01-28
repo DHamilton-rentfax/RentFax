@@ -1,4 +1,6 @@
-import { adminDb } from "@/firebase/server";
+"use server";
+
+import { getAdminDb } from "@/firebase/server";
 import {
   enforceSearchPermission,
   enforceFullReportPermission,
@@ -13,11 +15,19 @@ export interface BillingStatus {
 }
 
 async function getCredits(userId: string): Promise<number> {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
   const snap = await adminDb.collection("credits").doc(userId).get();
   return snap.exists ? snap.data()?.count ?? 0 : 0;
 }
 
 async function getUserPlan(userId: string): Promise<string> {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
   const userSnap = await adminDb.collection("users").doc(userId).get();
   if (!userSnap.exists) return "FREE";
   const user = userSnap.data()!;

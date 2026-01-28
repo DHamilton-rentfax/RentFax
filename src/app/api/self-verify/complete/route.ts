@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { FieldValue } from "firebase-admin/firestore";
 
 /* -------------------------------------------------------------------------- */
@@ -16,6 +16,11 @@ import { FieldValue } from "firebase-admin/firestore";
 */
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const { token } = await req.json();
 
   if (!token || typeof token !== "string") {

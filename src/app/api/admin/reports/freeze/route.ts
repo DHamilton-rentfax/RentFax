@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { verifySuperAdmin } from "@/lib/auth/verifySuperAdmin";
 
 /**
@@ -11,6 +11,11 @@ import { verifySuperAdmin } from "@/lib/auth/verifySuperAdmin";
  *  }
  */
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const user = await verifySuperAdmin();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 403 });

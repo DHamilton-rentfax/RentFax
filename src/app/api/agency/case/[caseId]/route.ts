@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { logReportAccess } from "@/server-actions/logReportAccess";
 
 /**
@@ -11,6 +11,11 @@ export async function GET(
   req: Request,
   { params }: { params: { caseId: string } }
 ) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const { caseId } = params;
 
   // 🔐 TODO: replace with real auth extraction

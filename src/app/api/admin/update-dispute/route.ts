@@ -1,10 +1,15 @@
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { NextResponse } from "next/server";
 import { sendDisputeNotification } from "@/lib/notifications";
 import { generateDisputeSummary } from "@/lib/ai-summary";
 import { logAuditEvent } from "@/lib/audit-log";
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const { disputeId, status, resolutionOutcome, adminNotes } =
       await req.json();

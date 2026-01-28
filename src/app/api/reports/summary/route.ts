@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 export async function GET() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const orgId = "TODO-get-from-auth"; // Replace with session orgId
   const renters = await adminDb.collection(`orgs/${orgId}/renters`).get();
   const incidents = await adminDb.collection(`orgs/${orgId}/incidents`).get();

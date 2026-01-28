@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 
 export const dynamic = "force-dynamic";
@@ -104,6 +104,11 @@ export async function GET(
   req: Request,
   { params }: { params: { id: string } }
 ) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const pdfBytes = await buildReportPdf(params.id);
 

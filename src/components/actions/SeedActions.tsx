@@ -3,10 +3,6 @@
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import {
-  seedInitialUsers,
-  runFraudAnalysisOnSeededUsers,
-} from "@/app/actions/seed-action";
 
 export default function SeedActions() {
   const [loading, setLoading] = useState(false);
@@ -16,6 +12,7 @@ export default function SeedActions() {
     setLoading(true);
     setMessage("");
     try {
+      const { seedInitialUsers } = await import("@/app/actions/seed-action");
       const result = await seedInitialUsers();
       if (result.success) {
         setMessage(result.message || "Seeding was successful!");
@@ -33,6 +30,7 @@ export default function SeedActions() {
     setLoading(true);
     setMessage("");
     try {
+      const { runFraudAnalysisOnSeededUsers } = await import("@/app/actions/seed-action");
       const result = await runFraudAnalysisOnSeededUsers();
       if (result.success) {
         setMessage(result.message || "Analysis complete!");

@@ -1,12 +1,17 @@
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { requireRole } from "@/lib/requireRole";
 import { ROLES } from "@/types/roles";
 import { writeAuditLog } from "@/lib/auditLog";
 import { Timestamp } from "firebase-admin/firestore";
 
 export async function getSupportDisputes() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const snap = await adminDb
     .collection("disputes")
     .orderBy("createdAt", "desc")

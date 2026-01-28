@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import PDFDocument from "pdfkit";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 export async function GET(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const renterId = req.nextUrl.searchParams.get("renterId");
 
   const renterSnap = await adminDb.collection("renters").doc(renterId).get();

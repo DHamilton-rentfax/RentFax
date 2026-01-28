@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { getServerSession } from "@/lib/auth/getServerSession";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 export async function POST() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const user = await getServerSession();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

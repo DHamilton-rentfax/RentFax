@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { subHours } from "date-fns";
 
@@ -106,6 +106,11 @@ async function detectAnomalies() {
 }
 
 export async function GET() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const latency = await measureFirestoreLatency();
     const logs = await getRecentLogs();

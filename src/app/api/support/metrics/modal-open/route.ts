@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server';
 import { adminDb } from '@/firebase/admin';
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const { context, userRole } = await req.json();
 

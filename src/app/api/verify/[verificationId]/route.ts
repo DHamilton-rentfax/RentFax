@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 export async function GET(
   req: Request,
   { params }: { params: { verificationId: string } }
 ) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const doc = await adminDb
       .collection("verification_requests")

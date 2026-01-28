@@ -1,8 +1,13 @@
 "use server";
 
-import { adminDb } from "@/firebase/server"; // your Firebase Admin SDK instance
+import { getAdminDb } from "@/firebase/server"; // your Firebase Admin SDK instance
 
 export async function getAdminAnalytics() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const statsRef = adminDb.collection("analytics").doc("global");
     const doc = await statsRef.get();

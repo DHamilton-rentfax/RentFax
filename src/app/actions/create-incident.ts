@@ -1,6 +1,6 @@
 'use server';
 
-import { adminDb } from '@/firebase/server';
+import { getAdminDb } from '@/firebase/server';
 import { logAuditEvent } from './log-audit';
 import { assessIncidentRisk } from './assess-risk'; // Import the risk assessment function
 
@@ -32,6 +32,11 @@ export async function createIncident(
   createdBy: string,
 ) {
   try {
+    const adminDb = getAdminDb();
+    if (!adminDb) {
+      throw new Error("Admin DB not initialized");
+    }
+
     const amountClaimed = parseFloat(data.amount) || 0;
     const initialIncidentData = {
       ...data,

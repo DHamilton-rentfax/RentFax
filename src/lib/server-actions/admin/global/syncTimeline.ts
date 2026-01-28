@@ -1,8 +1,13 @@
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 export async function syncTimeline(renterId: string) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const incidentsSnap = await adminDb
     .collection("incidents")
     .where("renterId", "==", renterId)

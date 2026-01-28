@@ -11,7 +11,6 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { riskExplain } from "@/app/actions/auth";
 import { type RiskExplainOutput } from "@/ai/flows/ai-assistant";
 
 import { Badge } from "./ui/badge";
@@ -50,6 +49,7 @@ export default function RiskExplainPanel({ renterId }: { renterId: string }) {
     setBusy(true);
     setOutput(null);
     try {
+      const { riskExplain } = await import("@/app/actions/auth");
       const res = await riskExplain({ renterId });
       setOutput(res);
     } catch (e: any) {

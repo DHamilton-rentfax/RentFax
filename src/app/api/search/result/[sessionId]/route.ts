@@ -1,4 +1,4 @@
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 import { NextResponse } from "next/server";
 import { getFirebaseAdminApp } from "@/lib/firebase-admin";
@@ -8,6 +8,11 @@ export async function GET(
   req: Request,
   { params }: { params: { sessionId: string } }
 ) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const sessionId = params.sessionId;
     const app = getFirebaseAdminApp();

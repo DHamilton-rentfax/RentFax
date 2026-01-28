@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { v4 as uuid } from "uuid";
 import type { RenterTimelineEvent } from "@/types/timeline";
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const body = (await req.json()) as Partial<RenterTimelineEvent>;
 

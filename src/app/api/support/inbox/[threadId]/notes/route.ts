@@ -1,9 +1,14 @@
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { getUserRoleFromHeaders, requireSupportRole } from "@/lib/auth/roles";
 import { NextRequest, NextResponse } from "next/server";
 import { upsertBacklogFromSignal } from "@/lib/support/backlog";
 
 export async function POST(req: NextRequest, { params }: { params: { threadId: string } }) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const { threadId } = params;
   const role = getUserRoleFromHeaders(req.headers);
 

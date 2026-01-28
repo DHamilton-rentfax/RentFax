@@ -1,5 +1,5 @@
 import { POST } from "./route";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { verifyApprovalToken } from "@/lib/memberId/generateApprovalToken";
 import { enqueueMemberIdNotification } from "@/lib/notifications/enqueueMemberIdNotification";
 

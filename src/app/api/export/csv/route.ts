@@ -5,6 +5,11 @@ import { adminDb } from "@/lib/firebase/server";
 import { getUserFromSessionCookie } from "@/lib/auth/getUserFromSessionCookie";
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const { exportType } = await req.json();
     if (!exportType) {

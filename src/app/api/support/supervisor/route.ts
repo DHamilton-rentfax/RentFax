@@ -1,8 +1,13 @@
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { requireSuperAdminRole } from "@/lib/auth/roles";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   requireSuperAdminRole(req);
 
   // In a real app, calculate these dynamically.

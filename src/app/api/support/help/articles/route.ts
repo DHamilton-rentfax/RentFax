@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 export async function GET() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const articlesSnap = await adminDb.collection("helpCenterArticles").where("status", "==", "published").get();
     const articles = articlesSnap.docs.map(doc => doc.data());

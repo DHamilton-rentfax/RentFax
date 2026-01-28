@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { logSystemEvent } from "@/lib/logging/systemLogger";
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const body = await req.json();
     const { action, disputeId, incidentId, renterId, overrideReason, mergeIntoId, adminId } = body;

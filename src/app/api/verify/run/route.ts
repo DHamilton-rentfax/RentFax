@@ -6,9 +6,14 @@ import { checkLiveness } from "@/lib/verify/liveness";
 import { buildShadowIdentityGraph } from "@/lib/fraud/shadow-map";
 import { getFraudSignals } from "@/lib/fraud/signals";
 import { determineVerificationOutcome } from "@/lib/verify/decision-engine";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const { imageFront, imageBack, selfie, renterId } = await req.json();
 
   const [frontData, backData, faceMatchScore, liveness, shadowGraph, fraudSignals] = await Promise.all([

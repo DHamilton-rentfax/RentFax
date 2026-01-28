@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { getUserRoleFromHeaders } from "@/lib/auth/roles";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { categorySlug: string } }
 ) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const { categorySlug } = params;
   const { searchParams } = new URL(req.url);
   const page = parseInt(searchParams.get("page") || "1");

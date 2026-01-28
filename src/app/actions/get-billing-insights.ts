@@ -1,9 +1,14 @@
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { getPricingConfig } from "@/firebase/server/pricing";
 
 export async function getBillingInsights(userId: string) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const pricing = await getPricingConfig();
   const usageDoc = await adminDb.collection("usage").doc(userId).get();
   const usage = usageDoc.data() ?? {};

@@ -2,10 +2,15 @@ import { FieldValue } from "firebase-admin/firestore";
 
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const { renterId, userId } = await req.json();
 
   const session = await stripe.checkout.sessions.create({

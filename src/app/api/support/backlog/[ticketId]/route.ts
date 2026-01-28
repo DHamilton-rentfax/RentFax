@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { requireSupportRole } from "@/lib/auth/roles";
 import { FieldValue } from "firebase-admin/firestore";
 
@@ -7,6 +7,11 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: { ticketId: string } }
 ) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   await requireSupportRole(req);
 
   const body = await req.json();

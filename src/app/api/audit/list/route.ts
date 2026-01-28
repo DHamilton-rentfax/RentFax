@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { getUserRoleFromHeaders } from "@/lib/auth/roles";
 
 export async function GET(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const role = await getUserRoleFromHeaders(req.headers);
   if (role !== "SUPER_ADMIN") {
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });

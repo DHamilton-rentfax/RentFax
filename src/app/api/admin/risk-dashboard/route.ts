@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { convertToCreditRange } from "@/lib/risk/convertScore";
 import { computeRiskScore } from "@/lib/risk/computeRiskScore";
 import { computeConfidenceScore } from "@/lib/risk/computeConfidenceScore";
 import { detectSignals } from "@/lib/risk/detectSignals";
 
 export async function GET() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const rentersSnap = await adminDb.collection("renters").get();
 
   const items: any[] = [];

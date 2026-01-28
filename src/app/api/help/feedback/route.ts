@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { getOptionalUser } from "@/lib/auth/optionalUser";
 
 // MOCK IMPLEMENTATION of rate limiting
@@ -10,6 +10,11 @@ const rateLimit = (ip: string) => {
 }
 
 export async function POST(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const ip = req.ip ?? '127.0.0.1';
 
   // Basic rate limiting

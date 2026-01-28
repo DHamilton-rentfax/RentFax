@@ -1,4 +1,4 @@
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { sendIncidentAlertEmail } from "@/lib/emails/sendIncidentAlert";
 
 import { createIncident } from "./create-incident";

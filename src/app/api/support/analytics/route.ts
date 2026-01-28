@@ -1,7 +1,12 @@
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { NextResponse } from "next/server";
 
 export async function GET() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const totalTickets = (await adminDb.collection("support_chats").get()).size;
 
   const statsSnap = await adminDb.collection("support_stats").doc("global").get();

@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { orgId: string } },
 ) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const { orgId } = params;
   const rentersSnap = await adminDb.collection(`orgs/${orgId}/renters`).get();
   const disputesSnap = await adminDb.collection(`orgs/${orgId}/disputes`).get();

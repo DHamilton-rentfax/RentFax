@@ -1,8 +1,13 @@
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 export async function seedDocCategories(orgId: string) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const col = adminDb.collection(`orgs/${orgId}/docCategories`);
 
   // Skip if already seeded

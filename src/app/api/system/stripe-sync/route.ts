@@ -1,4 +1,4 @@
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import admin from "firebase-admin";
@@ -33,6 +33,11 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 // 3️⃣ Plan Sync Logic
 // ----------------------
 export async function POST() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     console.log("🔁 Starting Stripe plan sync job (App Hosting route)...");
 

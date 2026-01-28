@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { ROLES, Role } from "@/types/roles";
 
@@ -8,6 +8,11 @@ export async function getUserContext(uid: string): Promise<{
   role: Role;
   orgId: string | null;
 }> {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   if (!uid) {
     return { role: ROLES.UNINITIALIZED, orgId: null };
   }

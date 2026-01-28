@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { calculateCompanyBadges } from "@/lib/company/calc-badges";
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const { companyId } = await req.json();
 
   const companyDoc = await adminDb.collection("companies").doc(companyId).get();

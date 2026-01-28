@@ -1,9 +1,14 @@
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { Dispute } from "@/types/dispute";
 
 export async function getDisputesForRenter(renterId: string) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const disputesSnapshot = await adminDb
       .collection("disputes")

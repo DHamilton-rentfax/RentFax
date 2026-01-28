@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { PDFDocument, StandardFonts } from "pdf-lib";
 
 export async function GET(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const { searchParams } = new URL(req.url);
   const reportId = searchParams.get("reportId");
 

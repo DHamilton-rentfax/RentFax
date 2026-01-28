@@ -2,7 +2,7 @@
 
 import { sendEmail } from "@/lib/email/resend";
 import { IncidentCreatedEmail } from "@/emails/IncidentCreatedEmail";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 export async function sendIncidentCreatedEmail({
   renterId,
@@ -11,6 +11,11 @@ export async function sendIncidentCreatedEmail({
   renterId: string;
   incidentId: string;
 }) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const db = adminDb;
 
   // Fetch renter details

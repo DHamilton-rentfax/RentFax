@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { getStorage } from "firebase-admin/storage";
 
 export async function DELETE(
   _: NextRequest,
   { params }: { params: { renterId: string; docId: string } },
 ) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const orgId = "demo-org"; // TODO-get-from-auth
   const { renterId, docId } = params;
 

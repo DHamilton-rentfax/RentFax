@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { createNotification } from "@/lib/notifications/createNotification";
 
 export async function updateDisputeStatusAction({
@@ -14,6 +14,11 @@ export async function updateDisputeStatusAction({
   note?: string;
   renterId: string;
 }) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     await db.collection("disputes").doc(disputeId).update({
       status,

@@ -13,6 +13,11 @@ export async function createLegacyReport({
   summary: string;
   source: string;
 }) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const session = await auth();
   if (!session?.user?.id || !session.user.role) {
     throw new Error('Unauthorized');

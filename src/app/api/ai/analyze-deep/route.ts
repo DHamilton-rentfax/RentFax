@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { OpenAI } from "openai";
 import { authUser } from "@/lib/authUser";
 import { v4 as uuidv4 } from "uuid";
@@ -56,6 +56,11 @@ function mergeResults(name: string, results: any[]) {
 }
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const isInternalRequest = req.headers.get("X-Internal-Request") === "true";
     let userId, userEmail;

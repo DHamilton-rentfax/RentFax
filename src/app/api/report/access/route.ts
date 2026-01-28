@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { Timestamp } from "firebase-admin/firestore";
 
 export async function POST(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const { purchaserUid, reportNameId } = await req.json();
 
   if (!purchaserUid || !reportNameId) {

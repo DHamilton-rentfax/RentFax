@@ -76,7 +76,7 @@ function fixFile(filepath) {
 
   // Inject adminDb import if db was used and import is missing
   if (changed && !code.includes('from "@/firebase/server"')) {
-    const importLine = `import { adminDb } from "@/firebase/server";\n`;
+    const importLine = `import { getAdminDb } from "@/firebase/server";\n`;
     code = importLine + code;
     changed = true;
   }

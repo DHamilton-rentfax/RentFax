@@ -1,9 +1,14 @@
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { getAuth } from "firebase-admin/auth";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const { accountType } = await req.json();
 
   if (!['business', 'individual'].includes(accountType)) {

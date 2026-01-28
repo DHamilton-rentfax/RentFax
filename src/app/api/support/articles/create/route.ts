@@ -1,8 +1,13 @@
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { requireSupportRole } from "@/lib/auth/roles";
 
 export async function POST(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const user = requireSupportRole(req); // SUPER_ADMIN or SUPPORT_ADMIN only
   const body = await req.json();
 

@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { FieldValue } from "firebase-admin/firestore";
 
 // GET - list disputes depending on role
 export async function GET() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   // const user = await getAuthUser();
   // if (!user)
     // return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -1,6 +1,6 @@
 import { FieldValue } from "firebase-admin/firestore";
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 import { getUserFromSessionCookie } from "@/lib/auth/getUserFromSessionCookie";
@@ -10,6 +10,11 @@ import { stripe } from "@/lib/stripe/server"; // Assumes a configured Stripe cli
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 export async function POST(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const user = await getUserFromSessionCookie(req);
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -7,6 +7,11 @@ const openai = new OpenAI({
 });
 
 export async function GET() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     // 1️⃣ Fetch billing insights using Firebase Admin SDK (CORRECT)
     const snapshot = await adminDb

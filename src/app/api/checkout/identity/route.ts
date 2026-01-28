@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { getPricingConfig } from "@/firebase/server/pricing";
 
 // This should be your Stripe secret key
@@ -25,6 +25,11 @@ interface CheckoutPayload {
 }
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const body = (await req.json()) as CheckoutPayload;
   const { purchaser, renterPayload } = body;
 

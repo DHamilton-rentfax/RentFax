@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { getStorage } from "firebase-admin/storage";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { docId: string } },
 ) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const token = req.nextUrl.searchParams.get("token")!;
   const [orgId, renterId] = Buffer.from(token, "base64").toString().split(":");
 

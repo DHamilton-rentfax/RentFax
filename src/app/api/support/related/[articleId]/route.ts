@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 function extractKeywords(text: string) {
     return text
@@ -10,6 +10,11 @@ function extractKeywords(text: string) {
   }
 
 export async function GET(req: NextRequest, { params }: { params: { articleId: string } }) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const { articleId } = params;
 
   const articleSnap = await adminDb.collection("help_articles").doc(articleId).get();

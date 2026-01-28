@@ -1,9 +1,14 @@
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { calculateRiskScore } from "./riskEngine";
 
 export async function syncIncident(incidentId: string) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const incident = (
     await adminDb.collection("incidents").doc(incidentId).get()
   ).data();

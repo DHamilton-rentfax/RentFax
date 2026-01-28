@@ -1,6 +1,6 @@
 // src/app/api/identity/purchase/route.ts
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { getCompanyPlanContextFromUid } from "@/lib/billing/company-plan";
 import { recordUsageEvent } from "@/lib/billing/usage";
 import Stripe from "stripe";
@@ -10,6 +10,11 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const body = await req.json();
     const { renter, searchSessionId, requesterUid } = body;

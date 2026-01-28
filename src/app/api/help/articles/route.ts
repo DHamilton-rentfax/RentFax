@@ -1,8 +1,13 @@
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 // Get all articles
 export async function GET() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
     const snapshot = await adminDb.collection("help_articles").get();
     const articles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     return NextResponse.json(articles);

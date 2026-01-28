@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 /* -------------------------------------------------------------------------- */
 /*                            ROUTE SEGMENT CONFIG                             */
@@ -33,6 +33,11 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 /* -------------------------------------------------------------------------- */
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const signature = req.headers.get("stripe-signature");
 
   if (!signature) {

@@ -1,6 +1,11 @@
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 export async function getDemoTrendData() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const ninetyDaysAgo = new Date(
     Date.now() - 90 * 24 * 60 * 60 * 1000,
   ).toISOString();

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { sendEmail } from "@/lib/notifications/email";
 import { sendSMS } from "@/lib/notifications/sms";
 
@@ -9,6 +9,11 @@ import {
 } from "@/lib/notifications/emailTemplates/verification-submitted";
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const body = await req.json();
     const { token } = body;

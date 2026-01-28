@@ -3,13 +3,18 @@ import { NextResponse } from "next/server";
 // IMPORTANT:
 // This assumes your server admin module exports an Admin Firestore instance.
 // If your export name is different, change only this import line.
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 function nowMs() {
   return Date.now();
 }
 
 export async function GET(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const url = new URL(req.url);
     const token = String(url.searchParams.get("token") || "").trim();

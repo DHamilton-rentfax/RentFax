@@ -1,8 +1,13 @@
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 export async function getRenterData(renterId: string) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const renterRef = adminDb.doc(`users/${renterId}`);
     const renterSnap = await renterRef.get();

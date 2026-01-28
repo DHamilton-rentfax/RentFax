@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { Timestamp, FieldValue } from "firebase-admin/firestore";
 import { verifyApprovalToken } from "@/lib/memberId/generateApprovalToken";
 import { enqueueMemberIdNotification } from "@/lib/notifications/enqueueMemberIdNotification";
@@ -9,6 +9,11 @@ type Action = "approve" | "deny";
 type FinalStatus = "APPROVED" | "DENIED" | "EXPIRED";
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const { requestId, token, action } = (await req.json()) as {
     requestId?: string;
     token?: string;

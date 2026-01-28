@@ -1,10 +1,15 @@
 import { authenticateApiRequest } from "@/lib/api/auth";
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { computeCrossIndustryRisk } from "@/lib/behavior/cross-industry-risk";
 import { computeIdentityConfidence } from "@/lib/identity/confidence";
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const auth = await authenticateApiRequest(req);
   if (!auth.ok) return NextResponse.json(auth, { status: 401 });
 

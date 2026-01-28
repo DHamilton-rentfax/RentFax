@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 // A placeholder for your actual email sending service
 async function sendEmail({ to, subject, text }: { to: string; subject: string; text: string; }) {
@@ -9,6 +9,11 @@ async function sendEmail({ to, subject, text }: { to: string; subject: string; t
 }
 
 export async function GET() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
     try {
         const usersSnapshot = await adminDb.collection("users").get();
 

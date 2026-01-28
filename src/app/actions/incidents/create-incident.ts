@@ -11,6 +11,11 @@ export async function createIncident(data: {
   amount?: number;
   evidence?: { url: string; fileName: string; fileType: string }[];
 }) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const { renterId, type, description, amount, evidence } = data;
 

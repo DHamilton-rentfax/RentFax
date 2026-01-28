@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { hashConfirmationToken } from "@/lib/security/hashToken";
 
 function jsonError(code: string, message: string, status = 400) {
@@ -12,6 +12,11 @@ type Body = {
 };
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   let body: Body;
   try {
     body = (await req.json()) as Body;

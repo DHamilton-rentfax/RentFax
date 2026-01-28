@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { generateSupportAISuggestion } from "@/lib/ai/support-ai";
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const { conversationId, messageId, text } = await req.json();
 
   if (!conversationId || !messageId || !text) {

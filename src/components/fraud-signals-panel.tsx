@@ -18,7 +18,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { detectFraudSignals } from "@/app/actions/auth";
 import type { FraudSignal } from "@/ai/flows/fraud-detector";
 
 import { Badge } from "./ui/badge";
@@ -85,8 +84,11 @@ export default function FraudSignalsPanel({ renter }: { renter: any }) {
     setBusy(true);
     setSignals(null);
     try {
+      const { detectFraudSignals } = await import("@/app/actions/auth");
       const res = await detectFraudSignals({ renterId: renter.id });
+
       setSignals(res.signals);
+
       if (res.signals.length === 0) {
         toast({
           title: "No Fraud Signals Detected",
@@ -97,7 +99,7 @@ export default function FraudSignalsPanel({ renter }: { renter: any }) {
     } catch (e: any) {
       toast({
         title: "Error Detecting Fraud",
-        description: e.message,
+        description: e?.message ?? "Unexpected error",
         variant: "destructive",
       });
     } finally {

@@ -1,9 +1,14 @@
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { FieldValue } from "firebase-admin/firestore";
 
 export async function createLead(data: any) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const ref = await adminDb.collection("crm_leads").add({
     ...data,
     stage: "NEW",

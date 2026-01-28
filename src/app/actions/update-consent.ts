@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { headers } from "next/headers";
 
 /**
@@ -19,6 +19,11 @@ export async function updateConsent({
   industry?: string;
   version?: string;
 }) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   if (!renterId || !companyId) {
     throw new Error("Missing renterId or companyId");
   }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { FieldValue } from "firebase-admin/firestore";
 import { verifySession } from "@/lib/auth/verifySession";
 
@@ -10,6 +10,11 @@ import { verifySession } from "@/lib/auth/verifySession";
  * Handles subscription credit consumption OR PAYG validation.
  */
 export async function POST(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const session = await verifySession();
 
   if (!session?.uid || !session.companyId) {

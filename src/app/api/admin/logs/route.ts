@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 export async function GET(request: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const { searchParams } = new URL(request.url);
   const level = searchParams.get("level");
   const source = searchParams.get("source");

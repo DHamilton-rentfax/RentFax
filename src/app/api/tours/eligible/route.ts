@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { getOptionalUser } from "@/lib/auth/optionalUser";
 
 // In a real implementation, you'd want to cache these tour lookups
@@ -41,6 +41,11 @@ async function getUserProgress(userId: string, tourSlugs: string[]) {
 }
 
 export async function GET(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const url = new URL(req.url);
   const page = url.searchParams.get("page");
   if (!page) {

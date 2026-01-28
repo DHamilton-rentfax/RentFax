@@ -1,4 +1,4 @@
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 // A (very) simplified scoring engine for demonstration purposes
@@ -43,6 +43,11 @@ function calculateScores(payload: any, externalData: any) {
 }
 
 export async function POST(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const payload = await req.json();
 

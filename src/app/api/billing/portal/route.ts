@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { verifySession } from "@/lib/auth/verifySession";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { FieldValue } from "firebase-admin/firestore";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -14,6 +14,11 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL!;
 /* BILLING PORTAL (SECURE, ORG-BASED)                                          */
 /* -------------------------------------------------------------------------- */
 export async function POST() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const session = await verifySession();
 
   if (!session?.uid || !session.orgId) {

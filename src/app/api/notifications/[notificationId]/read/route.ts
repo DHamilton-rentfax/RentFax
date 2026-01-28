@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { getUserIdFromHeaders } from "@/lib/auth/roles";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: { notificationId: string } }
 ) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const uid = await getUserIdFromHeaders(req.headers);
   if (!uid) {
     return NextResponse.json({ error: "UNAUTHENTICATED" }, { status: 401 });

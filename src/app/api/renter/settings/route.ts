@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { authMiddleware } from "@/lib/auth-middleware";
 
 export const POST = authMiddleware(async (req, { user }) => {

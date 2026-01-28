@@ -1,12 +1,17 @@
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { Timestamp } from "firebase-admin/firestore";
 
 // ----------------------------
 //  GET ALL RENTERS FOR ADMIN
 // ----------------------------
 export async function getAllRenters() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const snapshot = await adminDb.collection("renters").get();
 

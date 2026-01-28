@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { getUserIdFromHeaders } from "@/lib/auth/roles";
 
 export const runtime = "nodejs";
@@ -13,6 +13,11 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Params }
 ) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     // 1️⃣ Auth (required)
     const uid = await getUserIdFromHeaders(req.headers);

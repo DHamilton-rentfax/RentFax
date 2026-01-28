@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDb } from "@/firebase/server"; // Firebase Admin Firestore
+import { getAdminDb } from "@/firebase/server"; // Firebase Admin Firestore
 
 export type EnterpriseRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
 
@@ -77,6 +77,11 @@ export async function updateEnterpriseRequestStatus(params: {
   reviewerId?: string;
   notes?: string;
 }) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const { id, status, reviewerId, notes } = params;
 
   const ref = adminDb.collection("enterprise_requests").doc(id);

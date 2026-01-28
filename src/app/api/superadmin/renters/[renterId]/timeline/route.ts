@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { buildTimeline } from "@/lib/timeline/buildTimeline";
 
 export async function GET(
   req: Request,
   { params }: { params: { renterId: string } }
 ) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const renterId = params.renterId;
 
   const [incidents, disputes, payments, verifications, flags, overrides, freezes] =

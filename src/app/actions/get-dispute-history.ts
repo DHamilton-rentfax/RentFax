@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 export interface AuditLog {
   id: string;
@@ -16,6 +16,11 @@ export interface AuditLog {
  * @returns An object containing an array of audit logs, or an error.
  */
 export async function getDisputeHistory(id: string) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const historySnapshot = await adminDb
       .collection("disputes")

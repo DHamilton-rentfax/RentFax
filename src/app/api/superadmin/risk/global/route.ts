@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 export async function GET() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const reports = await adminDb.collection("reports").get();
     const data = reports.docs.map(d => ({ id: d.id, ...d.data() }));

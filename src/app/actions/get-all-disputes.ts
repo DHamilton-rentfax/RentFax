@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { Dispute } from "@/types/dispute";
 
 export async function getAllDisputes(): Promise<Dispute[]> {

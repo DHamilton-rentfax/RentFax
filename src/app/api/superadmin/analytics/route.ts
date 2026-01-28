@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { subDays, format } from "date-fns";
 
 /**
@@ -11,6 +11,11 @@ function toDate(ts: any) {
 }
 
 export async function GET() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const now = new Date();
     const days30 = subDays(now, 30);

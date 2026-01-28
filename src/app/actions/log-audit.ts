@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 export async function logAuditEvent(event: {
   action: string; // e.g. ROLE_UPDATED, DISPUTE_STATUS_CHANGED
@@ -14,6 +14,11 @@ export async function logAuditEvent(event: {
   changedBy: string; // email of actor
   metadata?: any;
 }) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     await adminDb.collection("auditLogs").add({
       ...event,

@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { getUserRoleFromHeaders } from "@/lib/auth/roles";
 import { upsertBacklogFromSignal } from "@/lib/support/backlog";
 
 export async function GET(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const url = new URL(req.url);
   const q = (url.searchParams.get("q") || "").trim();
   const role = getUserRoleFromHeaders(req.headers) || "UNKNOWN";

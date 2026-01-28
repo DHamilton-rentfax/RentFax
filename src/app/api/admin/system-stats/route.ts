@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 export async function GET() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const renters = await adminDb.collection("renters").get();
   const companies = await adminDb.collection("companies").get();
   const incidents = await adminDb.collection("incidents").get();

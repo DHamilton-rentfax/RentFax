@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { PLAN_LIMITS } from "@/lib/billing/limits";
 import { forecastUsage } from "@/lib/billing/forecast";
 
@@ -8,6 +8,11 @@ function daysSince(date: number) {
 }
 
 export async function GET(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const url = new URL(req.url);
   const isAdmin = url.searchParams.get("admin") === "1";
 

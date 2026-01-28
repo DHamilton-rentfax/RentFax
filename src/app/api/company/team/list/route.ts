@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { UserRecord } from "firebase-admin/auth";
 
 export async function GET(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const { searchParams } = new URL(req.url);
   const companyId = searchParams.get("companyId");
 

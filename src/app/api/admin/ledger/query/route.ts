@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { Timestamp } from "firebase-admin/firestore";
 import type { LedgerAction } from "@/types/ledger";
 import { getAuth } from "firebase-admin/auth";
@@ -8,6 +8,11 @@ import { getAuth } from "firebase-admin/auth";
  * Admin-only ledger query endpoint
  */
 export async function POST(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     /* ===============================
        AUTH / ROLE ENFORCEMENT

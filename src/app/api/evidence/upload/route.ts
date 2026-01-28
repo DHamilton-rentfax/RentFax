@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { getOptionalUser } from "@/lib/auth/optionalUser";
 import { createHash } from "crypto";
 import { FieldValue } from "firebase-admin/firestore";
@@ -15,6 +15,11 @@ async function mockUploadToStorage(file: File): Promise<string> {
 }
 
 export async function POST(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
     const user = await getOptionalUser(req);
     if (!user) {
         return NextResponse.json({ error: "Authentication required" }, { status: 401 });

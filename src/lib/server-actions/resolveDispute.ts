@@ -13,6 +13,11 @@ export async function resolveDispute({
   decision: string;
   notes: string;
 }) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const session = await auth(); // Get current user session
   if (!session?.user?.id || !session.user.role) {
     throw new Error('Unauthorized');

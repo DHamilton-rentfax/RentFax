@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import fetch from "node-fetch";
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     // Assuming you pass a userId and the type of collection it belongs to
     const { userId, userType, firstName, lastName, email, phone, address } = await req.json();

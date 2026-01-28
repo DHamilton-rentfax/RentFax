@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 export async function POST() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const defaultsDoc = await adminDb.doc("config/docDefaults").get();
   if (!defaultsDoc.exists) {
     return NextResponse.json({ error: "No defaults set" }, { status: 400 });

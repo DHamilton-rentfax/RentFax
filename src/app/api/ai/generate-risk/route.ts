@@ -1,4 +1,4 @@
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { NextResponse } from "next/server";
 // Assuming you will create this utility. For now, let's mock it.
 // import { generateModel } from "@/utils/ai"; 
@@ -23,6 +23,11 @@ async function generateModel(prompt: string): Promise<string> {
 
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const { renterId } = await req.json();
 
   const out = await generateModel(`

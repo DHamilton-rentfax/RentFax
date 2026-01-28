@@ -1,13 +1,18 @@
 "use server";
 
 import Stripe from "stripe";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2023-10-16",
 });
 
 export async function createCheckoutSession({ uid, amount, description }: {uid: string, amount: number, description: string}) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   // Convert credits → price
   const priceInCents = amount * 100;
 

@@ -1,4 +1,4 @@
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 import { getIncidentById } from "./get-incident-by-id";
 

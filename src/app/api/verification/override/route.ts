@@ -1,10 +1,15 @@
 
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import admin from "firebase-admin";
 import { recomputeFraudScore } from "@/lib/fraud/recompute-score";
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const { renterId, newStatus, reason, adminId } = await req.json();
 

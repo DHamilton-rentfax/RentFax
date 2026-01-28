@@ -1,8 +1,13 @@
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { NextResponse } from "next/server";
 
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const { renterId } = await req.json();
   
   const profileRef = firestoreAdmin.collection("renterProfiles").doc(renterId);

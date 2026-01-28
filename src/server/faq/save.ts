@@ -1,7 +1,7 @@
-import { db } from "@/firebase/server";
+import { adminDb } from "@/firebase/server";
 
 export async function saveFAQCandidate(question: string, answer: string) {
-  const ref = db.collection("faqs");
+  const ref = adminDb.collection("faqs");
 
   const existing = await ref.where("question", "==", question).limit(1).get();
 

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { authMiddleware } from "@/lib/auth-middleware";
 
 // In a real application, you would import your database client, e.g., from '@/firebase/server'.
-// import { adminDb } from "@/firebase/server";
+// import { getAdminDb } from "@/firebase/server";
 
 export const PUT = authMiddleware(async (req, { user }) => {
   const body = await req.json();

@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function POST(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const { query } = await req.json();
 
   const embedding = await openai.embeddings.create({

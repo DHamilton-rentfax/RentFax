@@ -1,8 +1,13 @@
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { getUserFromSessionCookie } from "@/lib/auth/getUserFromSessionCookie";
 
 export async function GET(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const user = await getUserFromSessionCookie(req);
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

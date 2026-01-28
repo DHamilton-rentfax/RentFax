@@ -1,6 +1,6 @@
 
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { requireAuth } from "@/lib/auth-middleware";
 
 export const GET = requireAuth(async (_req, user, { params }) => {

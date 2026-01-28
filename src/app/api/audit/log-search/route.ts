@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { v4 as uuid } from "uuid";
 
 /* -------------------------------------------------------------------------------------------------
  * POST — Log a renter search event
  * ------------------------------------------------------------------------------------------------*/
 export async function POST(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const body = await req.json();
 

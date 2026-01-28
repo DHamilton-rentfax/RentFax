@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { verifyApprovalToken } from "@/lib/memberId/generateApprovalToken";
 
 export async function GET(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const { searchParams } = new URL(req.url);
   const requestId = searchParams.get("id");
   const token = searchParams.get("token");

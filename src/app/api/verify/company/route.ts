@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 // This should be your server-side Firebase admin instance
 // For this example, we'll assume a mock adminDb is available if not configured
-import { adminDb } from "@/firebase/server"; 
+import { getAdminDb } from "@/firebase/server"; 
 import fetch from "node-fetch";
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const { companyId, businessName, countryCode, registrationNumber, entityType } = await req.json();
 

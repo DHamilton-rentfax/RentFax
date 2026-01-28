@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { toCSV } from "@/lib/server/csv";
 
 export async function GET(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const orgId = req.nextUrl.searchParams.get("orgId")!;
   const type = req.nextUrl.searchParams.get("type")!;
 

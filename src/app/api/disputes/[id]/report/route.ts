@@ -1,9 +1,14 @@
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { generateDisputePDF } from "@/lib/pdf-report";
 import { NextResponse } from "next/server";
 
 export async function GET(_: Request, { params }: { params: { id: string } }) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const doc = await adminDb.collection("disputes").doc(params.id).get();
     if (!doc.exists)

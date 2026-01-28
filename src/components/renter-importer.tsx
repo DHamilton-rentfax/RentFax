@@ -6,7 +6,6 @@ import { Loader2, Upload, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { importRenters } from "@/app/actions/auth";
 import {
   Table,
   TableBody,
@@ -92,6 +91,7 @@ export default function RenterImporter() {
         notes: r.notes,
       }));
 
+      const { importRenters } = await import("@/app/actions/auth");
       const result = await importRenters({ renters: mappedRenters });
       toast({
         title: "Import Successful",

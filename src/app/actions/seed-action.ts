@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 import { getFraudSignals } from "./fraud-signals";
 
@@ -79,6 +79,11 @@ const mockUsers = [
 ];
 
 export async function seedInitialUsers() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const batch = adminDb.batch();
 
   mockUsers.forEach((user) => {

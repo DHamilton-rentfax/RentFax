@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const { orgId, inviteId } = await req.json();
     const token = req.headers.get("authorization")?.split(" ")[1];

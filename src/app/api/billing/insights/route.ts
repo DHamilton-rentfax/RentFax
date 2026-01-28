@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { generatePlanRecommendation } from "@/lib/billing/recommend";
 import { determineUpsellLevel } from "@/lib/billing/upsell";
 import { storeBillingInsights } from "@/lib/billing/store-insights";
 import { PLAN_LIMITS } from "@/lib/billing/limits";
 
 export async function GET(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const url = new URL(req.url);
   const uid = url.searchParams.get("uid");
 

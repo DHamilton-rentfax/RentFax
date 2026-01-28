@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 /**
  * Simulates sending unpaid renter debts to a collections partner API.
  * Replace with real API once you have a provider.
  */
 export async function POST(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const { orgId, renterId, amount } = await req.json();
 
   // Log into Firestore

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { v4 as uuidv4 } from "uuid";
 
@@ -18,6 +18,11 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     /* ------------------------------------------------------------------
      * 1. AUTHENTICATION (SINGLE SOURCE OF TRUTH)

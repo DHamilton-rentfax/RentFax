@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { getOptionalUser } from "@/lib/auth/optionalUser";
 import { FieldValue } from "firebase-admin/firestore";
 import { hasPermission } from "@/lib/support/hasPermission";
@@ -13,6 +13,11 @@ async function getMockPermissions(userId: string) {
 }
 
 export async function POST(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
     const user = await getOptionalUser(req);
     if (!user) {
         return NextResponse.json({ error: "Authentication required" }, { status: 401 });

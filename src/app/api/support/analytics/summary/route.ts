@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { requireSupportRole } from "@/lib/auth/roles";
 import { Timestamp } from "firebase-admin/firestore";
 
 export async function GET(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   // Only SUPER_ADMIN / SUPPORT_ADMIN
   requireSupportRole(req);
 

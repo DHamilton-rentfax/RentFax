@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 // In a real application, you would get the user's session and token
 // to identify their organization. For now, we use a placeholder.
@@ -10,6 +10,11 @@ const getPartnerOrgIdFromSession = async (req: Request): Promise<string | null> 
 };
 
 export async function GET(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const partnerOrgId = await getPartnerOrgIdFromSession(req);
 

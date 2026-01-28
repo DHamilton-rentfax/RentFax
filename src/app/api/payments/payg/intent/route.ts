@@ -4,6 +4,11 @@ import { verifySession } from '@/lib/auth/verifySession';
 import { FieldValue } from 'firebase-admin/firestore';
 
 export async function POST(request: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const session = await verifySession();
 
   if (!session?.uid) {

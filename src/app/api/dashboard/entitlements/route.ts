@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { verifySession } from "@/lib/auth/verifySession";
 
 export async function GET() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const session = await verifySession();
   if (!session?.orgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

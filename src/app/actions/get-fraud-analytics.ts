@@ -1,8 +1,13 @@
 'use server';
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 export async function getFraudAnalytics() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const fraudReportsRef = adminDb.collection("fraudReports");
     const rentersRef = adminDb.collection("renters");

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { provisionPdplVerification } from "@/lib/verification/provisionPdplVerification";
 
 /* -------------------------------------------------------------------------- */
@@ -18,6 +18,11 @@ if (!webhookSecret) {
 /* WEBHOOK HANDLER                                                             */
 /* -------------------------------------------------------------------------- */
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const signature = req.headers.get("stripe-signature");
   if (!signature) {
     return NextResponse.json(

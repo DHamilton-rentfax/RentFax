@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 export async function getSubscriptions({
   plan,
@@ -9,6 +9,11 @@ export async function getSubscriptions({
   plan: string;
   status: string;
 }) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   let query: FirebaseFirestore.Query = adminDb.collection("subscriptions");
 
   if (plan !== "all") {

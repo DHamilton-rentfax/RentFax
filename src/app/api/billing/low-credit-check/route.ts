@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { lowCreditsTemplate } from "@/lib/email/templates/lowCredits";
 import { sendEmail } from "@/lib/email/send";
 
 export async function GET() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const creditsSnap = await adminDb.collection("credits").get();
 
   for (const doc of creditsSnap.docs) {

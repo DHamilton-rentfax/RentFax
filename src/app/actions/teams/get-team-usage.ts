@@ -1,8 +1,13 @@
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 export async function getTeamUsage(teamId: string) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const membersSnap = await adminDb
     .collection("teams")
     .doc(teamId)

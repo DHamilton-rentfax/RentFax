@@ -37,7 +37,7 @@ function fixFile(file) {
   let importsAdded = false;
   // Add admin imports if they don't exist
   if (!originalSrc.includes('@/firebase/server')) {
-      src = `import { adminDb } from "@/firebase/server";\n` + src;
+      src = `import { getAdminDb } from "@/firebase/server";\n` + src;
       importsAdded = true;
   }
   if (!originalSrc.includes('firebase-admin/firestore')) {

@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import type { FirebaseFirestore } from 'firebase-admin';
 
 // GET /api/admin/unauthorized-drivers?status=pending
 export async function GET(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const user = await requireAdmin(req);
     if (!["admin", "superadmin"].includes(user.role))

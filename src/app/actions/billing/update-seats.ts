@@ -1,13 +1,18 @@
 "use server";
 
 import Stripe from "stripe";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10",
 });
 
 export async function updateTeamSeats(teamId: string, newSeatCount: number) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const teamRef = adminDb.collection("teams").doc(teamId);
   const team = (await teamRef.get()).data();
 

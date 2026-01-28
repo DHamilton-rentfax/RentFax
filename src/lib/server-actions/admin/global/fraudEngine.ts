@@ -1,10 +1,15 @@
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { generateEmbeddings } from "./generateEmbeddings";
 import { cosineSimilarity } from "./utils/cosineSimilarity";
 
 export async function runFraudEngine(renterId: string) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const renterRef = adminDb.collection("renters").doc(renterId);
   const renter = (await renterRef.get()).data();
 

@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 export async function logDocAction(
   orgId: string,
@@ -8,6 +8,11 @@ export async function logDocAction(
   action: string,
   docId: string,
 ) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   await adminDb.collection(`orgs/${orgId}/audit`).add({
     actorUid,
     action: `DOC_${action}`,

@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStorage } from "firebase-admin/storage";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 export async function POST(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const formData = await req.formData();
   const file = formData.get("file") as File;
   const orgId = formData.get("orgId") as string;

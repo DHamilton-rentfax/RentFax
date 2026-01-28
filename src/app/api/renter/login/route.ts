@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
@@ -8,6 +8,11 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
  * Sends renter a magic login link via email.
  */
 export async function POST(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const { orgId, renterId, email } = await req.json();
 
   // Validate renter

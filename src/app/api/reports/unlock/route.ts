@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { FieldValue } from "firebase-admin/firestore";
 import { assertReportUnlockAllowed } from "@/lib/reports/assertReportUnlockAllowed";
 import { verifyCreditsOrCharge } from "@/lib/billing/verifyCreditsOrCharge";
 
 export async function POST(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const orgId = req.headers.get("x-org-id");
     if (!orgId) {

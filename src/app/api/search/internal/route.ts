@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { enforceUsageLimit } from "@/lib/billing/enforcer";
 import { trackUsage } from "@/lib/billing/track-usage";
 import { enrichIdentity } from "@/lib/pdl/enrich";
@@ -9,6 +9,11 @@ import { computeFraudScore } from "@/lib/search/fraud-score";
 import { checkTimeline } from "@/lib/search/timeline-check";
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const { userId, fullName, email, phone, address } = await req.json();
     if (!userId) {

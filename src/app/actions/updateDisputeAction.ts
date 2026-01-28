@@ -1,8 +1,8 @@
 "use server";
 
-import { firestore } from "@/firebase/client/admin";
+import { getAdminDb } from "@/firebase/server";
 import { logActivity } from "@/lib/logging/logActivity";
-import admin from "firebase-admin";
+import { FieldValue } from "firebase-admin/firestore";
 
 /**
  * Updates a dispute and logs the activity.
@@ -26,15 +26,20 @@ export async function updateDisputeAction({
   role: string;
   businessId: string;
 }) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
-    const disputeRef = firestore.collection("disputes").doc(disputeId);
+    const disputeRef = adminDb.collection("disputes").doc(disputeId);
 
     // 1. Update the dispute document
     await disputeRef.update({
       status,
       note,
       assignedTo,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     });
 
     // 2. Log this activity

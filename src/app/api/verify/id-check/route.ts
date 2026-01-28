@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { FieldValue } from "firebase-admin/firestore";
 
 import { hashLicense } from "@/lib/security/hashLicense";
@@ -7,6 +7,11 @@ import { detectLicenseReuse } from "@/lib/fraud/detectLicenseReuse";
 import { licenseReuseSignal } from "@/lib/fraud/signals/licenseReuseSignal";
 
 export async function POST(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const { renterId, reportId, licenseNumber } = await req.json();
 

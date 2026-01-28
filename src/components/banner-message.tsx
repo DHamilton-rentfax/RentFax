@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 
-import { getCompanySettings } from "@/app/actions/auth";
 import { useAuth } from "@/hooks/use-auth";
 
 export default function BannerMessage() {
@@ -12,9 +11,12 @@ export default function BannerMessage() {
 
   useEffect(() => {
     if (claims?.companyId) {
-      getCompanySettings().then((settings) =>
-        setMsg(settings?.bannerMessage || ""),
-      );
+      const fetchSettings = async () => {
+        const { getCompanySettings } = await import("@/app/actions/auth");
+        const settings = await getCompanySettings();
+        setMsg(settings?.bannerMessage || "");
+      };
+      fetchSettings();
     }
   }, [claims]);
 

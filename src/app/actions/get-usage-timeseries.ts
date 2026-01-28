@@ -1,8 +1,12 @@
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 export async function getUsageTimeseries(userId: string) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
   const usage = (await adminDb.collection("usage").doc(userId).get()).data() || {};
 
   const daily = usage.daily || {};

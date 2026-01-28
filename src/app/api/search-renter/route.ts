@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { generateIdentityHash } from "@/lib/identity-hash";
 import { findAliasMatches } from "@/lib/alias-detection";
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const body = await req.json();
     const { fullName, dob, licenseNumber, nationality, emails, phones } = body;

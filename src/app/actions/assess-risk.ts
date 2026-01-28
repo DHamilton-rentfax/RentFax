@@ -10,6 +10,11 @@ async function getRenterHistory(renterId: string) {
 }
 
 export async function assessIncidentRisk(incidentId: string) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const incidentRef = adminDb.collection('incidents').doc(incidentId);
     const incidentDoc = await incidentRef.get();

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import Stripe from "stripe";
 import { v4 as uuid } from "uuid";
 
@@ -14,6 +14,11 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
  *  POST — Create Checkout Session for Full Report Unlock
  * ------------------------------------------------------------------------------------------------*/
 export async function POST(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const body = await req.json();
 

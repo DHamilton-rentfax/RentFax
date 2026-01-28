@@ -1,4 +1,4 @@
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 // src/app/api/renter/checkout/route.ts
 
 import { NextResponse } from "next/server";
@@ -40,6 +40,11 @@ const FULL_REPORT_PRICE_ID =
   process.env.STRIPE_PRICE_ID_FULL_REPORT || "";
 
 export async function POST(req: Request) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     if (!stripe) {
       return NextResponse.json(

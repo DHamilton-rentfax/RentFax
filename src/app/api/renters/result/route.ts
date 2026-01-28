@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { buildFullRiskProfile } from "@/lib/risk/buildFullRiskProfile";
 
 export async function GET(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const renterId = req.nextUrl.searchParams.get("id");
   if (!renterId) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 

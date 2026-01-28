@@ -16,7 +16,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { upsertRenter } from "@/app/actions/auth";
 import { useToast } from "@/hooks/use-toast";
 import { Renter } from "@/ai/flows/renters";
 
@@ -65,7 +64,9 @@ export default function RenterForm({ renter, onSave }: RenterFormProps) {
   const onSubmit = async (values: FormData) => {
     setLoading(true);
     try {
+      const { upsertRenter } = await import("@/app/actions/auth");
       await upsertRenter(values);
+
       toast({
         title: "Renter Saved",
         description: `${values.name} has been saved.`,
@@ -74,7 +75,7 @@ export default function RenterForm({ renter, onSave }: RenterFormProps) {
     } catch (e: any) {
       toast({
         title: "Save Failed",
-        description: e.message,
+        description: e?.message ?? "Unexpected error",
         variant: "destructive",
       });
     } finally {

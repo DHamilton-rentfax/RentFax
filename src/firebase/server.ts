@@ -1,33 +1,44 @@
-import 'server-only';
-import * as admin from "firebase-admin";
-import fs from "fs";
-import path from "path";
+import "server-only";
+import { initializeApp, getApps, cert, App } from "firebase-admin/app";
+import { getAuth, Auth } from "firebase-admin/auth";
+import { getFirestore, Firestore } from "firebase-admin/firestore";
 
-const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+let app: App | undefined;
 
-if (!serviceAccountPath) {
-  throw new Error("FIREBASE_SERVICE_ACCOUNT_PATH is not set");
+function initAdmin() {
+  if (app) return;
+
+  const projectId = process.env.FIREBASE_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const privateKeyRaw = process.env.FIREBASE_PRIVATE_KEY;
+
+  if (!projectId || !clientEmail || !privateKeyRaw) {
+    console.warn("⚠️ Firebase Admin not initialized: missing FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, or FIREBASE_PRIVATE_KEY env vars. Some server-side functionality may fail.");
+    return;
+  }
+
+  // Correctly replace escaped newlines from the environment variable
+  const privateKey = privateKeyRaw.replace(/\\n/g, "\n");
+
+  const existingApp = getApps().length > 0 ? getApps()[0] : undefined;
+  
+  if (existingApp) {
+    app = existingApp;
+  } else {
+    app = initializeApp({
+      credential: cert({ projectId, clientEmail, privateKey }),
+    });
+  }
 }
 
-const absolutePath = path.isAbsolute(serviceAccountPath)
-  ? serviceAccountPath
-  : path.join(process.cwd(), serviceAccountPath);
-
-if (!fs.existsSync(absolutePath)) {
-  throw new Error(`Service account key not found at ${absolutePath}`);
+export function getAdminAuth(): Auth | undefined {
+  initAdmin();
+  // We check for app existence to handle the case where initAdmin() returns early due to missing env vars.
+  return app ? getAuth(app) : undefined;
 }
 
-const serviceAccount = JSON.parse(
-  fs.readFileSync(absolutePath, "utf8")
-);
-
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-  });
+export function getAdminDb(): Firestore | undefined {
+  initAdmin();
+  // We check for app existence to handle the case where initAdmin() returns early due to missing env vars.
+  return app ? getFirestore(app) : undefined;
 }
-
-export const adminAuth = admin.auth();
-export const adminDb = admin.firestore();
-export const adminStorage = admin.storage();

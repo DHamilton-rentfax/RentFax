@@ -1,10 +1,15 @@
 import { FieldValue } from "firebase-admin/firestore";
 
 import { NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 
 export async function GET() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const incidents = await getDocs(collection(db, "incidents"));
   const disputes = await getDocs(collection(db, "disputes"));
   const fraud = await getDocs(collection(db, "fraud_signals"));

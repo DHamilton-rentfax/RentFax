@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { getOptionalUser } from "@/lib/auth/optionalUser";
 import { FieldValue } from "firebase-admin/firestore";
 
@@ -14,6 +14,11 @@ async function isSuperAdmin(userId: string): Promise<boolean> {
  * This is an immutable action: it creates a new version, it doesn't edit an old one.
  */
 export async function POST(req: NextRequest) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
     const user = await getOptionalUser(req);
     if (!user || !await isSuperAdmin(user.id)) {
         return NextResponse.json({ error: "Forbidden: Only SUPER_ADMINs can publish policies." }, { status: 403 });

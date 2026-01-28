@@ -1,9 +1,14 @@
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { auth } from "@/auth";
 
 export async function getTeamInfo() {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   const session = await auth();
   const userId = session?.user?.id;
 

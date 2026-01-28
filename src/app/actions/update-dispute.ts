@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 
 import { logAuditEvent } from "./log-audit";
 
@@ -9,6 +9,11 @@ export async function updateDispute(
   newStatus: string,
   adminEmail: string,
 ) {
+  const adminDb = getAdminDb();
+  if (!adminDb) {
+    throw new Error("Admin DB not initialized");
+  }
+
   try {
     const disputeRef = adminDb.collection("disputes").doc(disputeId);
     const doc = await disputeRef.get();
