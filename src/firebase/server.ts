@@ -1,9 +1,14 @@
 import "server-only";
+import admin from "firebase-admin";
 import { initializeApp, getApps, cert, App } from "firebase-admin/app";
 import { getAuth, Auth } from "firebase-admin/auth";
 import { getFirestore, Firestore } from "firebase-admin/firestore";
+import { getStorage, Storage } from "firebase-admin/storage";
 
 let app: App | undefined;
+let dbInstance: Firestore | undefined;
+let authInstance: Auth | undefined;
+let storageInstance: Storage | undefined;
 
 function initAdmin() {
   if (app) return;
@@ -13,32 +18,65 @@ function initAdmin() {
   const privateKeyRaw = process.env.FIREBASE_PRIVATE_KEY;
 
   if (!projectId || !clientEmail || !privateKeyRaw) {
-    console.warn("⚠️ Firebase Admin not initialized: missing FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, or FIREBASE_PRIVATE_KEY env vars. Some server-side functionality may fail.");
+    console.warn(
+      "⚠️ Firebase Admin not initialized: missing env vars"
+    );
     return;
   }
 
-  // Correctly replace escaped newlines from the environment variable
   const privateKey = privateKeyRaw.replace(/\\n/g, "\n");
 
-  const existingApp = getApps().length > 0 ? getApps()[0] : undefined;
-  
-  if (existingApp) {
-    app = existingApp;
-  } else {
-    app = initializeApp({
-      credential: cert({ projectId, clientEmail, privateKey }),
-    });
-  }
+  app =
+    getApps().length > 0
+      ? getApps()[0]
+      : initializeApp({
+          credential: cert({ projectId, clientEmail, privateKey }),
+          storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+        });
+
+  dbInstance = getFirestore(app);
+  authInstance = getAuth(app);
+  storageInstance = getStorage(app);
 }
 
-export function getAdminAuth(): Auth | undefined {
+/* ───────────────────────────────────────────── */
+/* Canonical getters (safe, typed)                */
+/* ───────────────────────────────────────────── */
+
+export function getAdminDb(): Firestore {
   initAdmin();
-  // We check for app existence to handle the case where initAdmin() returns early due to missing env vars.
-  return app ? getAuth(app) : undefined;
+  if (!dbInstance) throw new Error("Firestore not initialized");
+  return dbInstance;
 }
 
-export function getAdminDb(): Firestore | undefined {
+export function getAdminAuth(): Auth {
   initAdmin();
-  // We check for app existence to handle the case where initAdmin() returns early due to missing env vars.
-  return app ? getFirestore(app) : undefined;
+  if (!authInstance) throw new Error("Auth not initialized");
+  return authInstance;
 }
+
+export function getAdminStorage(): Storage {
+  initAdmin();
+  if (!storageInstance) throw new Error("Storage not initialized");
+  return storageInstance;
+}
+
+/* ───────────────────────────────────────────── */
+/* Backward-compat exports (CRITICAL)             */
+/* ───────────────────────────────────────────── */
+
+export const adminDb = (() => getAdminDb())();
+export const adminAuth = (() => getAdminAuth())();
+export const adminStorage = (() => getAdminStorage())();
+
+/** legacy aliases used everywhere */
+export const db = adminDb;
+export const auth = adminAuth;
+export const storage = adminStorage;
+
+/** Timestamp compatibility */
+export const serverTimestamp =
+  admin.firestore.FieldValue.serverTimestamp;
+
+/** raw admin (some routes expect this) */
+export { admin };
