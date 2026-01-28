@@ -1,16 +1,27 @@
-import { cookies } from "next/headers";
-import { getAdminAuth } from "@/firebase/server";
+"use server";
 
-export async function getCurrentUser() {
-  const session = cookies().get("__session")?.value;
-  if (!session) return null;
+/**
+ * SERVER ACTION SAFE AUTH HELPERS
+ *
+ * IMPORTANT:
+ * - No next/headers
+ * - No Firebase Admin
+ * - This file may be imported by pages
+ * - Real auth happens in API routes
+ */
 
-  const adminAuth = getAdminAuth();
-  if (!adminAuth) return null;
+export type CurrentUser = {
+  uid: string;
+  role?: string;
+  companyId?: string;
+} | null;
 
-  try {
-    return await adminAuth.verifySessionCookie(session, true);
-  } catch {
-    return null;
-  }
+/**
+ * Stubbed user resolver
+ * Real auth should happen via API routes
+ */
+export async function getCurrentUser(): Promise<CurrentUser> {
+  // Intentionally returns null.
+  // Auth resolution happens via /api/auth/me
+  return null;
 }

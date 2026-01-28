@@ -1,31 +1,30 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { adminAuth } from "@/firebase/server";
-import { getUserContext } from "@/app/actions/get-user-context";
+import { getAdminAuth } from "@/firebase/server";
+
+export const dynamic = "force-dynamic"; // 👈 ADD THIS
 
 export async function GET() {
+  const session = cookies().get("__session")?.value;
+  if (!session) {
+    return NextResponse.json({ user: null });
+  }
+
+  const adminAuth = getAdminAuth();
+  if (!adminAuth) {
+    return NextResponse.json({ user: null });
+  }
+
   try {
-    const session = cookies().get("__session")?.value;
-    if (!session) {
-      return NextResponse.json({ user: null }, { status: 401 });
-    }
-
     const decoded = await adminAuth.verifySessionCookie(session, true);
-    const ctx = await getUserContext(decoded.uid);
-
-    if (!ctx) {
-      return NextResponse.json({ user: null }, { status: 401 });
-    }
-
     return NextResponse.json({
       user: {
         uid: decoded.uid,
-        role: ctx.role,
-        orgId: ctx.orgId ?? null,
+        role: decoded.role ?? null,
+        companyId: decoded.companyId ?? null,
       },
     });
-  } catch (err) {
-    console.error("Auth context error:", err);
-    return NextResponse.json({ user: null }, { status: 401 });
+  } catch {
+    return NextResponse.json({ user: null });
   }
 }
