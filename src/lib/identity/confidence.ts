@@ -15,3 +15,13 @@ export function computeIdentityConfidence(profile: any) {
 
   return Math.min(score, 100);
 }
+
+export function getIdentityScore(identity: {
+  verified?: boolean;
+  confidence?: number;
+}) {
+  if (!identity) return 0;
+  if (typeof identity.confidence === "number") return identity.confidence;
+  if (identity.verified) return 80;
+  return 50;
+}

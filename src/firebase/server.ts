@@ -1,82 +1,63 @@
 import "server-only";
-import admin from "firebase-admin";
-import { initializeApp, getApps, cert, App } from "firebase-admin/app";
+import { initializeApp, getApps, cert } from "firebase-admin/app";
 import { getAuth, Auth } from "firebase-admin/auth";
-import { getFirestore, Firestore } from "firebase-admin/firestore";
-import { getStorage, Storage } from "firebase-admin/storage";
+import { getFirestore, Firestore, FieldValue } from "firebase-admin/firestore";
 
-let app: App | undefined;
-let dbInstance: Firestore | undefined;
+let appInitialized = false;
 let authInstance: Auth | undefined;
-let storageInstance: Storage | undefined;
+let dbInstance: Firestore | undefined;
 
 function initAdmin() {
-  if (app) return;
+  if (appInitialized) return;
 
   const projectId = process.env.FIREBASE_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
   const privateKeyRaw = process.env.FIREBASE_PRIVATE_KEY;
 
   if (!projectId || !clientEmail || !privateKeyRaw) {
-    console.warn(
-      "⚠️ Firebase Admin not initialized: missing env vars"
-    );
+    console.warn("⚠️ Firebase Admin not initialized: missing env vars");
     return;
   }
 
   const privateKey = privateKeyRaw.replace(/\\n/g, "\n");
 
-  app =
-    getApps().length > 0
-      ? getApps()[0]
-      : initializeApp({
-          credential: cert({ projectId, clientEmail, privateKey }),
-          storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-        });
+  const app =
+    getApps()[0] ??
+    initializeApp({
+      credential: cert({ projectId, clientEmail, privateKey }),
+    });
 
-  dbInstance = getFirestore(app);
   authInstance = getAuth(app);
-  storageInstance = getStorage(app);
+  dbInstance = getFirestore(app);
+  appInitialized = true;
 }
 
-/* ───────────────────────────────────────────── */
-/* Canonical getters (safe, typed)                */
-/* ───────────────────────────────────────────── */
-
-export function getAdminDb(): Firestore {
+export function getAdminAuth(): Auth | undefined {
   initAdmin();
-  if (!dbInstance) throw new Error("Firestore not initialized");
-  return dbInstance;
-}
-
-export function getAdminAuth(): Auth {
-  initAdmin();
-  if (!authInstance) throw new Error("Auth not initialized");
   return authInstance;
 }
 
-export function getAdminStorage(): Storage {
+export function getAdminDb(): Firestore | undefined {
   initAdmin();
-  if (!storageInstance) throw new Error("Storage not initialized");
-  return storageInstance;
+  return dbInstance;
 }
 
-/* ───────────────────────────────────────────── */
-/* Backward-compat exports (CRITICAL)             */
-/* ───────────────────────────────────────────── */
+/** 🔁 Legacy aliases (SAFE) */
+export const auth = {
+  get current() {
+    return getAdminAuth();
+  },
+};
 
-export const adminDb = (() => getAdminDb())();
-export const adminAuth = (() => getAdminAuth())();
-export const adminStorage = (() => getAdminStorage())();
+export const db = {
+  get current() {
+    return getAdminDb();
+  },
+};
 
-/** legacy aliases used everywhere */
-export const db = adminDb;
-export const auth = adminAuth;
-export const storage = adminStorage;
+export const serverTimestamp = FieldValue.serverTimestamp;
 
-/** Timestamp compatibility */
-export const serverTimestamp =
-  admin.firestore.FieldValue.serverTimestamp;
-
-/** raw admin (some routes expect this) */
-export { admin };
+export function getFirebaseAdminApp() {
+  initAdmin();
+  return getApps()[0];
+}
