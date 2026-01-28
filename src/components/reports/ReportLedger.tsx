@@ -52,3 +52,5 @@ export function ReportLedger({ entries }: ReportLedgerProps) {
     </section>
   );
 }
+
+export default ReportLedger;

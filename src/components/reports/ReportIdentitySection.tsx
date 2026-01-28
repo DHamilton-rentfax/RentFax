@@ -41,3 +41,5 @@ export function ReportIdentitySection({
     </div>
   );
 }
+
+export default ReportIdentitySection;

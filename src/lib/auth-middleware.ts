@@ -1,26 +1,30 @@
-// src/lib/auth-middleware.ts
-
+import "server-only";
 import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { adminAuth } from "@/firebase/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { getAdminAuth } from "@/firebase/server";
+
+/* =========================
+   TYPES
+========================= */
 
 export interface AuthedUser {
   uid: string;
   claims: Record<string, any>;
 }
 
-/**
- * Reads and verifies the Firebase session cookie (`__session`)
- */
+/* =========================
+   SESSION RESOLVER
+========================= */
+
 export async function getUserFromSession(): Promise<AuthedUser | null> {
   try {
-    const cookieStore = cookies();
-    const sessionCookie = cookieStore.get("__session")?.value;
+    const session = cookies().get("__session")?.value;
+    if (!session) return null;
 
-    if (!sessionCookie) return null;
+    const adminAuth = getAdminAuth();
+    if (!adminAuth) return null;
 
-    const decoded = await adminAuth.verifySessionCookie(sessionCookie, true);
+    const decoded = await adminAuth.verifySessionCookie(session, true);
 
     return {
       uid: decoded.uid,
@@ -32,9 +36,10 @@ export async function getUserFromSession(): Promise<AuthedUser | null> {
   }
 }
 
-/**
- * Protects API routes by requiring a valid Firebase session cookie
- */
+/* =========================
+   API ROUTE WRAPPER
+========================= */
+
 export function withAuth(
   handler: (
     req: NextRequest,
@@ -55,5 +60,22 @@ export function withAuth(
   };
 }
 
-// Backward compatibility
+/* =========================
+   LEGACY / MIDDLEWARE API
+   (THIS FIXES BUILD ERRORS)
+========================= */
+
+export function authMiddleware(req: NextRequest) {
+  const session = req.cookies.get("__session")?.value;
+
+  if (!session) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+
+  // IMPORTANT:
+  // Middleware must return void to continue
+  return;
+}
+
+// Backward compatibility aliases
 export const requireAuth = withAuth;

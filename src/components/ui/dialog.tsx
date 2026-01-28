@@ -71,6 +71,10 @@ const DialogDescription = React.forwardRef<
 ))
 DialogDescription.displayName = DialogPrimitive.Description.displayName
 
+export const DialogFooter = ({ children }: { children: React.ReactNode }) => (
+  <div className="flex justify-end gap-2">{children}</div>
+);
+
 export {
   Dialog,
   DialogTrigger,

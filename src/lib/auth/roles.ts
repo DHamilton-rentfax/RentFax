@@ -1,38 +1,43 @@
 import { adminDb } from "@/firebase/server";
+import { headers } from "next/headers";
 import { DefaultRoleMap, User, UserRole } from "@/types";
 
-/**
- * Checks if a user has a specific permission.
- *
- * @param user The user object.
- * @param requiredPermission The permission to check for (e.g., "blogs:publish").
- * @returns True if the user has the permission, false otherwise.
- */
-export function hasPermission(user: User, requiredPermission: string): boolean {
+/* =========================
+   PERMISSION CHECKING
+========================= */
+
+export function hasPermission(
+  user: User,
+  requiredPermission: string
+): boolean {
   // Super admins have all permissions
   if (user.role === UserRole.SUPER_ADMIN) {
     return true;
   }
 
-  // Check for explicit user-level permission overrides
+  // Explicit user-level overrides
   if (user.permissions?.includes(requiredPermission)) {
     return true;
   }
 
-  // Check the user's role-based permissions
-  const rolePermissions = DefaultRoleMap[user.role]?.permissions.some(
-    (p) => p.key === requiredPermission
-  );
+  // Role-based permissions
+  const rolePermissions =
+    DefaultRoleMap[user.role]?.permissions.some(
+      (p) => p.key === requiredPermission
+    ) ?? false;
 
-  return rolePermissions || false;
+  return rolePermissions;
 }
 
-/**
- * Seeds the default roles and permissions to Firestore.
- * This should be run once during application setup.
- */
+/* =========================
+   FIRESTORE SEEDING
+========================= */
+
 export async function seedRolesToFirestore() {
-  const rolesCollection = adminDb.collection("roles");
+  const db = adminDb();
+  if (!db) throw new Error("Admin DB not initialized");
+
+  const rolesCollection = db.collection("roles");
 
   for (const role in DefaultRoleMap) {
     const roleData = DefaultRoleMap[role as UserRole];
@@ -40,4 +45,34 @@ export async function seedRolesToFirestore() {
   }
 
   console.log("✅ Default roles seeded to Firestore.");
+}
+
+/* =========================
+   REQUEST-TIME HELPERS
+   (COMPAT LAYER)
+========================= */
+
+// These unblock existing imports across the app
+
+export function getUserIdFromHeaders(): string | null {
+  return headers().get("x-user-id");
+}
+
+export function getUserRoleFromHeaders(): UserRole | null {
+  const role = headers().get("x-user-role");
+  return role as UserRole | null;
+}
+
+export function requireSupportRole() {
+  const role = getUserRoleFromHeaders();
+  if (role !== UserRole.SUPPORT && role !== UserRole.SUPER_ADMIN) {
+    throw new Error("Support role required");
+  }
+}
+
+export function requireSuperAdminRole() {
+  const role = getUserRoleFromHeaders();
+  if (role !== UserRole.SUPER_ADMIN) {
+    throw new Error("Super admin role required");
+  }
 }

@@ -1,36 +1,45 @@
-import { adminDb } from "@/firebase/server";
+import "server-only";
 
-// Define the structure of an audit log entry
-interface AuditEvent {
-  timestamp: FirebaseFirestore.FieldValue; // Use server timestamp for accuracy
+import { adminDb } from "@/firebase/server";
+import { FieldValue } from "firebase-admin/firestore";
+
+/* =========================
+   TYPES
+========================= */
+
+export interface AuditEvent {
+  timestamp: FirebaseFirestore.FieldValue;
   actor: {
-    uid: string; // The user who performed the action
+    uid: string;
     email?: string;
-    ip?: string; // The IP address of the actor
+    ip?: string;
   };
-  action: string; // e.g., 'USER_LOGIN', 'ROLE_UPDATE', 'PASSWORD_CHANGE'
+  action: string;
   target?: {
-    uid: string; // The user who was affected by the action
+    uid: string;
     email?: string;
   };
-  details?: any; // Any additional JSON data
+  details?: Record<string, any>;
 }
 
-/**
- * Writes a structured event to the 'audit-logs' collection in Firestore.
- *
- * @param event - The audit event object.
- */
-export const logAuditEvent = async (event: Omit<AuditEvent, 'timestamp'>) => {
-  try {
-    const logEntry: AuditEvent = {
-      ...event,
-      timestamp: adminDb.FieldValue.serverTimestamp(),
-    };
-    await adminDb.collection("audit-logs").add(logEntry);
-  } catch (error) {
-    console.error("Failed to write to audit log:", error);
-    // In a production scenario, you might want to add more robust error handling,
-    // like sending an alert to a monitoring service.
+/* =========================
+   LOGGER
+========================= */
+
+export async function logAudit(
+  event: Omit<AuditEvent, "timestamp">
+) {
+  if (!adminDb) {
+    console.warn("Audit skipped: adminDb not initialized");
+    return;
   }
-};
+
+  try {
+    await adminDb.collection("audit-logs").add({
+      ...event,
+      timestamp: FieldValue.serverTimestamp(),
+    });
+  } catch (error) {
+    console.error("Failed to write audit log:", error);
+  }
+}
