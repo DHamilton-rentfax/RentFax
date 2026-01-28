@@ -13,7 +13,7 @@ export type LedgerAction =
 
 export type LedgerEntry = {
   id: string;
-  createdAt: Timestamp;
+  createdAt: Timestamp | Date | string;
   action: LedgerAction;
   actorId: string;
   actorType: "user" | "admin" | "system";

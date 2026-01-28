@@ -34,16 +34,23 @@ export function ReportLedger({ entries }: ReportLedgerProps) {
         {entries.map((entry) => {
           const label =
             LEDGER_ACTION_LABELS[entry.action] ?? "Unknown action";
+          
+          const createdAt =
+            typeof entry.createdAt === "string"
+              ? new Date(entry.createdAt)
+              : entry.createdAt instanceof Date
+              ? entry.createdAt
+              : entry.createdAt?.toDate?.();
 
           return (
             <li key={entry.id} className="flex items-start gap-2">
               <span className="font-medium">{label}</span>
               <span className="text-gray-400">•</span>
               <time
-                dateTime={entry.createdAt}
+                dateTime={createdAt?.toISOString()}
                 className="text-gray-500"
               >
-                {new Date(entry.createdAt).toLocaleString()}
+                {createdAt ? createdAt.toLocaleString() : "—"}
               </time>
             </li>
           );

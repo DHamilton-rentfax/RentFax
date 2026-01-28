@@ -29,13 +29,15 @@ export interface AuditEvent {
 export async function logAudit(
   event: Omit<AuditEvent, "timestamp">
 ) {
-  if (!adminDb) {
+  const db = adminDb();
+
+  if (!db) {
     console.warn("Audit skipped: adminDb not initialized");
     return;
   }
 
   try {
-    await adminDb.collection("audit-logs").add({
+    await db.collection("audit-logs").add({
       ...event,
       timestamp: FieldValue.serverTimestamp(),
     });
