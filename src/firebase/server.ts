@@ -28,27 +28,21 @@ function initAdmin() {
    MODERN API
 =========== */
 
-export function getAdminDb(): Firestore | undefined {
+export function getAdminDb(): Firestore {
   initAdmin();
-  if (!dbInstance) {
-    dbInstance = admin.firestore();
-  }
+  if (!dbInstance) dbInstance = admin.firestore();
   return dbInstance;
 }
 
-export function getAdminAuth(): Auth | undefined {
+export function getAdminAuth(): Auth {
   initAdmin();
-  if (!authInstance) {
-    authInstance = admin.auth();
-  }
+  if (!authInstance) authInstance = admin.auth();
   return authInstance;
 }
 
-export function getAdminStorage(): Storage | undefined {
+export function getAdminStorage(): Storage {
   initAdmin();
-  if (!storageInstance) {
-    storageInstance = admin.storage();
-  }
+  if (!storageInstance) storageInstance = admin.storage();
   return storageInstance;
 }
 
@@ -59,18 +53,25 @@ export function getFirebaseAdminApp() {
 
 /* ==================
    LEGACY COMPAT LAYER
-   (THIS FIXES 90%)
 ================== */
 
-// ❗ These aliases unblock the entire codebase
-export const adminDb = getAdminDb();
-export const adminAuth = getAdminAuth();
-export const adminStorage = getAdminStorage();
+// lazy legacy aliases
+export function adminDb() {
+  return getAdminDb();
+}
 
-// some files still import `admin`
+export function adminAuth() {
+  return getAdminAuth();
+}
+
+export function adminStorage() {
+  return getAdminStorage();
+}
+
+// legacy imports
 export { admin };
 
-// legacy names seen in your logs
+// legacy short-hands
 export const db = adminDb;
 export const auth = adminAuth;
 export const storage = adminStorage;
